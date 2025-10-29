@@ -1,6 +1,6 @@
-import { BaseExeDriver } from "./exeDriver";
-import { Workflow } from "./workflow";
-import type { HandlerContext } from "./workflow";
+import { type BaseExeDriver } from './exeDriver';
+import { Workflow } from './workflow';
+import type { HandlerContext } from './workflow';
 
 export class OWClient {
   private readonly driver: BaseExeDriver;
@@ -18,6 +18,7 @@ export class OWClient {
     return new Workflow({
       id: opts.id,
       handler,
+      driver: this.driver,
     });
   }
 }
