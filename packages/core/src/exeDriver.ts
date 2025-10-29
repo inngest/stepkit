@@ -31,27 +31,32 @@ type FoundStep =
       promise: PromiseController;
     };
 
-type StepState = Record<
-  string,
-  { output: unknown; status: "success" } | { error: unknown; status: "error" }
->;
+type StepStateItem = { output: unknown; status: "success" } | { error: unknown; status: "error" };
+
+type StepState = {
+  getStep(id: string): StepStateItem | undefined;
+  setStep(id: string, state: StepStateItem): void;
+}
 
 export class BaseExeDriver {
+  constructor(private state: StepState) {
+    this.state = state;
+  }
+
   async onStepsFound(
     workflow: Workflow,
-    stepState: StepState,
     steps: FoundStep[]
   ): Promise<Flow> {
     const newSteps: FoundStep[] = [];
     for (const step of steps) {
-      if (step.id in stepState) {
-        const state = stepState[step.id];
-        if (state.status === "success") {
+      const item = this.state.getStep(step.id);
+      if (item) {
+        if (item.status === "success") {
           // Step already succeeded, so return its output
-          step.promise.resolve(state.output);
+          step.promise.resolve(item.output);
         } else {
           // Step already failed, so throw its error
-          step.promise.reject(state.error);
+          step.promise.reject(item.error);
         }
       } else {
         // Step found for the first time
@@ -63,9 +68,9 @@ export class BaseExeDriver {
       const newStep = newSteps[0];
       try {
         const output = await newStep.opts.handler();
-        stepState[newStep.id] = { output, status: "success" };
+        this.state.setStep(newStep.id, { output, status: "success" });
       } catch (error) {
-        stepState[newStep.id] = { error, status: "error" };
+        this.state.setStep(newStep.id, { error, status: "error" });
       }
     } else if (newSteps.length > 1) {
       // Todo: report

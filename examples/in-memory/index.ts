@@ -1,13 +1,10 @@
 import { workflow1 } from "./workflows";
 
-// Serve my client in some way
-// fileSystemExpose(client, workflows)
+async function main() {
+  const result = await workflow1.invoke({});
 
-const { runId } = await workflow1.invoke({ event: "my-event" });
+  // Print "Hello, Alice!"
+  console.log(result);
+}
 
-app.post("/", async (req, res) => {
-  const { event } = req.body;
-  const { runId } = await workflow1.invoke({ event });
-  res.json({ runId });
-});
-
+main();

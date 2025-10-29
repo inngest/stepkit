@@ -5,7 +5,7 @@ import type { HandlerContext } from "./workflow";
 export class OWClient {
   private readonly driver: BaseExeDriver;
 
-  constructor({ driver, id }: { driver: BaseExeDriver; id: string }) {
+  constructor({ driver }: { driver: BaseExeDriver }) {
     this.driver = driver;
   }
 
