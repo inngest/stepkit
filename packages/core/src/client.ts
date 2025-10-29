@@ -9,13 +9,15 @@ export class OWClient {
     this.driver = driver;
   }
 
-  createWorkflow<TOutput>(workflow: {
-    id: string;
-    handler: (ctx: HandlerContext) => Promise<TOutput>;
-  }): Workflow<TOutput> {
+  workflow<TOutput>(
+    opts: {
+      id: string;
+    },
+    handler: (ctx: HandlerContext) => Promise<TOutput>
+  ): Workflow<TOutput> {
     return new Workflow({
-      id: workflow.id,
-      handler: workflow.handler,
+      id: opts.id,
+      handler,
     });
   }
 }

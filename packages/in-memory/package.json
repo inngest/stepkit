@@ -1,8 +1,8 @@
 {
   "name": "@open-workflow/in-memory",
   "version": "0.0.0",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/main.ts",
+  "types": "./src/main.ts",
   "scripts": {
     "build": "tsc",
     "test": "echo \"No tests yet\""

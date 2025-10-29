@@ -31,9 +31,9 @@ type FoundStep =
       promise: PromiseController;
     };
 
-type StepStateItem = { output: unknown; status: "success" } | { error: unknown; status: "error" };
+export type StepStateItem = { output: unknown; status: "success" } | { error: unknown; status: "error" };
 
-type StepState = {
+export type StepState = {
   getStep(id: string): StepStateItem | undefined;
   setStep(id: string, state: StepStateItem): void;
 }
