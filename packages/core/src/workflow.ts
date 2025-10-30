@@ -33,11 +33,18 @@ export class Workflow<TInput = unknown, TOutput = unknown> {
     const stepState: Record<string, any> = {};
     const stepCompletionOrder: string[] = [];
 
+    let i = 0;
     //
     // Re-entry loop: keep invoking the workflow until it completes
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      console.log("a");
+      i++;
+      if (i > 5) {
+        // TEMPORARY
+        break;
+      }
+
+      console.log("iteration");
       const options: WorkflowExecutionOptions<TInput> = {
         workflowId: this.config.id,
         input,
@@ -58,6 +65,9 @@ export class Workflow<TInput = unknown, TOutput = unknown> {
       //
       // Workflow threw an error
       if (result.type === "function-rejected") {
+        if (result.canRetry) {
+          continue;
+        }
         throw result.error;
       }
 

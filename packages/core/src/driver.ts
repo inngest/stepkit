@@ -22,6 +22,8 @@ export interface FlowControlResult {
 }
 
 export interface WorkflowDriver {
+  getRunAttempt(workflowId: string): number;
+
   //
   // Called when steps are found during execution
   // Driver can decide to execute a step, save state, or interrupt

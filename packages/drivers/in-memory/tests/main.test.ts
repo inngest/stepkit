@@ -18,7 +18,7 @@ describe("executionLoop", () => {
     expect(output).toBe("Hello, Alice!");
   });
 
-  it("2 steps", async () => {
+  it.only("2 steps", async () => {
     const client = new WorkflowClient(new InMemoryDriver());
 
     const counters = {
@@ -55,7 +55,7 @@ describe("executionLoop", () => {
     expect(output).toBe("Hello, Alice!");
   });
 
-  it.only("step retry", async () => {
+  it("step retry", async () => {
     const client = new WorkflowClient(new InMemoryDriver());
 
     const counters = {
@@ -67,17 +67,21 @@ describe("executionLoop", () => {
     const workflow = client.workflow(
       { id: "workflow" },
       async ({ attempt, step }) => {
+        console.log("top", attempt);
         counters.top++;
 
         const greeting = await step.run("get-greeting", async () => {
+          console.log("get-greeting", attempt);
           counters.getgreeting++;
           if (attempt === 0) {
             throw new Error("test");
           }
           return "Hello";
         });
+        console.log("---");
 
         const name = await step.run("get-name", async () => {
+          console.log("get-name");
           counters.getname++;
           return "Alice";
         });

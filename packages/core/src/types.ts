@@ -55,6 +55,7 @@ export interface ExecutionResult {
   step?: OutgoingOp;
   steps?: OutgoingOp[];
   ops?: Record<string, MemoizedOp>;
+  canRetry?: boolean;
 }
 
 export interface WorkflowExecutionOptions<TInput = unknown> {
