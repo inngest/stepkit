@@ -10,11 +10,9 @@ import {
 } from "@open-workflow/core";
 
 //
-// Simple in-memory driver that executes workflows to completion in one go
-// Stores all state in memory and runs steps immediately when found
-// For checkpoint/re-entry behavior (like Inngest), use CheckpointInMemoryDriver
-//
-export class InMemoryDriver implements WorkflowDriver {
+// Checkpoint-style in-memory driver that mimics Inngest's re-entry model
+// Executes one step at a time, re-invoking the workflow for each step
+export class CheckpointInMemoryDriver implements WorkflowDriver {
   private state = new Map<string, Record<string, MemoizedOp>>();
 
   async onStepsFound(
@@ -23,8 +21,7 @@ export class InMemoryDriver implements WorkflowDriver {
     _state: Record<string, MemoizedOp>,
   ): Promise<FlowControlResult> {
     //
-    // For in-memory execution, we just continue - steps will be executed
-    // immediately by the executor
+    // Don't interrupt on finding steps - let execution continue to try to run one
     return {
       action: FlowControl.Continue,
     };
@@ -33,10 +30,10 @@ export class InMemoryDriver implements WorkflowDriver {
   async onStepExecuted(
     options: WorkflowExecutionOptions,
     step: OutgoingOp,
-    _state: Record<string, MemoizedOp>,
+    state: Record<string, MemoizedOp>,
   ): Promise<FlowControlResult> {
     //
-    // Save step result to in-memory state
+    // Save step result to state
     const workflowState = this.state.get(options.workflowId) || {};
 
     workflowState[step.id] = {
@@ -50,14 +47,19 @@ export class InMemoryDriver implements WorkflowDriver {
     this.state.set(options.workflowId, workflowState);
 
     //
-    // Continue execution - in-memory driver runs to completion
+    // CRITICAL: Interrupt execution after each step
     return {
-      action: FlowControl.Continue,
+      action: FlowControl.Interrupt,
+      result: {
+        type: "step-ran",
+        step,
+        ops: state,
+      },
     };
   }
 
   async onWorkflowCompleted(
-    options: WorkflowExecutionOptions,
+    _options: WorkflowExecutionOptions,
     result: unknown,
   ): Promise<ExecutionResult> {
     return {
@@ -67,7 +69,7 @@ export class InMemoryDriver implements WorkflowDriver {
   }
 
   async onWorkflowError(
-    options: WorkflowExecutionOptions,
+    _options: WorkflowExecutionOptions,
     error: unknown,
   ): Promise<ExecutionResult> {
     return {
@@ -77,7 +79,7 @@ export class InMemoryDriver implements WorkflowDriver {
   }
 
   //
-  // Get stored state for a workflow (useful for debugging)
+  // Get stored state for a workflow
   getState(workflowId: string): Record<string, MemoizedOp> | undefined {
     return this.state.get(workflowId);
   }
@@ -88,5 +90,3 @@ export class InMemoryDriver implements WorkflowDriver {
     this.state.delete(workflowId);
   }
 }
-
-export { CheckpointInMemoryDriver } from "./checkpoint.js";

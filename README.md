@@ -101,14 +101,37 @@ Drivers can choose to:
 - **InMemoryDriver** (`@open-workflow/driver-in-memory`): Runs workflows to completion in memory. Best for testing and simple use cases.
 - **InngestDriver** (`@open-workflow/driver-inngest`): Executes workflows using Inngest's cloud infrastructure with durability, observability, and automatic retries.
 
-## Execution Model
+## Execution Models
 
-The execution engine is based on a simplified version of Inngest's v2 execution logic:
+Open Workflow supports two execution models:
 
-1. **Discovery Phase**: The workflow function runs, discovering steps as they're encountered
-2. **Memoization**: Steps with existing state are immediately resolved with cached results
-3. **Execution**: Unfulfilled steps are executed when discovered
-4. **Driver Control**: At each phase, the driver can decide whether to continue or interrupt
+### 1. Continuous Execution (InMemoryDriver)
+
+- Workflow runs once, executing all steps in a single invocation
+- Fast and simple, ideal for local development
+- No durability or crash recovery
+
+### 2. Checkpoint/Re-entry Execution (CheckpointInMemoryDriver, InngestDriver)
+
+- Workflow runs multiple times (re-entry pattern)
+- Each invocation executes ONE step, then interrupts
+- Next invocation memoizes completed steps, continues to next step
+- Provides durability, observability, and crash recovery
+- **This is how Inngest and other durable execution platforms work**
+
+**Example Output Comparison:**
+
+```
+Continuous:                  Checkpoint (Inngest-style):
+→ Starting workflow         → Starting workflow
+→ Running step: uppercase   → Running step: uppercase
+→ Running step: greeting    → Starting workflow      (re-entry!)
+Result: Hello, ALICE!       → Running step: greeting
+                            → Starting workflow      (re-entry!)
+                            Result: Hello, ALICE!
+```
+
+See [EXECUTION_MODELS.md](./EXECUTION_MODELS.md) for detailed comparison and use cases.
 
 ## Examples
 

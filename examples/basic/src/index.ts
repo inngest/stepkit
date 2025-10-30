@@ -6,6 +6,7 @@ const client = new WorkflowClient(new InMemoryDriver());
 const greetingWorkflow = client.workflow<{ name: string }, string>(
   { id: "greeting" },
   async ({ input, step }) => {
+    console.log("  → Starting workflow");
     //
     // Step 1: Transform the name to uppercase
     const upperName = await step.run("uppercase", async () => {

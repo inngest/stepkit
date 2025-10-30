@@ -27,27 +27,76 @@ export class Workflow<TInput = unknown, TOutput = unknown> {
 
   //
   // Invoke the workflow with the given input
-  // This will run the workflow to completion in-memory
-  //
+  // Implements the re-entry model: runs the workflow multiple times,
+  // executing one step per invocation, until completion
   async invoke(input: TInput): Promise<TOutput> {
-    const options: WorkflowExecutionOptions<TInput> = {
-      workflowId: this.config.id,
-      input,
-      stepState: {},
-      stepCompletionOrder: [],
-      disableImmediateExecution: false,
-    };
+    const stepState: Record<string, any> = {};
+    const stepCompletionOrder: string[] = [];
 
-    const executor = new WorkflowExecutor(options, this.handler, this.driver);
-    const result = await executor.start();
+    //
+    // Re-entry loop: keep invoking the workflow until it completes
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const options: WorkflowExecutionOptions<TInput> = {
+        workflowId: this.config.id,
+        input,
+        stepState,
+        stepCompletionOrder,
+        disableImmediateExecution: false,
+      };
 
-    if (result.type === "function-resolved") {
-      return result.data as TOutput;
-    } else if (result.type === "function-rejected") {
-      throw result.error;
+      const executor = new WorkflowExecutor(options, this.handler, this.driver);
+      const result = await executor.start();
+
+      //
+      // Workflow completed successfully
+      if (result.type === "function-resolved") {
+        return result.data as TOutput;
+      }
+
+      //
+      // Workflow threw an error
+      if (result.type === "function-rejected") {
+        throw result.error;
+      }
+
+      //
+      // A step was executed - add its result to state and re-invoke
+      if (result.type === "step-ran" && result.step) {
+        const stepId = result.step.id;
+
+        //
+        // Update step state with the result
+        stepState[stepId] = {
+          id: stepId,
+          data: result.step.data,
+          error: result.step.error,
+          fulfilled: true,
+          seen: true,
+        };
+
+        //
+        // Track completion order
+        //
+        if (!stepCompletionOrder.includes(stepId)) {
+          stepCompletionOrder.push(stepId);
+        }
+
+        //
+        // Re-invoke the workflow from the beginning with updated state
+        continue;
+      }
+
+      //
+      // Steps found but not executed - this shouldn't happen in checkpoint mode
+      if (result.type === "steps-found") {
+        throw new Error(
+          "Driver returned steps-found without executing. This indicates a driver misconfiguration.",
+        );
+      }
+
+      throw new Error(`Unexpected execution result type: ${result.type}`);
     }
-
-    throw new Error(`Unexpected execution result type: ${result.type}`);
   }
 
   //

@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx src/index.ts",
+    "dev:checkpoint": "tsx src/checkpoint.ts",
     "prepare": "husky"
   },
   "dependencies": {
