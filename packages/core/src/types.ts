@@ -13,6 +13,7 @@ export interface StepOptions {
 }
 
 export interface MemoizedOp {
+  attempt: number;
   id: string;
   data?: unknown;
   error?: unknown;
@@ -74,6 +75,7 @@ export interface StepTools {
 }
 
 export interface WorkflowContext<TInput = unknown> {
+  attempt: number;
   input: TInput;
   step: StepTools;
 }

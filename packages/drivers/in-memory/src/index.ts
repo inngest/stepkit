@@ -35,16 +35,51 @@ export class InMemoryDriver implements WorkflowDriver {
     step: OutgoingOp,
     _state: Record<string, MemoizedOp>,
   ): Promise<FlowControlResult> {
+    let workflowState = this.state.get(options.workflowId);
+    if (!workflowState) {
+      workflowState = {};
+    }
+
+    let stepState = workflowState[step.id];
+    if (!stepState) {
+      stepState = {
+        id: step.id,
+        attempt: 0,
+        seen: true,
+      };
+    }
+
+    if ("data" in step) {
+      stepState = {
+        ...stepState,
+        data: step.data,
+        fulfilled: true,
+      };
+    } else if ("error" in step) {
+      // TODO: Use workflow options
+      const maxAttempts = 1;
+
+      if (stepState.attempt >= maxAttempts) {
+        stepState = {
+          ...stepState,
+          error: step.error,
+          fulfilled: false,
+        };
+      } else {
+        stepState = {
+          ...stepState,
+          attempt: stepState.attempt + 1,
+        };
+      }
+    } else {
+      throw new Error("Unreachable: step has no data or error");
+    }
+
     //
     // Save step result to in-memory state
-    const workflowState = this.state.get(options.workflowId) || {};
-
-    workflowState[step.id] = {
-      id: step.id,
-      data: step.data,
-      error: step.error,
-      fulfilled: true,
-      seen: true,
+    workflowState = {
+      ...workflowState,
+      [step.id]: stepState,
     };
 
     this.state.set(options.workflowId, workflowState);

@@ -37,6 +37,7 @@ export class Workflow<TInput = unknown, TOutput = unknown> {
     // Re-entry loop: keep invoking the workflow until it completes
     // eslint-disable-next-line no-constant-condition
     while (true) {
+      console.log("a");
       const options: WorkflowExecutionOptions<TInput> = {
         workflowId: this.config.id,
         input,

@@ -230,6 +230,7 @@ export class WorkflowExecutor<TInput = unknown, TOutput = unknown> {
     const step = this.createStepTools();
 
     return {
+      attempt: 0,
       input: this.options.input,
       step,
     };

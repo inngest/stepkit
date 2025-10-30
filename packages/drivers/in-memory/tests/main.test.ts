@@ -54,4 +54,47 @@ describe("executionLoop", () => {
     });
     expect(output).toBe("Hello, Alice!");
   });
+
+  it.only("step retry", async () => {
+    const client = new WorkflowClient(new InMemoryDriver());
+
+    const counters = {
+      bottom: 0,
+      getname: 0,
+      getgreeting: 0,
+      top: 0,
+    };
+    const workflow = client.workflow(
+      { id: "workflow" },
+      async ({ attempt, step }) => {
+        counters.top++;
+
+        const greeting = await step.run("get-greeting", async () => {
+          counters.getgreeting++;
+          if (attempt === 0) {
+            throw new Error("test");
+          }
+          return "Hello";
+        });
+
+        const name = await step.run("get-name", async () => {
+          counters.getname++;
+          return "Alice";
+        });
+
+        counters.bottom++;
+        return `${greeting}, ${name}!`;
+      },
+    );
+
+    const output = await workflow.invoke({});
+
+    expect(counters).toEqual({
+      bottom: 1,
+      getname: 1,
+      getgreeting: 2,
+      top: 4,
+    });
+    expect(output).toBe("Hello, Alice!");
+  });
 });
