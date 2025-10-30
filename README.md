@@ -15,9 +15,11 @@ open-workflow/
 ├── packages/
 │   ├── core/                    # Core workflow execution engine
 │   └── drivers/
-│       └── in-memory/           # In-memory driver implementation
+│       ├── in-memory/           # In-memory driver implementation
+│       └── inngest/             # Inngest cloud driver
 └── examples/
-    └── basic/                   # Basic usage examples
+    ├── basic/                   # Basic in-memory examples
+    └── inngest/                 # Inngest integration example
 ```
 
 ## Quick Start
@@ -94,6 +96,11 @@ Drivers can choose to:
 - Store state externally
 - Implement custom retry logic
 
+### Available Drivers
+
+- **InMemoryDriver** (`@open-workflow/driver-in-memory`): Runs workflows to completion in memory. Best for testing and simple use cases.
+- **InngestDriver** (`@open-workflow/driver-inngest`): Executes workflows using Inngest's cloud infrastructure with durability, observability, and automatic retries.
+
 ## Execution Model
 
 The execution engine is based on a simplified version of Inngest's v2 execution logic:
@@ -105,18 +112,43 @@ The execution engine is based on a simplified version of Inngest's v2 execution 
 
 ## Examples
 
-See `examples/basic/src/index.ts` for complete working examples including:
+### In-Memory Example
+
+See `examples/basic/` for a complete in-memory example:
 
 - Simple step execution
 - Multiple sequential steps
 - Sleep/delay functionality
 
-To run the examples:
-
 ```bash
 cd examples/basic
 pnpm dev
 ```
+
+### Inngest Example
+
+See `examples/inngest/` for a complete Inngest cloud example:
+
+- Durable workflow execution
+- Step memoization with Inngest
+- Event-driven triggers
+- Observability dashboard
+
+```bash
+# Terminal 1: Start Inngest Dev Server
+npx inngest-cli@latest dev
+
+# Terminal 2: Start the example app
+cd examples/inngest
+pnpm dev
+
+# Terminal 3: Trigger workflows
+curl -X POST http://localhost:3000/api/workflows/greeting \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Alice"}'
+```
+
+View execution history at `http://localhost:8288`
 
 ## Development
 
