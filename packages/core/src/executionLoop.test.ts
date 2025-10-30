@@ -24,7 +24,8 @@ describe("executionLoop", () => {
   it("no steps success", async () => {
     // When no steps, interrupt with workflow result
 
-    const client = new OWClient({ driver: new BaseExeDriver(new RunState()) });
+    const driver = new BaseExeDriver(new RunState());
+    const client = new OWClient({ driver });
 
     let counter = 0;
     const workflow = client.workflow({ id: "workflow" }, async ({ step }) => {
@@ -32,7 +33,11 @@ describe("executionLoop", () => {
       return "Hello, Alice!";
     });
 
-    const output = await workflow.invoke({});
+    const output = await executionLoop({
+      workflow,
+      state: new RunState(),
+      onStepsFound: driver.onStepsFound,
+    });
 
     expect(counter).toBe(1);
     expect(output).toEqual([
