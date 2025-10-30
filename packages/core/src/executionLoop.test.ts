@@ -20,27 +20,50 @@ class RunState {
 }
 
 describe("executionLoop", () => {
-  it("1 step", async () => {
+  it("no steps", async () => {
     const client = new OWClient({ driver: new BaseExeDriver(new RunState()) });
 
-    let getNameCounter = 0;
+    let counter = 0;
     const workflow = client.workflow({ id: "workflow" }, async ({ step }) => {
+      counter++;
+      return "Hello, Alice!";
+    });
+
+    const output = await workflow.invoke({});
+
+    expect(counter).toBe(1);
+    expect(output).toBe("Hello, Alice!");
+  });
+
+  it.only("1 step", async () => {
+    const client = new OWClient({ driver: new BaseExeDriver(new RunState()) });
+
+    const counters = {
+      top: 0,
+      getName: 0,
+      bottom: 0,
+    };
+    const workflow = client.workflow({ id: "workflow" }, async ({ step }) => {
+      counters.top++;
       const name = await step.run("get-name", async () => {
-        getNameCounter++;
+        counters.getName++;
         return "Alice";
       });
-      console.log("name", name);
-
+      counters.bottom++;
       return `Hello, ${name}!`;
     });
 
     const output = await workflow.invoke({});
 
-    expect(getNameCounter).toBe(1);
+    expect(counters).toEqual({
+      top: 2,
+      getName: 1,
+      bottom: 1,
+    });
     expect(output).toBe("Hello, Alice!");
   });
 
-  it.only("2 steps", async () => {
+  it("2 steps", async () => {
     const client = new OWClient({ driver: new BaseExeDriver(new RunState()) });
 
     let getGreetingCounter = 0;
