@@ -67,9 +67,15 @@ export async function executionLoop<TOutput>({
         workflow,
         state,
         stack.map((s) => ({
-          id: s.stepId,
-          opcode: Opcode.stepRunFound,
-          opts: { handler: s.callback },
+          id: {
+            hashed: s.stepId,
+            id: s.stepId,
+            index: 0,
+          },
+          op: {
+            code: Opcode.stepRunFound,
+            opts: { handler: s.callback },
+          },
           promise: s.stepResolver,
         }))
       );
@@ -91,9 +97,11 @@ export async function executionLoop<TOutput>({
   if (output instanceof Error) {
     return [
       {
-        hashedId: "",
-        id: "",
-        idIndex: 0,
+        id: {
+          hashed: "",
+          id: "",
+          index: 0,
+        },
         op: op.workflowError(output),
       },
     ];
@@ -101,9 +109,11 @@ export async function executionLoop<TOutput>({
 
   return [
     {
-      hashedId: "",
-      id: "",
-      idIndex: 0,
+      id: {
+        hashed: "",
+        id: "",
+        index: 0,
+      },
       op: op.workflowSuccess(output),
     },
   ];

@@ -25,9 +25,11 @@ type Op = {
 };
 
 export type Result = {
-  hashedId: string;
-  id: string;
-  idIndex: number;
+  id: {
+    hashed: string;
+    id: string;
+    index: number;
+  };
   op: Op;
 };
 
@@ -45,8 +47,6 @@ const controlFlow = {
   interrupt: (results: Result[]) => ({ type: "interrupt", results }),
 } as const satisfies Record<string, (...args: any[]) => ControlFlow>;
 
-// type ControlFlow = ControlFlowContinue | ControlFlowInterrupt;
-
 type PromiseController = {
   resolve: (value: unknown) => void;
   reject: (reason?: unknown) => void;
@@ -63,19 +63,15 @@ export const Opcode = {
 } as const;
 export type Opcode = (typeof Opcode)[keyof typeof Opcode];
 
-export type FoundStep =
-  | {
-      id: string;
-      opcode: typeof Opcode.stepRunFound;
-      opts: { handler: () => Promise<unknown> };
-      promise: PromiseController;
-    }
-  | {
-      id: string;
-      opcode: typeof Opcode.stepSleep;
-      opts: { wakeTime: Date };
-      promise: PromiseController;
-    };
+export type FoundStep<TOp extends Op = Op> = {
+  id: {
+    hashed: string;
+    id: string;
+    index: number;
+  };
+  op: TOp;
+  promise: PromiseController;
+};
 
 export type StepStateItem =
   | { output: unknown; status: "success" }
@@ -85,6 +81,13 @@ export type StepState = {
   getStep(id: string): StepStateItem | undefined;
   setStep(id: string, state: StepStateItem): void;
 };
+
+function isStepRunFound(step: FoundStep): step is FoundStep<{
+  code: typeof Opcode.stepRunFound;
+  opts: { handler: () => Promise<unknown> };
+}> {
+  return step.op.code === Opcode.stepRunFound;
+}
 
 export class BaseExeDriver {
   constructor(private state: StepState) {
@@ -100,7 +103,7 @@ export class BaseExeDriver {
     const newSteps: FoundStep[] = [];
     for (const step of steps) {
       // NOTE - Run state can't be attached to the driver - could be used in multiple workflows
-      const item = state.getStep(step.id);
+      const item = state.getStep(step.id.hashed);
       if (item) {
         // console.log('step state found', step.id, item);
         if (item.status === "success") {
@@ -116,35 +119,34 @@ export class BaseExeDriver {
       }
     }
 
-    if (newSteps.length === 1 && newSteps[0].opcode === Opcode.stepRunFound) {
+    if (newSteps.length === 1) {
       const newStep = newSteps[0];
-      let result: Result;
-      try {
-        const output = await newStep.opts.handler();
-        state.setStep(newStep.id, { output, status: "success" });
-        newStep.promise.resolve(output);
-        result = {
-          hashedId: newStep.id,
-          id: newStep.id,
-          idIndex: 0,
-          op: op.stepRunSuccess(output),
-        };
-      } catch (e) {
-        let error: Error;
-        if (e instanceof Error) {
-          error = e;
-        } else {
-          error = new Error(String(e));
+
+      if (isStepRunFound(newStep)) {
+        let result: Result;
+        try {
+          const output = await newStep.op.opts.handler();
+          state.setStep(newStep.id.hashed, { output, status: "success" });
+          newStep.promise.resolve(output);
+          result = {
+            id: newStep.id,
+            op: op.stepRunSuccess(output),
+          };
+        } catch (e) {
+          let error: Error;
+          if (e instanceof Error) {
+            error = e;
+          } else {
+            error = new Error(String(e));
+          }
+          state.setStep(newStep.id.hashed, { error, status: "error" });
+          result = {
+            id: newStep.id,
+            op: op.stepRunError(error),
+          };
         }
-        state.setStep(newStep.id, { error, status: "error" });
-        result = {
-          hashedId: newStep.id,
-          id: newStep.id,
-          idIndex: 0,
-          op: op.stepRunError(error),
-        };
+        return controlFlow.interrupt([result]);
       }
-      return controlFlow.interrupt([result]);
     } else if (newSteps.length > 1) {
       // TODO: Implement
       return controlFlow.interrupt([]);

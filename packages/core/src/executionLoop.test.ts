@@ -37,9 +37,11 @@ describe("executionLoop", () => {
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
-        hashedId: "",
-        id: "",
-        idIndex: 0,
+        id: {
+          hashed: "",
+          id: "",
+          index: 0,
+        },
         op: {
           code: "workflow.success",
           opts: {
@@ -71,9 +73,11 @@ describe("executionLoop", () => {
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
-        hashedId: "",
-        id: "",
-        idIndex: 0,
+        id: {
+          hashed: "",
+          id: "",
+          index: 0,
+        },
         op: {
           code: "workflow.error",
           opts: {
@@ -117,9 +121,11 @@ describe("executionLoop", () => {
     });
     expect(result).toEqual([
       {
-        hashedId: "get-name",
-        id: "get-name",
-        idIndex: 0,
+        id: {
+          hashed: "get-name",
+          id: "get-name",
+          index: 0,
+        },
         op: {
           code: "step.run.success",
           opts: {
@@ -163,9 +169,11 @@ describe("executionLoop", () => {
     });
     expect(result).toEqual([
       {
-        hashedId: "get-name",
-        id: "get-name",
-        idIndex: 0,
+        id: {
+          hashed: "get-name",
+          id: "get-name",
+          index: 0,
+        },
         op: {
           code: "step.run.error",
           opts: {
