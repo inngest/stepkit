@@ -1,0 +1,12 @@
+{
+  "name": "@open-workflow/monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
