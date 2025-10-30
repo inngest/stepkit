@@ -131,38 +131,3 @@ pnpm -r build
 ```bash
 pnpm dev
 ```
-
-### Linting and Formatting
-
-The project uses ESLint and Prettier for code quality:
-
-```bash
-# Run ESLint
-pnpm lint
-
-# Fix ESLint errors automatically
-pnpm lint:fix
-
-# Check code formatting
-pnpm format:check
-
-# Format code
-pnpm format
-```
-
-**Git Hooks**: The project uses Husky with lint-staged to automatically lint and format staged files on commit. This ensures all committed code follows the project's style guidelines.
-
-## Architecture Notes
-
-This SDK extracts the core step execution logic from Inngest's TypeScript SDK while:
-
-- Removing Inngest-specific features (events, middleware, etc.)
-- Simplifying the driver interface (no hooks for MVP)
-- Maintaining the core memoization and checkpoint system
-- Providing a clean, straightforward API surface
-
-The execution flow uses an async generator-based checkpoint system that allows the driver to control execution flow at key points without complex callback chains.
-
-## License
-
-MIT
