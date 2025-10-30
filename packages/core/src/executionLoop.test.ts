@@ -126,4 +126,51 @@ describe("executionLoop", () => {
       },
     ]);
   });
+
+  it("step error", async () => {
+    // When successfully running a step, interrupt with step result
+
+    const driver = new BaseExeDriver(new RunState());
+    const client = new OWClient({ driver });
+
+    const counters = {
+      top: 0,
+      getName: 0,
+      bottom: 0,
+    };
+    const workflow = client.workflow({ id: "workflow" }, async ({ step }) => {
+      counters.top++;
+      const name = await step.run("get-name", async () => {
+        counters.getName++;
+        throw new Error("oh no");
+      });
+      counters.bottom++;
+      return `Hello, ${name}!`;
+    });
+
+    const result = await executionLoop({
+      workflow,
+      state: new RunState(),
+      onStepsFound: driver.onStepsFound,
+    });
+    expect(counters).toEqual({
+      top: 1,
+      getName: 1,
+      bottom: 0,
+    });
+    expect(result).toEqual([
+      {
+        hashedId: "get-name",
+        id: "get-name",
+        idIndex: 0,
+        op: {
+          code: "step_run",
+          opts: {
+            error: expect.any(Error),
+            status: "error",
+          },
+        },
+      },
+    ]);
+  });
 });

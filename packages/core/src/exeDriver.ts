@@ -162,7 +162,6 @@ export class BaseExeDriver {
           error = new Error(String(e));
         }
         state.setStep(newStep.id, { error, status: "error" });
-        newStep.promise.reject(error);
         result = {
           hashedId: newStep.id,
           id: newStep.id,
