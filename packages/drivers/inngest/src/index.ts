@@ -48,16 +48,17 @@ export class InngestDriver implements WorkflowDriver {
       {
         id: config.id,
         name: config.id,
+        retries: 0,
       },
       { event: this.eventName },
       async ({ event, step }: any) => {
         //
         // Extract the workflow input from the event
         //
-        const workflowId = event.data?.workflowId;
-        if (workflowId !== config.id) {
-          return;
-        }
+        // const workflowId = event.data?.workflowId;
+        // if (workflowId !== config.id) {
+        //   return;
+        // }
 
         const input = event.data?.input as TInput;
 
@@ -118,6 +119,7 @@ export class InngestDriver implements WorkflowDriver {
     workflowId: string,
     input: TInput,
   ): Promise<{ id: string }> {
+    console.log("invokeWorkflow");
     const result = await this.client.send({
       name: this.eventName,
       data: {
@@ -139,6 +141,7 @@ export class InngestDriver implements WorkflowDriver {
     _steps: FoundStep[],
     _state: Record<string, MemoizedOp>,
   ): Promise<FlowControlResult> {
+    console.log("onStepsFound");
     return {
       action: FlowControl.Continue,
     };

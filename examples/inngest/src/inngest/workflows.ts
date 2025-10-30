@@ -11,46 +11,48 @@ const client = new WorkflowClient(driver);
 // Define workflows
 export const greetingWorkflow = client.workflow<{ name: string }, string>(
   { id: "greeting-workflow" },
-  async ({ input, step }) => {
-    const upperName = await step.run("uppercase", async () => {
-      console.log("  → Running step: uppercase");
-      return input.name.toUpperCase();
+  async ({ step }) => {
+    console.log("workflow:top");
+    const greeting = await step.run("get-greeting", async () => {
+      console.log("  → Running step: get-greeting");
+      // return input.name.toUpperCase();
+      return "Hello";
     });
 
-    const greeting = await step.run("create-greeting", async () => {
-      console.log("  → Running step: create-greeting");
-      return `Hello, ${upperName}!`;
+    const name = await step.run("get-name", async () => {
+      console.log("  → Running step: get-name");
+      return "Alice";
     });
 
-    return greeting;
+    return `${greeting}, ${name}!`;
   },
 );
 
-export const calculationWorkflow = client.workflow<
-  { x: number; y: number },
-  { sum: number; product: number; doubled: number }
->({ id: "calculation-workflow" }, async ({ input, step }) => {
-  const sum = await step.run("add", async () => {
-    console.log("  → Running step: add");
-    return input.x + input.y;
-  });
+// export const calculationWorkflow = client.workflow<
+//   { x: number; y: number },
+//   { sum: number; product: number; doubled: number }
+// >({ id: "calculation-workflow" }, async ({ input, step }) => {
+//   const sum = await step.run("add", async () => {
+//     console.log("  → Running step: add");
+//     return input.x + input.y;
+//   });
 
-  const product = await step.run("multiply", async () => {
-    console.log("  → Running step: multiply");
-    return input.x * input.y;
-  });
+//   const product = await step.run("multiply", async () => {
+//     console.log("  → Running step: multiply");
+//     return input.x * input.y;
+//   });
 
-  const doubled = await step.run("double-sum", async () => {
-    console.log("  → Running step: double-sum");
-    return sum * 2;
-  });
+//   const doubled = await step.run("double-sum", async () => {
+//     console.log("  → Running step: double-sum");
+//     return sum * 2;
+//   });
 
-  return { sum, product, doubled };
-});
+//   return { sum, product, doubled };
+// });
 
 export const functions = [
   driver.registerWorkflow(greetingWorkflow),
-  driver.registerWorkflow(calculationWorkflow),
+  // driver.registerWorkflow(calculationWorkflow),
 ];
 
 export { driver };
