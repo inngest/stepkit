@@ -4,7 +4,7 @@ async function main() {
   const result = await workflow1.invoke({});
 
   // Print "Hello, Alice!"
-  console.log(result);
+  console.log("Result:", result);
 }
 
 main();
