@@ -1,61 +1,76 @@
-// TODO
-export type Context = any;
+export const Opcode = {
+  stepRunSuccess: "step.run.success",
+  stepRunError: "step.run.error",
+  stepRunFound: "step.run.found",
+  stepRun: "step.run",
+  stepSleep: "step.sleep",
+  workflowSuccess: "workflow.success",
+  workflowError: "workflow.error",
+} as const;
+export type Opcode = (typeof Opcode)[keyof typeof Opcode];
 
-export interface StepOptions {
-  /**
-   * The ID to use to memoize the result of this step, ensuring it is run only
-   * once. Changing this ID in an existing function will cause the step to be
-   * run again for in-progress runs; it is recommended to use a stable ID.
-   */
-  id: string;
-
-  /**
-   * The display name to use for this step in the Inngest UI. This can be
-   * changed at any time without affecting the step's behaviour.
-   */
-  name?: string;
+export function isStepRunFound(step: OperationFound): step is OperationFound<{
+  code: typeof Opcode.stepRunFound;
+  options: { handler: () => Promise<unknown> };
+}> {
+  return step.config.code === Opcode.stepRunFound;
 }
 
-export type Op = {
-  /**
-   * The unique code for this operation.
-   */
-  // TODO
-  op: string;
-
-  /**
-   * Any additional data required for this operation to send to Inngest. This
-   * is not compared when confirming that the operation was completed; use `id`
-   * for this.
-   */
+type OpConfig = {
+  code: string;
   opts?: Record<string, unknown>;
-
-  /**
-   * Any data present for this operation. If data is present, this operation is
-   * treated as completed.
-   */
-  data?: unknown;
-
-  /**
-   * An error present for this operation. If an error is present, this operation
-   * is treated as completed, but failed. When this is read from the op stack,
-   * the SDK will throw the error via a promise rejection when it is read.
-   *
-   * This allows users to handle step failures using common tools such as
-   * try/catch or `.catch()`.
-   */
-  error?: unknown;
 };
 
-export type HashedOp = Op & {
-  /**
-   * The hashed identifier for this operation, used to confirm that the
-   * operation was completed when it is received from Inngest.
-   */
-  id: string;
+export const toResult = {
+  stepRunSuccess: (foundOp: OperationFound, output: unknown) => ({
+    config: { code: Opcode.stepRunSuccess },
+    id: foundOp.id,
+    result: { status: "success", output },
+  }),
+  stepRunError: (foundOp: OperationFound, error: Error) => ({
+    config: { code: Opcode.stepRunError },
+    id: foundOp.id,
+    result: { status: "error", error },
+  }),
+  workflowSuccess: (output: unknown) => ({
+    config: { code: Opcode.workflowSuccess },
+    id: { hashed: "", id: "", index: 0 },
+    result: { status: "success", output },
+  }),
+  workflowError: (error: Error) => ({
+    config: { code: Opcode.workflowError },
+    id: { hashed: "", id: "", index: 0 },
+    result: { status: "error", error },
+  }),
+} as const satisfies Record<string, (...args: any[]) => OperationResult>;
+
+export type OperationResult<TOpConfig extends OpConfig = OpConfig> = {
+  config: TOpConfig;
+  id: {
+    hashed: string;
+    id: string;
+    index: number;
+  };
+  result:
+    | {
+        status: "success";
+        output: unknown;
+      }
+    | {
+        status: "error";
+        error: Error;
+      };
 };
 
-export type OutgoingOp = Pick<
-  HashedOp,
-  "id" | "op" | "opts" | "data" | "error"
->;
+export type OperationFound<TOpConfig extends OpConfig = OpConfig> = {
+  config: TOpConfig;
+  id: {
+    hashed: string;
+    id: string;
+    index: number;
+  };
+  promise: {
+    resolve: (value: unknown) => void;
+    reject: (reason: unknown) => void;
+  };
+};

@@ -42,16 +42,15 @@ describe("executionLoop", () => {
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
+        config: { code: "workflow.success" },
         id: {
           hashed: "",
           id: "",
           index: 0,
         },
-        op: {
-          code: "workflow.success",
-          opts: {
-            output: "Hello, Alice!",
-          },
+        result: {
+          status: "success",
+          output: "Hello, Alice!",
         },
       },
     ]);
@@ -78,16 +77,15 @@ describe("executionLoop", () => {
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
+        config: { code: "workflow.error" },
         id: {
           hashed: "",
           id: "",
           index: 0,
         },
-        op: {
-          code: "workflow.error",
-          opts: {
-            error: expect.any(Error),
-          },
+        result: {
+          status: "error",
+          error: expect.any(Error),
         },
       },
     ]);
@@ -126,16 +124,15 @@ describe("executionLoop", () => {
     });
     expect(result).toEqual([
       {
+        config: { code: "step.run.success" },
         id: {
           hashed: "get-name",
           id: "get-name",
           index: 0,
         },
-        op: {
-          code: "step.run.success",
-          opts: {
-            output: "Alice",
-          },
+        result: {
+          status: "success",
+          output: "Alice",
         },
       },
     ]);
@@ -174,16 +171,15 @@ describe("executionLoop", () => {
     });
     expect(result).toEqual([
       {
+        config: { code: "step.run.error" },
         id: {
           hashed: "get-name",
           id: "get-name",
           index: 0,
         },
-        op: {
-          code: "step.run.error",
-          opts: {
-            error: expect.any(Error),
-          },
+        result: {
+          status: "error",
+          error: expect.any(Error),
         },
       },
     ]);

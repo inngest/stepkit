@@ -1,12 +1,8 @@
-import {
-  type ControlFlow,
-  type FoundStep,
-  Opcode,
-  type StepState,
-} from "./exeDriver";
+import { type ControlFlow, type StepState } from "./exeDriver";
 import { type Workflow, type Steps } from "./workflow";
 import { createDeferredPromise } from "./promises";
-import { op, type Result } from "./exeDriver";
+import type { OperationFound, OperationResult } from "./types";
+import { Opcode, toResult } from "./types";
 
 export async function executionLoop<TOutput>({
   workflow,
@@ -18,9 +14,9 @@ export async function executionLoop<TOutput>({
   onStepsFound: (
     workflow: Workflow<TOutput>,
     state: StepState,
-    steps: FoundStep[]
+    steps: OperationFound[]
   ) => Promise<ControlFlow>;
-}): Promise<Result[]> {
+}): Promise<OperationResult[]> {
   // Collect a stack of steps discovered on this tick
   const stack: any[] = [];
   let pause = createDeferredPromise<void>();
@@ -67,14 +63,14 @@ export async function executionLoop<TOutput>({
         workflow,
         state,
         stack.map((s) => ({
+          config: {
+            code: Opcode.stepRunFound,
+            options: { handler: s.callback },
+          },
           id: {
             hashed: s.stepId,
             id: s.stepId,
             index: 0,
-          },
-          op: {
-            code: Opcode.stepRunFound,
-            opts: { handler: s.callback },
           },
           promise: s.stepResolver,
         }))
@@ -95,26 +91,8 @@ export async function executionLoop<TOutput>({
   }
   const output = await handlerPromise;
   if (output instanceof Error) {
-    return [
-      {
-        id: {
-          hashed: "",
-          id: "",
-          index: 0,
-        },
-        op: op.workflowError(output),
-      },
-    ];
+    return [toResult.workflowError(output)];
   }
 
-  return [
-    {
-      id: {
-        hashed: "",
-        id: "",
-        index: 0,
-      },
-      op: op.workflowSuccess(output),
-    },
-  ];
+  return [toResult.workflowSuccess(output)];
 }
