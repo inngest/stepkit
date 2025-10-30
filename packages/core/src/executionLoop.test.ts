@@ -41,8 +41,40 @@ describe("executionLoop", () => {
         id: "",
         idIndex: 0,
         op: {
-          code: "workflow_complete",
+          code: "workflow_success",
           opts: { output: "Hello, Alice!" },
+        },
+      },
+    ]);
+  });
+
+  it("no steps error", async () => {
+    // When no steps, interrupt with workflow result
+
+    const driver = new BaseExeDriver(new RunState());
+    const client = new OWClient({ driver });
+
+    let counter = 0;
+    const workflow = client.workflow({ id: "workflow" }, async ({ step }) => {
+      counter++;
+      throw new Error("oh no");
+    });
+
+    const output = await executionLoop({
+      workflow,
+      state: new RunState(),
+      onStepsFound: driver.onStepsFound,
+    });
+
+    expect(counter).toBe(1);
+    expect(output).toEqual([
+      {
+        hashedId: "",
+        id: "",
+        idIndex: 0,
+        op: {
+          code: "workflow_error",
+          opts: { error: expect.any(Error) },
         },
       },
     ]);
@@ -74,6 +106,11 @@ describe("executionLoop", () => {
       state: new RunState(),
       onStepsFound: driver.onStepsFound,
     });
+    expect(counters).toEqual({
+      top: 1,
+      getName: 1,
+      bottom: 0,
+    });
     expect(result).toEqual([
       {
         hashedId: "get-name",
@@ -83,6 +120,7 @@ describe("executionLoop", () => {
           code: "step_run",
           opts: {
             output: "Alice",
+            status: "success",
           },
         },
       },

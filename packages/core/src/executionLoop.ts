@@ -33,16 +33,25 @@ export async function executionLoop<TOutput>({
       stack.push({ stepId, callback, stepResolver });
 
       // Pause until all steps are reported
-      await pause;
+      await pause.promise;
 
       return stepResolver.promise;
     },
   };
 
-  let handlerPromise: Promise<TOutput | undefined>;
+  let handlerPromise: Promise<TOutput | Error>;
   try {
     // Run the handler and pause until the next tick to discover steps
-    handlerPromise = workflow.handler({ step });
+    handlerPromise = workflow.handler({ step }).catch((e) => {
+      // Need to catch and return the error here instead of letting it throw. If
+      // we don't we'll get "unhandled promise error" error messages during
+      // testing
+
+      if (e instanceof Error) {
+        return e;
+      }
+      return new Error(String(e));
+    });
     while (true) {
       const newPause = createDeferredPromise<void>();
       pause.promise = newPause.promise;
@@ -79,12 +88,23 @@ export async function executionLoop<TOutput>({
     stack.splice(0, stack.length);
   }
   const output = await handlerPromise;
+  if (output instanceof Error) {
+    return [
+      {
+        hashedId: "",
+        id: "",
+        idIndex: 0,
+        op: op.workflowError(output),
+      },
+    ];
+  }
+
   return [
     {
       hashedId: "",
       id: "",
       idIndex: 0,
-      op: op.workflowComplete(output),
+      op: op.workflowSuccess(output),
     },
   ];
 }

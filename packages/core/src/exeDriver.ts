@@ -25,10 +25,25 @@ type StepRunOpts =
     };
 
 export const op = {
-  stepRun: (opts: StepRunOpts) => ({ code: Opcode.stepRun, opts }),
-  workflowComplete: (output: unknown) => ({
-    code: Opcode.workflowComplete,
+  stepRunSuccess: (output: unknown) => ({
+    code: Opcode.stepRun,
+    opts: { output, status: "success" },
+  }),
+  stepRunError: (error: Error) => ({
+    code: Opcode.stepRun,
+    opts: { error, status: "error" },
+  }),
+  stepRunPlanned: () => ({
+    code: Opcode.stepRun,
+    opts: { status: "planned" },
+  }),
+  workflowSuccess: (output: unknown) => ({
+    code: Opcode.workflowSuccess,
     opts: { output },
+  }),
+  workflowError: (error: Error) => ({
+    code: Opcode.workflowError,
+    opts: { error },
   }),
 } as const satisfies Record<string, (...args: any[]) => Op>;
 
@@ -68,7 +83,8 @@ type PromiseController = {
 export const Opcode = {
   stepRun: "step_run",
   stepSleep: "step_sleep",
-  workflowComplete: "workflow_complete",
+  workflowSuccess: "workflow_success",
+  workflowError: "workflow_error",
 } as const;
 export type Opcode = (typeof Opcode)[keyof typeof Opcode];
 
@@ -105,7 +121,7 @@ export class BaseExeDriver {
     state: StepState,
     steps: FoundStep[]
   ): Promise<ControlFlow> {
-    console.log("onStepsFound", steps);
+    // console.log("onStepsFound", steps);
     const newSteps: FoundStep[] = [];
     for (const step of steps) {
       // NOTE - Run state can't be attached to the driver - could be used in multiple workflows
@@ -136,11 +152,14 @@ export class BaseExeDriver {
           hashedId: newStep.id,
           id: newStep.id,
           idIndex: 0,
-          op: op.stepRun({ output }),
+          op: op.stepRunSuccess(output),
         };
-      } catch (error) {
-        if (!(error instanceof Error)) {
-          error = new Error(String(error));
+      } catch (e) {
+        let error: Error;
+        if (e instanceof Error) {
+          error = e;
+        } else {
+          error = new Error(String(e));
         }
         state.setStep(newStep.id, { error, status: "error" });
         newStep.promise.reject(error);
@@ -148,7 +167,7 @@ export class BaseExeDriver {
           hashedId: newStep.id,
           id: newStep.id,
           idIndex: 0,
-          op: op.stepRun({ error: error as Error }),
+          op: op.stepRunError(error),
         };
       }
       return controlFlow.interrupt([result]);
