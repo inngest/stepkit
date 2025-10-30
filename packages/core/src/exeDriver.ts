@@ -50,6 +50,7 @@ export class BaseExeDriver {
     state: StepState,
     steps: FoundStep[]
   ): Promise<Flow> {
+    console.log("onStepsFound", steps);
     const newSteps: FoundStep[] = [];
     for (const step of steps) {
       // NOTE - Run state can't be attached to the driver - could be used in multiple workflows
@@ -69,13 +70,19 @@ export class BaseExeDriver {
       }
     }
 
+    console.log("newSteps", newSteps.length);
+
     if (newSteps.length === 1 && newSteps[0].opcode === Opcode.stepRun) {
       const newStep = newSteps[0];
       try {
         const output = await newStep.opts.handler();
+        console.log("setting step success", newStep.id);
         state.setStep(newStep.id, { output, status: "success" });
+        console.log("resolving promise", newStep.id);
+        newStep.promise.resolve(output);
       } catch (error) {
         state.setStep(newStep.id, { error, status: "error" });
+        newStep.promise.reject(error);
       }
     } else if (newSteps.length > 1) {
       // Todo: report

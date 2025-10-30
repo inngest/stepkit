@@ -17,20 +17,24 @@ export async function executionLoop<TOutput>({
 }) {
   // Collect a stack of steps discovered on this tick
   const stack: any[] = [];
-  let pauseResolve: (value: unknown) => void = () => {}; // noop
-  const pause = new Promise((resolve) => {
-    pauseResolve = resolve;
-  });
+  // let pauseResolve: () => void = () => {};
+  // let pause: Promise<void> = new Promise((resolve) => {
+  //   pauseResolve = () => resolve(undefined);
+  // });
+  let pause = createDeferredPromise<void>();
 
   const step: Steps = {
     run: async <T>(stepId: string, callback: () => Promise<T>) => {
+      console.log("run", stepId);
       const stepResolver = createDeferredPromise<T>();
 
       // Report the step
       stack.push({ stepId, callback, stepResolver });
 
       // Pause until all steps are reported
+      console.log("pausing", stepId);
       await pause;
+      console.log("resumed", stepId);
 
       return stepResolver.promise;
     },
@@ -41,8 +45,13 @@ export async function executionLoop<TOutput>({
     // Run the handler and pause until the next tick to discover steps
     handlerPromise = workflow.handler({ step });
     while (true) {
+      const newPause = createDeferredPromise<void>();
+      pause.promise = newPause.promise;
+      pause.resolve = newPause.resolve;
+      pause.reject = newPause.reject;
       await new Promise((resolve) => setTimeout(resolve, 0));
       if (stack.length === 0) {
+        console.log("a")
         // End of the function
         break;
       }
@@ -60,11 +69,11 @@ export async function executionLoop<TOutput>({
 
       if (flow === Flow.continue) {
         // console.log("continue");
-        for (const s of stack) {
-          const output = await s.callback();
-          s.stepResolver.resolve(output);
-        }
-        pauseResolve(undefined);
+        // for (const s of stack) {
+        //   const output = await s.callback();
+        //   s.stepResolver.resolve(output);
+        // }
+        pause.resolve(undefined);
       }
       if (flow === Flow.interrupt) {
         break;
