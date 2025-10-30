@@ -41,8 +41,10 @@ describe("executionLoop", () => {
         id: "",
         idIndex: 0,
         op: {
-          code: "workflow_success",
-          opts: { output: "Hello, Alice!" },
+          code: "workflow.success",
+          opts: {
+            output: "Hello, Alice!",
+          },
         },
       },
     ]);
@@ -73,8 +75,10 @@ describe("executionLoop", () => {
         id: "",
         idIndex: 0,
         op: {
-          code: "workflow_error",
-          opts: { error: expect.any(Error) },
+          code: "workflow.error",
+          opts: {
+            error: expect.any(Error),
+          },
         },
       },
     ]);
@@ -117,10 +121,9 @@ describe("executionLoop", () => {
         id: "get-name",
         idIndex: 0,
         op: {
-          code: "step_run",
+          code: "step.run.success",
           opts: {
             output: "Alice",
-            status: "success",
           },
         },
       },
@@ -164,10 +167,9 @@ describe("executionLoop", () => {
         id: "get-name",
         idIndex: 0,
         op: {
-          code: "step_run",
+          code: "step.run.error",
           opts: {
             error: expect.any(Error),
-            status: "error",
           },
         },
       },

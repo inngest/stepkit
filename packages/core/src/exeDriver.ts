@@ -1,41 +1,13 @@
 import type { Workflow } from "./workflow";
 
-// export const Flow = {
-//   continue: "continue",
-//   interrupt: "interrupt",
-// } as const;
-// export type Flow = (typeof Flow)[keyof typeof Flow];
-
-// type ControlFlowContinue = {
-//   type: "continue";
-// };
-
-// // When interrupting, a result must be provided
-// type ControlFlowInterrupt = {
-//   type: "interrupt";
-//   result: unknown;
-// };
-
-type StepRunOpts =
-  | {
-      output: unknown;
-    }
-  | {
-      error: Error;
-    };
-
 export const op = {
   stepRunSuccess: (output: unknown) => ({
-    code: Opcode.stepRun,
-    opts: { output, status: "success" },
+    code: Opcode.stepRunSuccess,
+    opts: { output },
   }),
   stepRunError: (error: Error) => ({
-    code: Opcode.stepRun,
-    opts: { error, status: "error" },
-  }),
-  stepRunPlanned: () => ({
-    code: Opcode.stepRun,
-    opts: { status: "planned" },
+    code: Opcode.stepRunError,
+    opts: { error },
   }),
   workflowSuccess: (output: unknown) => ({
     code: Opcode.workflowSuccess,
@@ -81,17 +53,20 @@ type PromiseController = {
 };
 
 export const Opcode = {
-  stepRun: "step_run",
-  stepSleep: "step_sleep",
-  workflowSuccess: "workflow_success",
-  workflowError: "workflow_error",
+  stepRunSuccess: "step.run.success",
+  stepRunError: "step.run.error",
+  stepRunFound: "step.run.found",
+  stepRun: "step.run",
+  stepSleep: "step.sleep",
+  workflowSuccess: "workflow.success",
+  workflowError: "workflow.error",
 } as const;
 export type Opcode = (typeof Opcode)[keyof typeof Opcode];
 
 export type FoundStep =
   | {
       id: string;
-      opcode: typeof Opcode.stepRun;
+      opcode: typeof Opcode.stepRunFound;
       opts: { handler: () => Promise<unknown> };
       promise: PromiseController;
     }
@@ -141,7 +116,7 @@ export class BaseExeDriver {
       }
     }
 
-    if (newSteps.length === 1 && newSteps[0].opcode === Opcode.stepRun) {
+    if (newSteps.length === 1 && newSteps[0].opcode === Opcode.stepRunFound) {
       const newStep = newSteps[0];
       let result: Result;
       try {

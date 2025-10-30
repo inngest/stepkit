@@ -68,7 +68,7 @@ export async function executionLoop<TOutput>({
         state,
         stack.map((s) => ({
           id: s.stepId,
-          opcode: Opcode.stepRun,
+          opcode: Opcode.stepRunFound,
           opts: { handler: s.callback },
           promise: s.stepResolver,
         }))
