@@ -12,18 +12,15 @@ const client = new WorkflowClient(driver);
 export const greetingWorkflow = client.workflow<{ name: string }, string>(
   { id: "greeting-workflow" },
   async ({ step }) => {
-    console.log("workflow:top");
     const greeting = await step.run("get-greeting", async () => {
-      console.log("  → Running step: get-greeting");
-      // return input.name.toUpperCase();
       return "Hello";
     });
 
     const name = await step.run("get-name", async () => {
-      console.log("  → Running step: get-name");
       return "Alice";
     });
 
+    console.log("workflow:bottom");
     return `${greeting}, ${name}!`;
   },
 );

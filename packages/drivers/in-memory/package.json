@@ -6,13 +6,16 @@
   "types": "./src/index.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "@open-workflow/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^4.0.5"
   }
 }
