@@ -1,6 +1,12 @@
-import { Flow, type FoundStep, Opcode, type StepState } from "./exeDriver";
+import {
+  type ControlFlow,
+  type FoundStep,
+  Opcode,
+  type StepState,
+} from "./exeDriver";
 import { type Workflow, type Steps } from "./workflow";
 import { createDeferredPromise } from "./promises";
+import { op, type Result } from "./exeDriver";
 
 export async function executionLoop<TOutput>({
   workflow,
@@ -13,28 +19,21 @@ export async function executionLoop<TOutput>({
     workflow: Workflow<TOutput>,
     state: StepState,
     steps: FoundStep[]
-  ) => Promise<Flow>;
-}) {
+  ) => Promise<ControlFlow>;
+}): Promise<Result[]> {
   // Collect a stack of steps discovered on this tick
   const stack: any[] = [];
-  // let pauseResolve: () => void = () => {};
-  // let pause: Promise<void> = new Promise((resolve) => {
-  //   pauseResolve = () => resolve(undefined);
-  // });
   let pause = createDeferredPromise<void>();
 
   const step: Steps = {
     run: async <T>(stepId: string, callback: () => Promise<T>) => {
-      console.log("run", stepId);
       const stepResolver = createDeferredPromise<T>();
 
       // Report the step
       stack.push({ stepId, callback, stepResolver });
 
       // Pause until all steps are reported
-      console.log("pausing", stepId);
       await pause;
-      console.log("resumed", stepId);
 
       return stepResolver.promise;
     },
@@ -51,7 +50,6 @@ export async function executionLoop<TOutput>({
       pause.reject = newPause.reject;
       await new Promise((resolve) => setTimeout(resolve, 0));
       if (stack.length === 0) {
-        console.log("a")
         // End of the function
         break;
       }
@@ -67,33 +65,26 @@ export async function executionLoop<TOutput>({
         }))
       );
 
-      if (flow === Flow.continue) {
-        // console.log("continue");
-        // for (const s of stack) {
-        //   const output = await s.callback();
-        //   s.stepResolver.resolve(output);
-        // }
+      if (flow.type === "continue") {
         pause.resolve(undefined);
       }
-      if (flow === Flow.interrupt) {
-        break;
+      if (flow.type === "interrupt") {
+        return flow.results;
       }
 
-      return await handlerPromise;
+      // Unreachable
     }
   } finally {
     // Clear the stack
     stack.splice(0, stack.length);
   }
   const output = await handlerPromise;
-  return output as TOutput;
-  // return output
-  //   .then((o) => {
-  //     console.log('executionLoop output', o);
-  //     return o as TOutput;
-  //   })
-  //   .catch((e) => {
-  //     console.error('executionLoop error', e);
-  //     throw e;
-  //   });
+  return [
+    {
+      hashedId: "",
+      id: "",
+      idIndex: 0,
+      op: op.workflowComplete(output),
+    },
+  ];
 }
