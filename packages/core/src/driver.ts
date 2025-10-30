@@ -28,7 +28,7 @@ export interface WorkflowDriver {
   onStepsFound(
     options: WorkflowExecutionOptions,
     steps: FoundStep[],
-    state: Record<string, MemoizedOp>
+    state: Record<string, MemoizedOp>,
   ): Promise<FlowControlResult>;
 
   //
@@ -37,20 +37,20 @@ export interface WorkflowDriver {
   onStepExecuted(
     options: WorkflowExecutionOptions,
     step: OutgoingOp,
-    state: Record<string, MemoizedOp>
+    state: Record<string, MemoizedOp>,
   ): Promise<FlowControlResult>;
 
   //
   // Called when the workflow function completes
   onWorkflowCompleted(
     options: WorkflowExecutionOptions,
-    result: unknown
+    result: unknown,
   ): Promise<ExecutionResult>;
 
   //
   // Called when the workflow function throws an error
   onWorkflowError(
     options: WorkflowExecutionOptions,
-    error: unknown
+    error: unknown,
   ): Promise<ExecutionResult>;
 }

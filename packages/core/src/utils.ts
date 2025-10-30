@@ -46,7 +46,7 @@ export interface DeferredPromiseWithStack<T = unknown> {
 }
 
 export const createDeferredPromiseWithStack = <
-  T = unknown
+  T = unknown,
 >(): DeferredPromiseWithStack<T> => {
   const stack: T[] = [];
   const waiters: Array<(value: IteratorResult<T>) => void> = [];

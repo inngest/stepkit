@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@open-workflow/core": "workspace:*",

@@ -68,7 +68,7 @@ export interface WorkflowExecutionOptions<TInput = unknown> {
 export interface StepTools {
   run: <T>(
     idOrOpts: string | StepOptions,
-    fn: () => MaybePromise<T>
+    fn: () => MaybePromise<T>,
   ) => Promise<T>;
   sleep: (idOrOpts: string | StepOptions, duration: number) => Promise<void>;
 }
@@ -79,5 +79,5 @@ export interface WorkflowContext<TInput = unknown> {
 }
 
 export type WorkflowHandler<TInput = unknown, TOutput = unknown> = (
-  ctx: WorkflowContext<TInput>
+  ctx: WorkflowContext<TInput>,
 ) => MaybePromise<TOutput>;

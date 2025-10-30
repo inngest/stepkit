@@ -16,9 +16,9 @@ export class InMemoryDriver implements WorkflowDriver {
   private state = new Map<string, Record<string, MemoizedOp>>();
 
   async onStepsFound(
-    options: WorkflowExecutionOptions,
-    steps: FoundStep[],
-    state: Record<string, MemoizedOp>
+    _options: WorkflowExecutionOptions,
+    _steps: FoundStep[],
+    _state: Record<string, MemoizedOp>,
   ): Promise<FlowControlResult> {
     //
     // For in-memory execution, we just continue - steps will be executed
@@ -31,7 +31,7 @@ export class InMemoryDriver implements WorkflowDriver {
   async onStepExecuted(
     options: WorkflowExecutionOptions,
     step: OutgoingOp,
-    state: Record<string, MemoizedOp>
+    _state: Record<string, MemoizedOp>,
   ): Promise<FlowControlResult> {
     //
     // Save step result to in-memory state
@@ -56,7 +56,7 @@ export class InMemoryDriver implements WorkflowDriver {
 
   async onWorkflowCompleted(
     options: WorkflowExecutionOptions,
-    result: unknown
+    result: unknown,
   ): Promise<ExecutionResult> {
     return {
       type: "function-resolved",
@@ -66,7 +66,7 @@ export class InMemoryDriver implements WorkflowDriver {
 
   async onWorkflowError(
     options: WorkflowExecutionOptions,
-    error: unknown
+    error: unknown,
   ): Promise<ExecutionResult> {
     return {
       type: "function-rejected",

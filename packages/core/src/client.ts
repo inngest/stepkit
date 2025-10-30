@@ -11,7 +11,7 @@ export class WorkflowClient {
 
   workflow<TInput = unknown, TOutput = unknown>(
     config: WorkflowConfig,
-    handler: WorkflowHandler<TInput, TOutput>
+    handler: WorkflowHandler<TInput, TOutput>,
   ): Workflow<TInput, TOutput> {
     return new Workflow(config, handler, this.driver);
   }

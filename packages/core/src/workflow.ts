@@ -18,7 +18,7 @@ export class Workflow<TInput = unknown, TOutput = unknown> {
   constructor(
     config: WorkflowConfig,
     handler: WorkflowHandler<TInput, TOutput>,
-    driver: WorkflowDriver
+    driver: WorkflowDriver,
   ) {
     this.config = config;
     this.handler = handler;
@@ -53,11 +53,15 @@ export class Workflow<TInput = unknown, TOutput = unknown> {
   //
   // Execute the workflow incrementally, used by drivers that need step-by-step execution
   async execute(
-    options: Partial<WorkflowExecutionOptions<TInput>>
+    options: Partial<WorkflowExecutionOptions<TInput>>,
   ): Promise<ExecutionResult> {
+    if (!options.input) {
+      throw new Error("Input is required for workflow execution");
+    }
+
     const executionOptions: WorkflowExecutionOptions<TInput> = {
       workflowId: this.config.id,
-      input: options.input!,
+      input: options.input,
       stepState: options.stepState || {},
       stepCompletionOrder: options.stepCompletionOrder || [],
       requestedRunStep: options.requestedRunStep,
@@ -67,7 +71,7 @@ export class Workflow<TInput = unknown, TOutput = unknown> {
     const executor = new WorkflowExecutor(
       executionOptions,
       this.handler,
-      this.driver
+      this.driver,
     );
     return await executor.start();
   }

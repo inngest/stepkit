@@ -47,7 +47,7 @@ export class WorkflowExecutor<TInput = unknown, TOutput = unknown> {
   constructor(
     options: WorkflowExecutionOptions<TInput>,
     handler: WorkflowHandler<TInput, TOutput>,
-    driver: WorkflowDriver
+    driver: WorkflowDriver,
   ) {
     this.options = options;
     this.handler = handler;
@@ -84,19 +84,19 @@ export class WorkflowExecutor<TInput = unknown, TOutput = unknown> {
   }
 
   private async handleCheckpoint(
-    checkpoint: Checkpoint
+    checkpoint: Checkpoint,
   ): Promise<ExecutionResult | undefined> {
     switch (checkpoint.type) {
       case "function-resolved":
         return await this.driver.onWorkflowCompleted(
           this.options,
-          checkpoint.data
+          checkpoint.data,
         );
 
       case "function-rejected":
         return await this.driver.onWorkflowError(
           this.options,
-          checkpoint.error
+          checkpoint.error,
         );
 
       case "steps-found": {
@@ -105,7 +105,7 @@ export class WorkflowExecutor<TInput = unknown, TOutput = unknown> {
           const flowControl = await this.driver.onStepExecuted(
             this.options,
             stepResult,
-            this.getOps()
+            this.getOps(),
           );
 
           if (
@@ -121,7 +121,7 @@ export class WorkflowExecutor<TInput = unknown, TOutput = unknown> {
           const flowControl = await this.driver.onStepsFound(
             this.options,
             checkpoint.steps,
-            this.getOps()
+            this.getOps(),
           );
 
           if (
@@ -138,7 +138,7 @@ export class WorkflowExecutor<TInput = unknown, TOutput = unknown> {
   }
 
   private async tryExecuteStep(
-    steps: FoundStep[]
+    steps: FoundStep[],
   ): Promise<OutgoingOp | undefined> {
     const hashedStepIdToRun =
       this.options.requestedRunStep || this.getEarlyExecRunStep(steps);
@@ -247,7 +247,7 @@ export class WorkflowExecutor<TInput = unknown, TOutput = unknown> {
       }
 
       foundStepsReportPromise = new Promise((resolve) =>
-        setImmediate(resolve)
+        setImmediate(resolve),
       ).then(() => {
         foundStepsReportPromise = undefined;
 
@@ -281,7 +281,7 @@ export class WorkflowExecutor<TInput = unknown, TOutput = unknown> {
     const createStep = (
       idOrOpts: string | StepOptions,
       op: StepOpCode,
-      fn?: () => Promise<unknown>
+      fn?: () => Promise<unknown>,
     ): Promise<unknown> => {
       const stepOptions =
         typeof idOrOpts === "string" ? { id: idOrOpts } : idOrOpts;
@@ -360,18 +360,18 @@ export class WorkflowExecutor<TInput = unknown, TOutput = unknown> {
     return {
       run: <T>(
         idOrOpts: string | StepOptions,
-        fn: () => MaybePromise<T>
+        fn: () => MaybePromise<T>,
       ): Promise<T> => {
         const wrappedFn = async () => await fn();
         return createStep(
           idOrOpts,
           "StepPlanned" as StepOpCode,
-          wrappedFn
+          wrappedFn,
         ) as Promise<T>;
       },
       sleep: (
         idOrOpts: string | StepOptions,
-        duration: number
+        duration: number,
       ): Promise<void> => {
         const fn = async () =>
           new Promise<void>((resolve) => {
@@ -388,7 +388,7 @@ export class WorkflowExecutor<TInput = unknown, TOutput = unknown> {
     const checkpointResults = d.results;
 
     const loop: ExecutionState["loop"] = (async function* (
-      cleanUp?: () => void
+      cleanUp?: () => void,
     ) {
       try {
         while (true) {

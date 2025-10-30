@@ -21,7 +21,7 @@ const greetingWorkflow = client.workflow<{ name: string }, string>(
     });
 
     return greeting;
-  }
+  },
 );
 
 //
@@ -67,7 +67,7 @@ const delayedWorkflow = client.workflow<{ message: string }, string>(
     console.log("  → After final delay");
 
     return result;
-  }
+  },
 );
 
 //

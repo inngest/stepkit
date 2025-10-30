@@ -8,7 +8,6 @@ A lightweight, driver-based TypeScript SDK for building durable workflows with s
 - **Step Memoization**: Automatic step result caching for resilient execution
 - **Type-Safe API**: Fully typed workflow inputs, outputs, and step results
 
-
 ## Project Structure
 
 ```
@@ -56,7 +55,7 @@ const greetingWorkflow = client.workflow<{ name: string }, string>(
     });
 
     return greeting;
-  }
+  },
 );
 
 //
@@ -89,6 +88,7 @@ Drivers control how workflows are executed and how state is managed. The driver 
 - `onWorkflowError`: Called when the workflow encounters an error
 
 Drivers can choose to:
+
 - Continue execution (run to completion)
 - Interrupt execution (return intermediate results)
 - Store state externally
@@ -131,6 +131,26 @@ pnpm -r build
 ```bash
 pnpm dev
 ```
+
+### Linting and Formatting
+
+The project uses ESLint and Prettier for code quality:
+
+```bash
+# Run ESLint
+pnpm lint
+
+# Fix ESLint errors automatically
+pnpm lint:fix
+
+# Check code formatting
+pnpm format:check
+
+# Format code
+pnpm format
+```
+
+**Git Hooks**: The project uses Husky with lint-staged to automatically lint and format staged files on commit. This ensures all committed code follows the project's style guidelines.
 
 ## Architecture Notes
 
