@@ -2,7 +2,7 @@ import type { Workflow } from "./workflow";
 import type { OperationResult, OperationFound } from "./types";
 import { isStepRunFound, toResult, Opcode } from "./types";
 import { executionLoop } from "./executionLoop";
-import { createDeferredPromise } from "./promises";
+import { createControlledPromise } from "./promises";
 
 export type ControlFlow =
   | {
@@ -42,7 +42,7 @@ export class BaseExeDriver {
     return {
       step: {
         run: async <T>(stepId: string, handler: () => Promise<T>) => {
-          const stepResolver = createDeferredPromise<any>();
+          const controlledPromise = createControlledPromise<any>();
 
           // Pause until all steps are reported
           await reportOp({
@@ -55,13 +55,10 @@ export class BaseExeDriver {
               id: stepId,
               index: 0,
             },
-            promise: {
-              resolve: stepResolver.resolve,
-              reject: stepResolver.reject,
-            },
+            promise: controlledPromise,
           });
 
-          return stepResolver.promise;
+          return controlledPromise.promise;
         },
       },
     };

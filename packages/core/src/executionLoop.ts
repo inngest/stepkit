@@ -1,6 +1,6 @@
 import { type ControlFlow, type StepState } from "./exeDriver";
 import { type Workflow, HandlerContext } from "./workflow";
-import { createDeferredPromise } from "./promises";
+import { createControlledPromise } from "./promises";
 import type { OperationFound, OperationResult } from "./types";
 import { toResult } from "./types";
 
@@ -23,7 +23,7 @@ export async function executionLoop<TOutput>({
 }): Promise<OperationResult[]> {
   // Collect a stack of steps discovered on this tick
   const stack: any[] = [];
-  let pause = createDeferredPromise<void>();
+  let pause = createControlledPromise();
 
   async function reportOp(step: OperationFound) {
     stack.push(step);
@@ -46,7 +46,7 @@ export async function executionLoop<TOutput>({
       return new Error(String(e));
     });
     while (true) {
-      const newPause = createDeferredPromise<void>();
+      const newPause = createControlledPromise();
       pause.promise = newPause.promise;
       pause.resolve = newPause.resolve;
       pause.reject = newPause.reject;

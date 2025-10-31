@@ -1,3 +1,5 @@
+import type { ControlledPromise } from "./promises";
+
 export const Opcode = {
   stepRunSuccess: "step.run.success",
   stepRunError: "step.run.error",
@@ -69,8 +71,5 @@ export type OperationFound<TOpConfig extends OpConfig = OpConfig> = {
     id: string;
     index: number;
   };
-  promise: {
-    resolve: (value: unknown) => void;
-    reject: (reason: unknown) => void;
-  };
+  promise: ControlledPromise<unknown>;
 };
