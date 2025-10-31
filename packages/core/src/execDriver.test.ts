@@ -19,7 +19,7 @@ class RunState {
   }
 }
 
-describe("execute", () => {
+describe("execute once", () => {
   it("no steps success", async () => {
     // When no steps, interrupt with workflow result
 
@@ -209,6 +209,93 @@ describe("execute", () => {
         result: {
           status: "success",
           output: undefined,
+        },
+      },
+    ]);
+  });
+});
+
+describe("execute to completion", () => {
+  it("step.run success", async () => {
+    // Keep looping through interrupts until the run completes
+
+    const state = new RunState();
+    const driver = new BaseExecutionDriver();
+    const client = new OWClient({ driver });
+
+    const counters = {
+      top: 0,
+      getGreeting: 0,
+      getName: 0,
+      bottom: 0,
+    };
+    const workflow = client.workflow({ id: "workflow" }, async ({ step }) => {
+      counters.top++;
+
+      const greeting = await step.run("get-greeting", async () => {
+        counters.getGreeting++;
+        return "Hello";
+      });
+
+      const name = await step.run("get-name", async () => {
+        counters.getName++;
+        return "Alice";
+      });
+
+      counters.bottom++;
+      return `${greeting}, ${name}!`;
+    });
+
+    let allResults: OpResult[] = [];
+    while (true) {
+      const results = await driver.execute(state, workflow);
+      allResults = [...allResults, ...results];
+      if (results[0].config.code === "workflow.success") {
+        break;
+      }
+    }
+
+    expect(counters).toEqual({
+      top: 3,
+      getGreeting: 1,
+      getName: 1,
+      bottom: 1,
+    });
+    expect(allResults).toEqual([
+      {
+        config: { code: "step.run.success" },
+        id: {
+          hashed: "get-greeting",
+          id: "get-greeting",
+          index: 0,
+        },
+        result: {
+          status: "success",
+          output: "Hello",
+        },
+      },
+      {
+        config: { code: "step.run.success" },
+        id: {
+          hashed: "get-name",
+          id: "get-name",
+          index: 0,
+        },
+        result: {
+          status: "success",
+          output: "Alice",
+        },
+      },
+      {
+        config: { code: "workflow.success" },
+        id: {
+          hashed: "",
+          id: "",
+          index: 0,
+        },
+        result: {
+          status: "success",
+          output: "Hello, Alice!",
         },
       },
     ]);

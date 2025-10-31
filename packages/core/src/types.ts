@@ -122,11 +122,6 @@ export const controlFlow = {
   interrupt: (results: OpResult[]) => ({ type: "interrupt", results }),
 } as const satisfies Record<string, (...args: any[]) => ControlFlow>;
 
-export type RunStateDriver = {
-  getOp(id: string): OpResult | undefined;
-  setOp(id: string, op: OpResult): void;
-};
-
 export type StdContext = {
   step: {
     run: <T>(stepId: string, handler: () => Promise<T>) => Promise<T>;

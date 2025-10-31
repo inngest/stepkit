@@ -88,7 +88,6 @@ export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
 function handleOps(state: RunStateDriver, ops: OpFound[]): OpFound[] {
   const newOps: OpFound[] = [];
   for (const op of ops) {
-    // NOTE - Run state can't be attached to the driver - could be used in multiple workflows
     const item = state.getOp(op.id.hashed);
     if (item) {
       if (item.result.status === "success") {

@@ -2,6 +2,7 @@ export type ControlledPromise<T> = {
   promise: Promise<T>;
   resolve: (value: T) => ControlledPromise<T>;
   reject: (reason: any) => ControlledPromise<T>;
+  reset: () => void;
 };
 
 export const createControlledPromise = <T = void>(): ControlledPromise<T> => {
@@ -20,5 +21,15 @@ export const createControlledPromise = <T = void>(): ControlledPromise<T> => {
     };
   });
 
-  return { promise, resolve: resolve!, reject: reject! };
+  const out = { promise, resolve: resolve!, reject: reject! };
+
+  const reset = () => {
+    const newPromise = createControlledPromise<T>();
+    out.promise = newPromise.promise;
+    out.resolve = newPromise.resolve;
+    out.reject = newPromise.reject;
+    return out;
+  };
+
+  return { ...out, reset };
 };
