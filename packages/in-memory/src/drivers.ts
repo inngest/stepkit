@@ -9,6 +9,10 @@ export class InMemoryRunStateDriver implements RunStateDriver {
     this.ops = new Map();
   }
 
+  async getBaseContext(runId: string): Promise<Omit<StdContext, "step">> {
+    return { runId };
+  }
+
   private getKey({
     runId,
     hashedOpId,
@@ -51,11 +55,8 @@ export class InMemoryDriver extends BaseExecutionDriver {
     this.activeRuns = new Set();
   }
 
-  async execute(
-    workflow: Workflow<StdContext, any>,
-    baseContext: BaseContext<StdContext>
-  ) {
-    return super.execute(workflow, baseContext);
+  async execute(workflow: Workflow<StdContext, any>, runId: string) {
+    return super.execute(workflow, runId);
   }
 
   async invoke<TOutput>(
@@ -63,9 +64,6 @@ export class InMemoryDriver extends BaseExecutionDriver {
   ): Promise<TOutput> {
     const runId = crypto.randomUUID();
     this.activeRuns.add(runId);
-    const baseContext: BaseContext<StdContext> = {
-      runId,
-    };
 
     let i = 0;
     let maxIterations = 10_000;
@@ -75,7 +73,7 @@ export class InMemoryDriver extends BaseExecutionDriver {
         throw new Error("unreachable: infinite loop detected");
       }
 
-      const ops = await this.execute(workflow, baseContext);
+      const ops = await this.execute(workflow, runId);
       if (ops.length !== 1) {
         // Not done yet
         continue;

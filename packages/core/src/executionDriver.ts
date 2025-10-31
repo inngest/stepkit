@@ -110,42 +110,44 @@ export class BaseExecutionDriver<TContext extends StdContext = StdContext>
   }
 
   getContext = async (reportOp: ReportOp, runId: string): Promise<TContext> => {
-    throw new Error("not implemented");
-    // // @ts-expect-error - TODO: fix this
-    // return {
-    //   ...baseContext,
-    //   step: {
-    //     run: async <T>(
-    //       stepId: string,
-    //       handler: () => Promise<T>
-    //     ): Promise<T> => {
-    //       // Pause until all steps are reported
-    //       const output = await reportOp<T>({
-    //         config: {
-    //           code: StdOpcode.stepRun,
-    //           options: { handler },
-    //         },
-    //         id: {
-    //           hashed: stepId,
-    //           id: stepId,
-    //           index: 0,
-    //         },
-    //         promise: createControlledPromise<T>(),
-    //       });
-    //       return output;
-    //     },
-    //     sleep: async (stepId: string, duration: number) => {
-    //       return await reportOp({
-    //         config: {
-    //           code: StdOpcode.stepSleep,
-    //           options: { wakeupAt: new Date(Date.now() + duration) },
-    //         },
-    //         id: { hashed: stepId, id: stepId, index: 0 },
-    //         promise: createControlledPromise<any>(),
-    //       });
-    //     },
-    //   },
-    // };
+    const baseContext = await this.state.getBaseContext(runId);
+
+    // @ts-expect-error - TODO: fix this. Since child classes can add more
+    // steps, the returned steps may not be all the defined steps
+    return {
+      ...baseContext,
+      step: {
+        run: async <T>(
+          stepId: string,
+          handler: () => Promise<T>
+        ): Promise<T> => {
+          // Pause until all steps are reported
+          const output = await reportOp<T>({
+            config: {
+              code: StdOpcode.stepRun,
+              options: { handler },
+            },
+            id: {
+              hashed: stepId,
+              id: stepId,
+              index: 0,
+            },
+            promise: createControlledPromise<T>(),
+          });
+          return output;
+        },
+        sleep: async (stepId: string, duration: number) => {
+          return await reportOp({
+            config: {
+              code: StdOpcode.stepSleep,
+              options: { wakeupAt: new Date(Date.now() + duration) },
+            },
+            id: { hashed: stepId, id: stepId, index: 0 },
+            promise: createControlledPromise<any>(),
+          });
+        },
+      },
+    };
   };
 
   async invoke<TOutput>(

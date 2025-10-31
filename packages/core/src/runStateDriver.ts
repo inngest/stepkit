@@ -1,4 +1,4 @@
-import type { BaseContext, OpResult, StdContext } from "./types";
+import type { OpResult, StdContext } from "./types";
 
 export type RunStateDriver<TContext extends StdContext = StdContext> = {
   getBaseContext(runId: string): Promise<Omit<TContext, "step">>;
