@@ -310,7 +310,6 @@ describe("execute to completion", () => {
       namePromise: 0,
     };
     const registry = new FinalizationRegistry((heldValue) => {
-      // console.log("heldValue:", heldValue);
       heldValues[heldValue as keyof typeof heldValues]++;
     });
 
@@ -337,6 +336,10 @@ describe("execute to completion", () => {
       }
     }
 
+    // Force garbage collection
+    globalThis?.gc?.();
+
+    // Need to poll our assertion because GC runs async
     await vi.waitFor(
       () => {
         expect(heldValues).toEqual({
@@ -344,7 +347,7 @@ describe("execute to completion", () => {
           namePromise: 2,
         });
       },
-      { timeout: 19_000 }
+      { timeout: 2000 }
     );
-  }, 20_000);
+  });
 });
