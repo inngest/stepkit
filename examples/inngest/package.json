@@ -1,5 +1,5 @@
 {
-  "name": "examples/in-memory",
+  "name": "examples/inngest",
   "version": "0.0.0",
   "main": "./src/main.ts",
   "types": "./src/main.ts",
@@ -9,9 +9,11 @@
   },
   "dependencies": {
     "@open-workflow/core": "*",
-    "@open-workflow/in-memory": "*"
+    "@open-workflow/inngest": "*",
+    "express": "^5.1.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.5",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
