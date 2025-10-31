@@ -8,14 +8,14 @@ class RunState {
     this.ops = new Map();
   }
 
-  getOp(opId: string): OpResult | undefined {
-    if (this.ops.has(opId)) {
-      return this.ops.get(opId);
+  getOp(id: { runId: string; hashedOpId: string }): OpResult | undefined {
+    if (this.ops.has(id.hashedOpId)) {
+      return this.ops.get(id.hashedOpId);
     }
     return undefined;
   }
-  setOp(opId: string, op: OpResult): void {
-    this.ops.set(opId, op);
+  setOp(id: { runId: string; hashedOpId: string }, op: OpResult): void {
+    this.ops.set(id.hashedOpId, op);
   }
 }
 

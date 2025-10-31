@@ -88,7 +88,7 @@ export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
 function handleOps(state: RunStateDriver, ops: OpFound[]): OpFound[] {
   const newOps: OpFound[] = [];
   for (const op of ops) {
-    const item = state.getOp(op.id.hashed);
+    const item = state.getOp({ runId: "TODO", hashedOpId: op.id.hashed });
     if (item) {
       if (item.result.status === "success") {
         // Op already succeeded, so return its output
@@ -121,7 +121,7 @@ async function handleNewOps(
       try {
         const output = await newOpConfig.options.handler();
         result = stdOpResult.stepRunSuccess(newOp, output);
-        state.setOp(newOp.id.hashed, result);
+        state.setOp({ runId: "TODO", hashedOpId: newOp.id.hashed }, result);
         newOp.promise.resolve(output);
       } catch (e) {
         let error: Error;
@@ -131,7 +131,7 @@ async function handleNewOps(
           error = new Error(String(e));
         }
         result = stdOpResult.stepRunError(newOp, error);
-        state.setOp(newOp.id.hashed, result);
+        state.setOp({ runId: "TODO", hashedOpId: newOp.id.hashed }, result);
       }
       return controlFlow.interrupt([result]);
     }
