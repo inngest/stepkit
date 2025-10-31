@@ -3,12 +3,9 @@ import z from "zod";
 
 // Standard opcodes
 export const StdOpcode = {
-  stepRunError: "step.run.error",
-  stepRunFound: "step.run.found",
-  stepRunSuccess: "step.run.success",
+  stepRun: "step.run",
   stepSleep: "step.sleep",
-  workflowSuccess: "workflow.success",
-  workflowError: "workflow.error",
+  workflow: "workflow",
 } as const;
 export type StdOpcode = (typeof StdOpcode)[keyof typeof StdOpcode];
 
@@ -19,8 +16,8 @@ export type OpConfig = {
 
 // Schema for standard op configs
 export const stdOpConfigSchemas = {
-  [StdOpcode.stepRunFound]: z.object({
-    code: z.literal(StdOpcode.stepRunFound),
+  [StdOpcode.stepRun]: z.object({
+    code: z.literal(StdOpcode.stepRun),
     options: z.object({
       handler: z.function({
         output: z.promise(z.any()),
@@ -33,29 +30,20 @@ export const stdOpConfigSchemas = {
       wakeupAt: z.date(),
     }),
   }),
-  [StdOpcode.workflowSuccess]: z.object({
-    code: z.literal(StdOpcode.workflowSuccess),
-    result: z.object({
-      output: z.any(),
-    }),
-  }),
-  [StdOpcode.workflowError]: z.object({
-    code: z.literal(StdOpcode.workflowError),
-    result: z.object({
-      error: z.instanceof(Error),
-    }),
+  [StdOpcode.workflow]: z.object({
+    code: z.literal(StdOpcode.workflow),
   }),
 } as const;
 
 // Create a standard op result
 export const stdOpResult = {
   stepRunSuccess: (foundOp: OpFound, output: unknown) => ({
-    config: { code: StdOpcode.stepRunSuccess },
+    config: { code: StdOpcode.stepRun },
     id: foundOp.id,
     result: { status: "success", output },
   }),
   stepRunError: (foundOp: OpFound, error: Error) => ({
-    config: { code: StdOpcode.stepRunError },
+    config: { code: StdOpcode.stepRun },
     id: foundOp.id,
     result: { status: "error", error },
   }),
@@ -65,12 +53,12 @@ export const stdOpResult = {
     result: { status: "success", output: undefined },
   }),
   workflowSuccess: (output: unknown) => ({
-    config: { code: StdOpcode.workflowSuccess },
+    config: { code: StdOpcode.workflow },
     id: { hashed: "", id: "", index: 0 },
     result: { status: "success", output },
   }),
   workflowError: (error: Error) => ({
-    config: { code: StdOpcode.workflowError },
+    config: { code: StdOpcode.workflow },
     id: { hashed: "", id: "", index: 0 },
     result: { status: "error", error },
   }),

@@ -37,15 +37,15 @@ describe("execute once", () => {
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
-        config: { code: "workflow.success" },
+        config: { code: "workflow" },
         id: {
           hashed: "",
           id: "",
           index: 0,
         },
         result: {
-          status: "success",
           output: "Hello, Alice!",
+          status: "success",
         },
       },
     ]);
@@ -68,15 +68,15 @@ describe("execute once", () => {
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
-        config: { code: "workflow.error" },
+        config: { code: "workflow" },
         id: {
           hashed: "",
           id: "",
           index: 0,
         },
         result: {
-          status: "error",
           error: expect.any(Error),
+          status: "error",
         },
       },
     ]);
@@ -112,15 +112,15 @@ describe("execute once", () => {
     });
     expect(result).toEqual([
       {
-        config: { code: "step.run.success" },
+        config: { code: "step.run" },
         id: {
           hashed: "get-name",
           id: "get-name",
           index: 0,
         },
         result: {
-          status: "success",
           output: "Alice",
+          status: "success",
         },
       },
     ]);
@@ -156,15 +156,15 @@ describe("execute once", () => {
     });
     expect(result).toEqual([
       {
-        config: { code: "step.run.error" },
+        config: { code: "step.run" },
         id: {
           hashed: "get-name",
           id: "get-name",
           index: 0,
         },
         result: {
-          status: "error",
           error: expect.any(Error),
+          status: "error",
         },
       },
     ]);
@@ -207,8 +207,8 @@ describe("execute once", () => {
           index: 0,
         },
         result: {
-          status: "success",
           output: undefined,
+          status: "success",
         },
       },
     ]);
@@ -250,7 +250,7 @@ describe("execute to completion", () => {
     while (true) {
       const results = await driver.execute(state, workflow);
       allResults = [...allResults, ...results];
-      if (results[0].config.code === "workflow.success") {
+      if (results[0].config.code === "workflow") {
         break;
       }
     }
@@ -263,39 +263,39 @@ describe("execute to completion", () => {
     });
     expect(allResults).toEqual([
       {
-        config: { code: "step.run.success" },
+        config: { code: "step.run" },
         id: {
           hashed: "get-greeting",
           id: "get-greeting",
           index: 0,
         },
         result: {
-          status: "success",
           output: "Hello",
+          status: "success",
         },
       },
       {
-        config: { code: "step.run.success" },
+        config: { code: "step.run" },
         id: {
           hashed: "get-name",
           id: "get-name",
           index: 0,
         },
         result: {
-          status: "success",
           output: "Alice",
+          status: "success",
         },
       },
       {
-        config: { code: "workflow.success" },
+        config: { code: "workflow" },
         id: {
           hashed: "",
           id: "",
           index: 0,
         },
         result: {
-          status: "success",
           output: "Hello, Alice!",
+          status: "success",
         },
       },
     ]);

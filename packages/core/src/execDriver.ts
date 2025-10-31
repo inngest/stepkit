@@ -37,7 +37,7 @@ export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
           // Pause until all steps are reported
           await reportOp({
             config: {
-              code: StdOpcode.stepRunFound,
+              code: StdOpcode.stepRun,
               options: { handler },
             },
             id: {
@@ -116,7 +116,7 @@ async function handleNewOps(
     const newOp = newOps[0];
     const newOpConfig = parseOpConfig(newOp.config);
 
-    if (newOpConfig.code === StdOpcode.stepRunFound) {
+    if (newOpConfig.code === StdOpcode.stepRun) {
       let result: OpResult;
       try {
         const output = await newOpConfig.options.handler();
