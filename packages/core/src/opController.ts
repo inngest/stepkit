@@ -1,10 +1,15 @@
 import { type ControlFlow } from "./types";
 import { type Workflow } from "./workflow";
 import { createControlledPromise } from "./promises";
-import type { OpFound, OpResult, RunStateDriver } from "./types";
+import type { OpFound, OpResult } from "./types";
+import type { RunStateDriver } from "./runStateDriver";
 import { stdOpResult } from "./types";
 
-export async function execute<TContext, TOutput>({
+/**
+ * Finds ops in a controlled way, allowing the driver to make decisions when ops
+ * are found. Also handles control flow.
+ */
+export async function runOpController<TContext, TOutput>({
   workflow,
   state,
   onOpsFound,
@@ -19,12 +24,16 @@ export async function execute<TContext, TOutput>({
   ) => Promise<ControlFlow>;
   getContext: (reportOp: (op: OpFound) => Promise<void>) => TContext;
 }): Promise<OpResult[]> {
-  // Collect a stack of ops discovered on this tick
-  const stack: any[] = [];
+  const foundOps: OpFound[] = [];
   let pause = createControlledPromise();
 
+  /**
+   * Reports an op and pauses it until it's allowed to continue.
+   */
   async function reportOp(op: OpFound) {
-    stack.push(op);
+    foundOps.push(op);
+
+    // Only continue when the driver allows it
     await Promise.all([pause.promise, op.promise.promise]);
   }
 
@@ -49,24 +58,26 @@ export async function execute<TContext, TOutput>({
       pause.resolve = newPause.resolve;
       pause.reject = newPause.reject;
       await new Promise((resolve) => setTimeout(resolve, 0));
-      if (stack.length === 0) {
+      if (foundOps.length === 0) {
         // End of the function
         break;
       }
 
-      const flow = await onOpsFound(workflow, state, stack);
+      const flow = await onOpsFound(workflow, state, foundOps);
       if (flow.type === "continue") {
+        // Allow ops to continue
         pause.resolve(undefined);
       }
       if (flow.type === "interrupt") {
+        // Interrupt control flow and return the results
         return flow.results;
       }
 
       // Unreachable
     }
   } finally {
-    // Clear the stack
-    stack.splice(0, stack.length);
+    // Clear the found ops
+    foundOps.splice(0, foundOps.length);
   }
 
   const output = await handlerPromise;

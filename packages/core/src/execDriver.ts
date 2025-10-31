@@ -1,16 +1,11 @@
-import type { Workflow } from "../workflow";
-import type {
-  OpResult,
-  OpFound,
-  ControlFlow,
-  RunStateDriver,
-  StdContext,
-} from "../types";
-import { StdOpcode, controlFlow } from "../types";
-import { execute } from "../execute";
-import { createControlledPromise } from "../promises";
+import type { Workflow } from "./workflow";
+import type { OpResult, OpFound, ControlFlow, StdContext } from "./types";
+import { StdOpcode, controlFlow } from "./types";
+import { runOpController } from "./opController";
+import { createControlledPromise } from "./promises";
 import { parseOpConfig } from "./ops";
-import { stdOpResult } from "../types";
+import { stdOpResult } from "./types";
+import type { RunStateDriver } from "./runStateDriver";
 
 export type ExecutionDriver<TContext> = {
   execute: (
@@ -25,7 +20,7 @@ export type ExecutionDriver<TContext> = {
  */
 export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
   async execute(state: RunStateDriver, workflow: Workflow<StdContext, any>) {
-    return execute<StdContext, any>({
+    return runOpController<StdContext, any>({
       workflow,
       state,
       onOpsFound: this.onOpsFound,

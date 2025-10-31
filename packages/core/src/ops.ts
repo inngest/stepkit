@@ -1,6 +1,6 @@
-import { OpConfig } from "../types";
+import { OpConfig } from "./types";
 import z from "zod";
-import { stdOpConfigSchemas } from "../types";
+import { stdOpConfigSchemas } from "./types";
 
 const opConfigSchema = z.union(Object.values(stdOpConfigSchemas));
 export function parseOpConfig(

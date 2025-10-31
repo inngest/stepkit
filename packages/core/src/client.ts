@@ -1,4 +1,4 @@
-import { ExecutionDriver } from "./baseExecutionDriver/driver";
+import { ExecutionDriver } from "./execDriver";
 import { Workflow } from "./workflow";
 
 export class OWClient<TContext> {
