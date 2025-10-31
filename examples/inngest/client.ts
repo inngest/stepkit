@@ -1,6 +1,6 @@
-import { OWClient } from "@stepkit/core";
-import { InngestDriver } from "@stepkit/inngest";
+import { StepKitClient } from '@stepkit/core';
+import { InngestDriver } from '@stepkit/inngest';
 
-export const client = new OWClient({
+export const client = new StepKitClient({
   driver: new InngestDriver(),
 });
