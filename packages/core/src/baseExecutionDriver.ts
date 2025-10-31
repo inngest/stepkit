@@ -1,7 +1,7 @@
 import type { Workflow } from "./workflow";
 import type { OperationResult, OperationFound } from "./types";
 import { isStepRunFound, toResult, Opcode } from "./types";
-import { executionLoop } from "./executionLoop";
+import { execute } from "./execute";
 import { createControlledPromise } from "./promises";
 
 export type ControlFlow =
@@ -23,19 +23,14 @@ export type StepState = {
   setStep(id: string, state: OperationResult): void;
 };
 
-export class BaseExeDriver {
-  constructor(private state: StepState) {
-    //
-  }
-
-  async run(workflow: Workflow<any>) {
-    const foo = await executionLoop<any>({
+export class BaseExecutionDriver {
+  async execute(state: StepState, workflow: Workflow<any>) {
+    return execute<any>({
       workflow,
-      state: this.state,
+      state,
       onStepsFound: this.onStepsFound,
       getContext: this.getContext,
     });
-    return foo;
   }
 
   getContext(reportOp: (step: OperationFound) => Promise<void>) {

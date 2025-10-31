@@ -1,11 +1,11 @@
-import { type BaseExeDriver } from './exeDriver';
+import { type BaseExecutionDriver } from './baseExecutionDriver';
 import { Workflow } from './workflow';
 import type { HandlerContext } from './workflow';
 
 export class OWClient {
-  private readonly driver: BaseExeDriver;
+  private readonly driver: BaseExecutionDriver;
 
-  constructor({ driver }: { driver: BaseExeDriver }) {
+  constructor({ driver }: { driver: BaseExecutionDriver }) {
     this.driver = driver;
   }
 

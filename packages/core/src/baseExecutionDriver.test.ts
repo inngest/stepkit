@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { BaseExeDriver, greeting, OWClient, StepStateItem } from "./main";
-import { executionLoop } from "./executionLoop";
+import { BaseExecutionDriver, OWClient, StepStateItem } from "./main";
 
 class RunState {
   private steps: Map<string, StepStateItem>;
@@ -15,16 +14,16 @@ class RunState {
     return undefined;
   }
   setStep(id: string, state: StepStateItem): void {
-    // console.log("setStep", id, state);
     this.steps.set(id, state);
   }
 }
 
-describe("executionLoop", () => {
+describe("execute", () => {
   it("no steps success", async () => {
     // When no steps, interrupt with workflow result
 
-    const driver = new BaseExeDriver(new RunState());
+    const state = new RunState();
+    const driver = new BaseExecutionDriver();
     const client = new OWClient({ driver });
 
     let counter = 0;
@@ -33,7 +32,7 @@ describe("executionLoop", () => {
       return "Hello, Alice!";
     });
 
-    const output = await driver.run(workflow);
+    const output = await driver.execute(state, workflow);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -54,7 +53,8 @@ describe("executionLoop", () => {
   it("no steps error", async () => {
     // When no steps, interrupt with workflow result
 
-    const driver = new BaseExeDriver(new RunState());
+    const state = new RunState();
+    const driver = new BaseExecutionDriver();
     const client = new OWClient({ driver });
 
     let counter = 0;
@@ -63,7 +63,7 @@ describe("executionLoop", () => {
       throw new Error("oh no");
     });
 
-    const output = await driver.run(workflow);
+    const output = await driver.execute(state, workflow);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -84,7 +84,8 @@ describe("executionLoop", () => {
   it("step success", async () => {
     // When successfully running a step, interrupt with step result
 
-    const driver = new BaseExeDriver(new RunState());
+    const state = new RunState();
+    const driver = new BaseExecutionDriver();
     const client = new OWClient({ driver });
 
     const counters = {
@@ -102,7 +103,7 @@ describe("executionLoop", () => {
       return `Hello, ${name}!`;
     });
 
-    const result = await driver.run(workflow);
+    const result = await driver.execute(state, workflow);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
@@ -127,7 +128,8 @@ describe("executionLoop", () => {
   it("step error", async () => {
     // When successfully running a step, interrupt with step result
 
-    const driver = new BaseExeDriver(new RunState());
+    const state = new RunState();
+    const driver = new BaseExecutionDriver();
     const client = new OWClient({ driver });
 
     const counters = {
@@ -145,7 +147,7 @@ describe("executionLoop", () => {
       return `Hello, ${name}!`;
     });
 
-    const result = await driver.run(workflow);
+    const result = await driver.execute(state, workflow);
     expect(counters).toEqual({
       top: 1,
       getName: 1,

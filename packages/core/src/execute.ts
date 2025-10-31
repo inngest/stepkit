@@ -1,10 +1,10 @@
-import { type ControlFlow, type StepState } from "./exeDriver";
+import { type ControlFlow, type StepState } from "./baseExecutionDriver";
 import { type Workflow, HandlerContext } from "./workflow";
 import { createControlledPromise } from "./promises";
 import type { OperationFound, OperationResult } from "./types";
 import { toResult } from "./types";
 
-export async function executionLoop<TOutput>({
+export async function execute<TOutput>({
   workflow,
   state,
   onStepsFound,

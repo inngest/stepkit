@@ -1,5 +1,5 @@
 import type { StepStateItem } from "@open-workflow/core";
-import { BaseExeDriver } from "@open-workflow/core";
+import { BaseExecutionDriver } from "@open-workflow/core";
 
 class State {
   private steps: Map<string, StepStateItem>;
@@ -18,7 +18,7 @@ class State {
   }
 }
 
-export class InMemoryDriver extends BaseExeDriver {
+export class InMemoryDriver extends BaseExecutionDriver {
   constructor() {
     super(new State());
   }
