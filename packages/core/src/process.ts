@@ -21,7 +21,7 @@ function isLoopResult(result: any): result is LoopResult {
  * Finds ops in a controlled way, allowing the driver to make decisions when ops
  * are found. Also handles control flow.
  */
-export async function runOpController<TContext, TOutput>({
+export async function process<TContext, TOutput>({
   workflow,
   state,
   onOpsFound,
