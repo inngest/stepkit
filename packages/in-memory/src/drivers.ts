@@ -1,6 +1,6 @@
 import type { RunStateDriver, OpResult, Workflow } from "@open-workflow/core";
 import { BaseExecutionDriver } from "@open-workflow/core";
-import { StdContext } from "packages/core/src/types";
+import { BaseContext, StdContext } from "packages/core/src/types";
 
 export class InMemoryRunStateDriver implements RunStateDriver {
   private ops: Map<string, OpResult>;
@@ -51,8 +51,11 @@ export class InMemoryDriver extends BaseExecutionDriver {
     this.activeRuns = new Set();
   }
 
-  async execute(workflow: Workflow<StdContext, any>) {
-    return super.execute(workflow);
+  async execute(
+    workflow: Workflow<StdContext, any>,
+    baseContext: BaseContext<StdContext>
+  ) {
+    return super.execute(workflow, baseContext);
   }
 
   async invoke<TOutput>(
@@ -60,6 +63,9 @@ export class InMemoryDriver extends BaseExecutionDriver {
   ): Promise<TOutput> {
     const runId = crypto.randomUUID();
     this.activeRuns.add(runId);
+    const baseContext: BaseContext<StdContext> = {
+      runId,
+    };
 
     let i = 0;
     let maxIterations = 10_000;
@@ -69,7 +75,7 @@ export class InMemoryDriver extends BaseExecutionDriver {
         throw new Error("unreachable: infinite loop detected");
       }
 
-      const ops = await this.execute(workflow);
+      const ops = await this.execute(workflow, baseContext);
       if (ops.length !== 1) {
         // Not done yet
         continue;

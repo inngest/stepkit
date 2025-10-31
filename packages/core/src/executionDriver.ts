@@ -1,5 +1,11 @@
 import type { Workflow } from "./workflow";
-import type { OpResult, OpFound, ControlFlow, StdContext } from "./types";
+import type {
+  OpResult,
+  OpFound,
+  ControlFlow,
+  StdContext,
+  BaseContext,
+} from "./types";
 import { StdOpcode, controlFlow } from "./types";
 import { process } from "./process";
 import { createControlledPromise } from "./promises";
@@ -7,9 +13,13 @@ import { parseOpConfig } from "./ops";
 import { stdOpResult } from "./types";
 import type { RunStateDriver } from "./runStateDriver";
 
-export type ExecutionDriver<TContext> = {
-  execute: (workflow: Workflow<TContext, any>) => Promise<OpResult[]>;
+export type ExecutionDriver<TContext extends StdContext> = {
+  execute: (
+    workflow: Workflow<TContext, any>,
+    baseContext: BaseContext<TContext>
+  ) => Promise<OpResult[]>;
   getContext: (
+    baseContext: BaseContext<TContext>,
     reportOp: <TOutput>(op: OpFound<any, TOutput>) => Promise<TOutput>
   ) => TContext;
   invoke: <TOutput>(workflow: Workflow<TContext, TOutput>) => Promise<TOutput>;
@@ -23,18 +33,23 @@ export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
     this.state = state;
   }
 
-  async execute(workflow: Workflow<StdContext, any>) {
+  async execute(
+    workflow: Workflow<StdContext, any>,
+    baseContext: BaseContext<StdContext>
+  ) {
     return process<StdContext, any>({
       workflow,
       onOpsFound: this.onOpsFound,
-      getContext: this.getContext,
+      getContext: (reportOp) => this.getContext(baseContext, reportOp),
     });
   }
 
   getContext(
+    baseContext: BaseContext<StdContext>,
     reportOp: <TOutput>(op: OpFound<any, TOutput>) => Promise<TOutput>
   ): StdContext {
     return {
+      ...baseContext,
       step: {
         run: async <T>(
           stepId: string,

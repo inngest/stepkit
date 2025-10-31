@@ -1,7 +1,8 @@
 import { ExecutionDriver } from "./executionDriver";
 import { Workflow } from "./workflow";
+import { StdContext } from "./types";
 
-export class OWClient<TContext> {
+export class OWClient<TContext extends StdContext> {
   private readonly driver: ExecutionDriver<TContext>;
 
   constructor({ driver }: { driver: ExecutionDriver<TContext> }) {

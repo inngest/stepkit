@@ -1,5 +1,6 @@
 import { ExecutionDriver } from "./executionDriver";
-export class Workflow<TContext, TOutput> {
+import { StdContext } from "./types";
+export class Workflow<TContext extends StdContext, TOutput> {
   private driver: ExecutionDriver<TContext>;
   id: string;
   public readonly handler: (ctx: TContext) => Promise<TOutput>;

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { BaseExecutionDriver, OWClient } from "./main";
-import { OpResult } from "./types";
+import { BaseContext, OpResult, StdContext } from "./types";
 
 class StateDriver {
   private ops: Map<string, OpResult>;
@@ -19,6 +19,10 @@ class StateDriver {
   }
 }
 
+const baseContext: BaseContext<StdContext> = {
+  runId: "test-run-id",
+};
+
 describe("execute once", () => {
   it("no steps success", async () => {
     // When no steps, interrupt with workflow result
@@ -31,8 +35,7 @@ describe("execute once", () => {
       counter++;
       return "Hello, Alice!";
     });
-
-    const output = await driver.execute(workflow);
+    const output = await driver.execute(workflow, baseContext);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -61,8 +64,7 @@ describe("execute once", () => {
       counter++;
       throw new Error("oh no");
     });
-
-    const output = await driver.execute(workflow);
+    const output = await driver.execute(workflow, baseContext);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -100,8 +102,7 @@ describe("execute once", () => {
       counters.bottom++;
       return `Hello, ${name}!`;
     });
-
-    const result = await driver.execute(workflow);
+    const result = await driver.execute(workflow, baseContext);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
@@ -143,8 +144,7 @@ describe("execute once", () => {
       counters.bottom++;
       return `Hello, ${name}!`;
     });
-
-    const result = await driver.execute(workflow);
+    const result = await driver.execute(workflow, baseContext);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
@@ -182,9 +182,8 @@ describe("execute once", () => {
       counters.bottom++;
       return "Hello";
     });
-
     const start = Date.now();
-    const result = await driver.execute(workflow);
+    const result = await driver.execute(workflow, baseContext);
 
     // Did not actually sleep since we only reported it
     expect(Date.now() - start).toBeLessThan(100);
@@ -245,7 +244,7 @@ describe("execute to completion", () => {
 
     let allResults: OpResult[] = [];
     while (true) {
-      const results = await driver.execute(workflow);
+      const results = await driver.execute(workflow, baseContext);
       allResults = [...allResults, ...results];
       if (results[0].config.code === "workflow") {
         break;
@@ -330,14 +329,15 @@ describe("execute to completion", () => {
     });
 
     while (true) {
-      const results = await driver.execute(workflow);
+      const results = await driver.execute(workflow, baseContext);
       if (results[0].config.code === "workflow") {
         break;
       }
     }
 
     // Force garbage collection
-    globalThis?.gc?.();
+    // @ts-expect-error
+    globalThis.gc();
 
     // Need to poll our assertion because GC runs async
     await vi.waitFor(
