@@ -71,14 +71,15 @@ export async function runOpController<TContext, TOutput>({
 
   async function opLoop(): Promise<LoopResult> {
     let i = 0;
-    let maxIterations = 10;
+
+    // Arbitrarily limit the number of iterations to prevent infinite loops
+    let maxIterations = 10_000;
+
     while (true) {
       i++;
       if (i > maxIterations) {
         throw new Error("unreachable: infinite loop detected");
       }
-
-      // pause = pause.resolve(undefined);
 
       await new Promise((resolve) => setTimeout(resolve, 0));
       if (foundOps.length === 0) {
