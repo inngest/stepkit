@@ -18,7 +18,7 @@ export function isStepRunFound(step: OperationFound): step is OperationFound<{
 
 type OpConfig = {
   code: string;
-  opts?: Record<string, unknown>;
+  options?: Record<string, unknown>;
 };
 
 export const toResult = {

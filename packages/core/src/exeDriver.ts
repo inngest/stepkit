@@ -1,8 +1,10 @@
 import type { Workflow } from "./workflow";
 import type { OperationResult, OperationFound } from "./types";
 import { isStepRunFound, toResult, Opcode } from "./types";
+import { executionLoop } from "./executionLoop";
+import { createDeferredPromise } from "./promises";
 
-export type ControlFlow<T = unknown> =
+export type ControlFlow =
   | {
       type: "continue";
     }
@@ -24,6 +26,45 @@ export type StepState = {
 export class BaseExeDriver {
   constructor(private state: StepState) {
     //
+  }
+
+  async run(workflow: Workflow<any>) {
+    const foo = await executionLoop<any>({
+      workflow,
+      state: this.state,
+      onStepsFound: this.onStepsFound,
+      getContext: this.getContext,
+    });
+    return foo;
+  }
+
+  getContext(reportOp: (step: OperationFound) => Promise<void>) {
+    return {
+      step: {
+        run: async <T>(stepId: string, handler: () => Promise<T>) => {
+          const stepResolver = createDeferredPromise<any>();
+
+          // Pause until all steps are reported
+          await reportOp({
+            config: {
+              code: Opcode.stepRunFound,
+              options: { handler },
+            },
+            id: {
+              hashed: stepId,
+              id: stepId,
+              index: 0,
+            },
+            promise: {
+              resolve: stepResolver.resolve,
+              reject: stepResolver.reject,
+            },
+          });
+
+          return stepResolver.promise;
+        },
+      },
+    };
   }
 
   async onStepsFound(

@@ -48,6 +48,7 @@ export class Workflow<TOutput> {
       workflow: this,
       state: new RunState(),
       onStepsFound: this.driver.onStepsFound,
+      getContext: this.driver.getContext,
     });
   }
 }

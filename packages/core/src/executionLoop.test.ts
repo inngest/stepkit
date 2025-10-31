@@ -33,12 +33,7 @@ describe("executionLoop", () => {
       return "Hello, Alice!";
     });
 
-    const output = await executionLoop({
-      workflow,
-      state: new RunState(),
-      onStepsFound: driver.onStepsFound,
-    });
-
+    const output = await driver.run(workflow);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -68,12 +63,7 @@ describe("executionLoop", () => {
       throw new Error("oh no");
     });
 
-    const output = await executionLoop({
-      workflow,
-      state: new RunState(),
-      onStepsFound: driver.onStepsFound,
-    });
-
+    const output = await driver.run(workflow);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -112,11 +102,7 @@ describe("executionLoop", () => {
       return `Hello, ${name}!`;
     });
 
-    const result = await executionLoop({
-      workflow,
-      state: new RunState(),
-      onStepsFound: driver.onStepsFound,
-    });
+    const result = await driver.run(workflow);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
@@ -159,11 +145,7 @@ describe("executionLoop", () => {
       return `Hello, ${name}!`;
     });
 
-    const result = await executionLoop({
-      workflow,
-      state: new RunState(),
-      onStepsFound: driver.onStepsFound,
-    });
+    const result = await driver.run(workflow);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
