@@ -8,10 +8,7 @@ import { stdOpResult } from "./types";
 import type { RunStateDriver } from "./runStateDriver";
 
 export type ExecutionDriver<TContext> = {
-  execute: (
-    state: RunStateDriver,
-    workflow: Workflow<TContext, any>
-  ) => Promise<OpResult[]>;
+  execute: (workflow: Workflow<TContext, any>) => Promise<OpResult[]>;
   getContext: (reportOp: (operation: OpFound) => Promise<void>) => TContext;
 };
 
@@ -19,10 +16,13 @@ export type ExecutionDriver<TContext> = {
  * Concrete execution driver implementation. Can be extended.
  */
 export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
-  async execute(state: RunStateDriver, workflow: Workflow<StdContext, any>) {
+  constructor(private state: RunStateDriver) {
+    this.state = state;
+  }
+
+  async execute(workflow: Workflow<StdContext, any>) {
     return process<StdContext, any>({
       workflow,
-      state,
       onOpsFound: this.onOpsFound,
       getContext: this.getContext,
     });
@@ -64,22 +64,21 @@ export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
     };
   }
 
-  async onOpsFound(
-    workflow: Workflow<StdContext, any>,
-    state: RunStateDriver,
-    ops: OpFound[]
-  ): Promise<ControlFlow> {
-    const newOps = handleOps(state, ops);
+  onOpsFound = async (
+    _workflow: Workflow<StdContext, any>,
+    _ops: OpFound[]
+  ): Promise<ControlFlow> => {
+    const newOps = handleOps(this.state, _ops);
 
     if (newOps.length === 1) {
-      return handleNewOps(state, newOps);
+      return handleNewOps(this.state, newOps);
     } else if (newOps.length > 1) {
       // TODO: Implement
       return controlFlow.interrupt([]);
     }
 
     return controlFlow.continue();
-  }
+  };
 }
 
 /**

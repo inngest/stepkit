@@ -23,15 +23,12 @@ function isLoopResult(result: any): result is LoopResult {
  */
 export async function process<TContext, TOutput>({
   workflow,
-  state,
   onOpsFound,
   getContext,
 }: {
   workflow: Workflow<any, TOutput>;
-  state: RunStateDriver;
   onOpsFound: (
     workflow: Workflow<any, TOutput>,
-    state: RunStateDriver,
     ops: OpFound[]
   ) => Promise<ControlFlow>;
   getContext: (reportOp: (op: OpFound) => Promise<void>) => TContext;
@@ -87,7 +84,7 @@ export async function process<TContext, TOutput>({
         continue;
       }
 
-      const flow = await onOpsFound(workflow, state, foundOps);
+      const flow = await onOpsFound(workflow, foundOps);
       if (flow.type === "continue") {
         foundOps.splice(0, foundOps.length);
         // Allow ops to continue

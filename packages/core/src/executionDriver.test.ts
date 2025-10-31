@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { BaseExecutionDriver, OWClient } from "./main";
 import { OpResult } from "./types";
 
-class RunState {
+class StateDriver {
   private ops: Map<string, OpResult>;
   constructor() {
     this.ops = new Map();
@@ -23,8 +23,7 @@ describe("execute once", () => {
   it("no steps success", async () => {
     // When no steps, interrupt with workflow result
 
-    const state = new RunState();
-    const driver = new BaseExecutionDriver();
+    const driver = new BaseExecutionDriver(new StateDriver());
     const client = new OWClient({ driver });
 
     let counter = 0;
@@ -33,7 +32,7 @@ describe("execute once", () => {
       return "Hello, Alice!";
     });
 
-    const output = await driver.execute(state, workflow);
+    const output = await driver.execute(workflow);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -54,8 +53,7 @@ describe("execute once", () => {
   it("no steps error", async () => {
     // When no steps, interrupt with workflow result
 
-    const state = new RunState();
-    const driver = new BaseExecutionDriver();
+    const driver = new BaseExecutionDriver(new StateDriver());
     const client = new OWClient({ driver });
 
     let counter = 0;
@@ -64,7 +62,7 @@ describe("execute once", () => {
       throw new Error("oh no");
     });
 
-    const output = await driver.execute(state, workflow);
+    const output = await driver.execute(workflow);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -85,8 +83,7 @@ describe("execute once", () => {
   it("step.run success", async () => {
     // When successfully running a step, interrupt with step result
 
-    const state = new RunState();
-    const driver = new BaseExecutionDriver();
+    const driver = new BaseExecutionDriver(new StateDriver());
     const client = new OWClient({ driver });
 
     const counters = {
@@ -104,7 +101,7 @@ describe("execute once", () => {
       return `Hello, ${name}!`;
     });
 
-    const result = await driver.execute(state, workflow);
+    const result = await driver.execute(workflow);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
@@ -129,8 +126,7 @@ describe("execute once", () => {
   it("step.run error", async () => {
     // When successfully running a step, interrupt with step result
 
-    const state = new RunState();
-    const driver = new BaseExecutionDriver();
+    const driver = new BaseExecutionDriver(new StateDriver());
     const client = new OWClient({ driver });
 
     const counters = {
@@ -148,7 +144,7 @@ describe("execute once", () => {
       return `Hello, ${name}!`;
     });
 
-    const result = await driver.execute(state, workflow);
+    const result = await driver.execute(workflow);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
@@ -173,8 +169,7 @@ describe("execute once", () => {
   it("step.sleep", async () => {
     // When successfully running a step, interrupt with step result
 
-    const state = new RunState();
-    const driver = new BaseExecutionDriver();
+    const driver = new BaseExecutionDriver(new StateDriver());
     const client = new OWClient({ driver });
 
     const counters = {
@@ -189,7 +184,7 @@ describe("execute once", () => {
     });
 
     const start = Date.now();
-    const result = await driver.execute(state, workflow);
+    const result = await driver.execute(workflow);
 
     // Did not actually sleep since we only reported it
     expect(Date.now() - start).toBeLessThan(100);
@@ -219,8 +214,7 @@ describe("execute to completion", () => {
   it("step.run success", async () => {
     // Keep looping through interrupts until the run completes
 
-    const state = new RunState();
-    const driver = new BaseExecutionDriver();
+    const driver = new BaseExecutionDriver(new StateDriver());
     const client = new OWClient({ driver });
 
     const counters = {
@@ -248,7 +242,7 @@ describe("execute to completion", () => {
 
     let allResults: OpResult[] = [];
     while (true) {
-      const results = await driver.execute(state, workflow);
+      const results = await driver.execute(workflow);
       allResults = [...allResults, ...results];
       if (results[0].config.code === "workflow") {
         break;

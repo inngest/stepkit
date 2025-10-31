@@ -1,25 +1,49 @@
-import type { StepStateItem } from "@open-workflow/core";
+import type { RunStateDriver, OpResult, Workflow } from "@open-workflow/core";
 import { BaseExecutionDriver } from "@open-workflow/core";
+import { StdContext } from "packages/core/src/types";
 
-class State {
-  private steps: Map<string, StepStateItem>;
+class State implements RunStateDriver {
+  private steps: Map<string, OpResult>;
   constructor() {
     this.steps = new Map();
   }
 
-  getStep(id: string): StepStateItem | undefined {
-    if (this.steps.has(id)) {
-      return this.steps.get(id);
+  private getKey({
+    runId,
+    hashedOpId,
+  }: {
+    runId: string;
+    hashedOpId: string;
+  }): string {
+    return `${runId}:${hashedOpId}`;
+  }
+
+  getOp({
+    runId,
+    hashedOpId,
+  }: {
+    runId: string;
+    hashedOpId: string;
+  }): OpResult | undefined {
+    const key = this.getKey({ runId, hashedOpId });
+    if (this.steps.has(key)) {
+      return this.steps.get(key);
     }
     return undefined;
   }
-  setStep(id: string, state: StepStateItem): void {
-    this.steps.set(id, state);
+  setOp(
+    { runId, hashedOpId }: { runId: string; hashedOpId: string },
+    op: OpResult
+  ): void {
+    const key = this.getKey({ runId, hashedOpId });
+    this.steps.set(key, op);
   }
 }
 
+const state = new State();
+
 export class InMemoryDriver extends BaseExecutionDriver {
-  constructor() {
-    super(new State());
+  async execute(workflow: Workflow<StdContext, any>) {
+    return super.execute(workflow);
   }
 }
