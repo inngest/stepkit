@@ -1,39 +1,20 @@
 import type { Workflow } from "./workflow";
-import type { OperationResult, OperationFound } from "./types";
-import { isStepRunFound, toResult, Opcode } from "./types";
+import type { OpResult, OpFound, ControlFlow, RunState } from "./types";
+import { isStepRunFound, toResult, Opcode, controlFlow } from "./types";
 import { execute } from "./execute";
 import { createControlledPromise } from "./promises";
 
-export type ControlFlow =
-  | {
-      type: "continue";
-    }
-  | {
-      type: "interrupt";
-      results: OperationResult[];
-    };
-
-const controlFlow = {
-  continue: () => ({ type: "continue" }),
-  interrupt: (results: OperationResult[]) => ({ type: "interrupt", results }),
-} as const satisfies Record<string, (...args: any[]) => ControlFlow>;
-
-export type StepState = {
-  getStep(id: string): OperationResult | undefined;
-  setStep(id: string, state: OperationResult): void;
-};
-
 export class BaseExecutionDriver {
-  async execute(state: StepState, workflow: Workflow<any>) {
+  async execute(state: RunState, workflow: Workflow<any>) {
     return execute<any>({
       workflow,
       state,
-      onStepsFound: this.onStepsFound,
+      onOpsFound: this.onOpsFound,
       getContext: this.getContext,
     });
   }
 
-  getContext(reportOp: (step: OperationFound) => Promise<void>) {
+  getContext(reportOp: (operation: OpFound) => Promise<void>) {
     return {
       step: {
         run: async <T>(stepId: string, handler: () => Promise<T>) => {
@@ -59,38 +40,38 @@ export class BaseExecutionDriver {
     };
   }
 
-  async onStepsFound(
+  async onOpsFound(
     workflow: Workflow<unknown>,
-    state: StepState,
-    steps: OperationFound[]
+    state: RunState,
+    ops: OpFound[]
   ): Promise<ControlFlow> {
-    const newSteps: OperationFound[] = [];
-    for (const step of steps) {
+    const newOps: OpFound[] = [];
+    for (const op of ops) {
       // NOTE - Run state can't be attached to the driver - could be used in multiple workflows
-      const item = state.getStep(step.id.hashed);
+      const item = state.getOp(op.id.hashed);
       if (item) {
         if (item.result.status === "success") {
-          // Step already succeeded, so return its output
-          step.promise.resolve(item.result.output);
+          // Op already succeeded, so return its output
+          op.promise.resolve(item.result.output);
         } else {
-          // Step already failed, so throw its error
-          step.promise.reject(item.result.error);
+          // Op already failed, so throw its error
+          op.promise.reject(item.result.error);
         }
       } else {
-        // Step found for the first time
-        newSteps.push(step);
+        // Op found for the first time
+        newOps.push(op);
       }
     }
 
-    if (newSteps.length === 1) {
-      const newStep = newSteps[0];
-      if (isStepRunFound(newStep)) {
-        let result: OperationResult;
+    if (newOps.length === 1) {
+      const newOp = newOps[0];
+      if (isStepRunFound(newOp)) {
+        let result: OpResult;
         try {
-          const output = await newStep.config.options.handler();
-          result = toResult.stepRunSuccess(newStep, output);
-          state.setStep(newStep.id.hashed, result);
-          newStep.promise.resolve(output);
+          const output = await newOp.config.options.handler();
+          result = toResult.stepRunSuccess(newOp, output);
+          state.setOp(newOp.id.hashed, result);
+          newOp.promise.resolve(output);
         } catch (e) {
           let error: Error;
           if (e instanceof Error) {
@@ -98,12 +79,12 @@ export class BaseExecutionDriver {
           } else {
             error = new Error(String(e));
           }
-          result = toResult.stepRunError(newStep, error);
-          state.setStep(newStep.id.hashed, result);
+          result = toResult.stepRunError(newOp, error);
+          state.setOp(newOp.id.hashed, result);
         }
         return controlFlow.interrupt([result]);
       }
-    } else if (newSteps.length > 1) {
+    } else if (newOps.length > 1) {
       // TODO: Implement
       return controlFlow.interrupt([]);
     }

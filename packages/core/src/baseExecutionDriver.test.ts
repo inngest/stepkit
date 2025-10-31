@@ -1,20 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { BaseExecutionDriver, OWClient, StepStateItem } from "./main";
+import { BaseExecutionDriver, OWClient } from "./main";
+import { OpResult } from "./types";
 
 class RunState {
-  private steps: Map<string, StepStateItem>;
+  private ops: Map<string, OpResult>;
   constructor() {
-    this.steps = new Map();
+    this.ops = new Map();
   }
 
-  getStep(id: string): StepStateItem | undefined {
-    if (this.steps.has(id)) {
-      return this.steps.get(id);
+  getOp(opId: string): OpResult | undefined {
+    if (this.ops.has(opId)) {
+      return this.ops.get(opId);
     }
     return undefined;
   }
-  setStep(id: string, state: StepStateItem): void {
-    this.steps.set(id, state);
+  setOp(opId: string, op: OpResult): void {
+    this.ops.set(opId, op);
   }
 }
 
@@ -81,7 +82,7 @@ describe("execute", () => {
     ]);
   });
 
-  it("step success", async () => {
+  it("step.run success", async () => {
     // When successfully running a step, interrupt with step result
 
     const state = new RunState();
@@ -125,7 +126,7 @@ describe("execute", () => {
     ]);
   });
 
-  it("step error", async () => {
+  it("step.run error", async () => {
     // When successfully running a step, interrupt with step result
 
     const state = new RunState();

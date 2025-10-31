@@ -1,32 +1,32 @@
-import { type ControlFlow, type StepState } from "./baseExecutionDriver";
+import { type ControlFlow } from "./types";
 import { type Workflow, HandlerContext } from "./workflow";
 import { createControlledPromise } from "./promises";
-import type { OperationFound, OperationResult } from "./types";
+import type { OpFound, OpResult , RunState} from "./types";
 import { toResult } from "./types";
 
 export async function execute<TOutput>({
   workflow,
   state,
-  onStepsFound,
+  onOpsFound,
   getContext,
 }: {
   workflow: Workflow<TOutput>;
-  state: StepState;
-  onStepsFound: (
+  state: RunState;
+  onOpsFound: (
     workflow: Workflow<TOutput>,
-    state: StepState,
-    steps: OperationFound[]
+    state: RunState,
+    ops: OpFound[]
   ) => Promise<ControlFlow>;
   getContext: (
-    reportOp: (step: OperationFound) => Promise<void>
+    reportOp: (op: OpFound) => Promise<void>
   ) => HandlerContext;
-}): Promise<OperationResult[]> {
-  // Collect a stack of steps discovered on this tick
+}): Promise<OpResult[]> {
+  // Collect a stack of ops discovered on this tick
   const stack: any[] = [];
   let pause = createControlledPromise();
 
-  async function reportOp(step: OperationFound) {
-    stack.push(step);
+  async function reportOp(op: OpFound) {
+    stack.push(op);
     await pause.promise;
   }
 
@@ -34,7 +34,7 @@ export async function execute<TOutput>({
 
   let handlerPromise: Promise<TOutput | Error>;
   try {
-    // Run the handler and pause until the next tick to discover steps
+    // Run the handler and pause until the next tick to discover ops
     handlerPromise = workflow.handler(context).catch((e) => {
       // Need to catch and return the error here instead of letting it throw. If
       // we don't we'll get "unhandled promise error" error messages during
@@ -56,7 +56,7 @@ export async function execute<TOutput>({
         break;
       }
 
-      const flow = await onStepsFound(workflow, state, stack);
+      const flow = await onOpsFound(workflow, state, stack);
       if (flow.type === "continue") {
         pause.resolve(undefined);
       }

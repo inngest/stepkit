@@ -11,7 +11,7 @@ export const Opcode = {
 } as const;
 export type Opcode = (typeof Opcode)[keyof typeof Opcode];
 
-export function isStepRunFound(step: OperationFound): step is OperationFound<{
+export function isStepRunFound(step: OpFound): step is OpFound<{
   code: typeof Opcode.stepRunFound;
   options: { handler: () => Promise<unknown> };
 }> {
@@ -24,12 +24,12 @@ type OpConfig = {
 };
 
 export const toResult = {
-  stepRunSuccess: (foundOp: OperationFound, output: unknown) => ({
+  stepRunSuccess: (foundOp: OpFound, output: unknown) => ({
     config: { code: Opcode.stepRunSuccess },
     id: foundOp.id,
     result: { status: "success", output },
   }),
-  stepRunError: (foundOp: OperationFound, error: Error) => ({
+  stepRunError: (foundOp: OpFound, error: Error) => ({
     config: { code: Opcode.stepRunError },
     id: foundOp.id,
     result: { status: "error", error },
@@ -44,9 +44,9 @@ export const toResult = {
     id: { hashed: "", id: "", index: 0 },
     result: { status: "error", error },
   }),
-} as const satisfies Record<string, (...args: any[]) => OperationResult>;
+} as const satisfies Record<string, (...args: any[]) => OpResult>;
 
-export type OperationResult<TOpConfig extends OpConfig = OpConfig> = {
+export type OpResult<TOpConfig extends OpConfig = OpConfig> = {
   config: TOpConfig;
   id: {
     hashed: string;
@@ -64,7 +64,7 @@ export type OperationResult<TOpConfig extends OpConfig = OpConfig> = {
       };
 };
 
-export type OperationFound<TOpConfig extends OpConfig = OpConfig> = {
+export type OpFound<TOpConfig extends OpConfig = OpConfig> = {
   config: TOpConfig;
   id: {
     hashed: string;
@@ -72,4 +72,23 @@ export type OperationFound<TOpConfig extends OpConfig = OpConfig> = {
     index: number;
   };
   promise: ControlledPromise<unknown>;
+};
+
+export type ControlFlow =
+  | {
+      type: "continue";
+    }
+  | {
+      type: "interrupt";
+      results: OpResult[];
+    };
+
+export const controlFlow = {
+  continue: () => ({ type: "continue" }),
+  interrupt: (results: OpResult[]) => ({ type: "interrupt", results }),
+} as const satisfies Record<string, (...args: any[]) => ControlFlow>;
+
+export type RunState = {
+  getOp(id: string): OpResult | undefined;
+  setOp(id: string, op: OpResult): void;
 };
