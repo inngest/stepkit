@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "examples:in-memory:start": "pnpm -C examples/in-memory start",
+    "examples:in-memory": "pnpm -C examples/in-memory dev",
+    "examples:inngest": "pnpm -C examples/inngest dev"  ,
     "precommit": "pnpm type-check && pnpm test",
     "test": "pnpm -r test",
     "type-check": "pnpm -r type-check"

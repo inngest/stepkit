@@ -5,7 +5,7 @@
   "types": "./src/main.ts",
   "scripts": {
     "build": "tsc",
-    "test": "vitest",
+    "test": "NODE_OPTIONS='--expose-gc' vitest",
     "test:watch": "NODE_OPTIONS='--expose-gc' vitest --watch",
     "type-check": "tsc --noEmit"
   },

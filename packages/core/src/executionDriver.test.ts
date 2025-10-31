@@ -1,11 +1,15 @@
 import { describe, it, expect, vi } from "vitest";
 import { BaseExecutionDriver, OWClient } from "./main";
-import { OpResult } from "./types";
+import { BaseContext, OpResult, StdContext } from "./types";
 
 class StateDriver {
   private ops: Map<string, OpResult>;
   constructor() {
     this.ops = new Map();
+  }
+
+  async getBaseContext(runId: string): Promise<Omit<StdContext, "step">> {
+    return { runId };
   }
 
   getOp(id: { runId: string; hashedOpId: string }): OpResult | undefined {
@@ -20,6 +24,8 @@ class StateDriver {
 }
 
 describe("execute once", () => {
+  const runId = "test-run-id";
+
   it("no steps success", async () => {
     // When no steps, interrupt with workflow result
 
@@ -31,8 +37,7 @@ describe("execute once", () => {
       counter++;
       return "Hello, Alice!";
     });
-
-    const output = await driver.execute(workflow);
+    const output = await driver.execute(workflow, runId);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -61,8 +66,7 @@ describe("execute once", () => {
       counter++;
       throw new Error("oh no");
     });
-
-    const output = await driver.execute(workflow);
+    const output = await driver.execute(workflow, runId);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -100,8 +104,7 @@ describe("execute once", () => {
       counters.bottom++;
       return `Hello, ${name}!`;
     });
-
-    const result = await driver.execute(workflow);
+    const result = await driver.execute(workflow, runId);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
@@ -143,8 +146,7 @@ describe("execute once", () => {
       counters.bottom++;
       return `Hello, ${name}!`;
     });
-
-    const result = await driver.execute(workflow);
+    const result = await driver.execute(workflow, runId);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
@@ -182,9 +184,8 @@ describe("execute once", () => {
       counters.bottom++;
       return "Hello";
     });
-
     const start = Date.now();
-    const result = await driver.execute(workflow);
+    const result = await driver.execute(workflow, runId);
 
     // Did not actually sleep since we only reported it
     expect(Date.now() - start).toBeLessThan(100);
@@ -214,6 +215,8 @@ describe("execute once", () => {
 });
 
 describe("execute to completion", () => {
+  const runId = "test-run-id";
+
   it("step.run success", async () => {
     // Keep looping through interrupts until the run completes
 
@@ -245,7 +248,7 @@ describe("execute to completion", () => {
 
     let allResults: OpResult[] = [];
     while (true) {
-      const results = await driver.execute(workflow);
+      const results = await driver.execute(workflow, runId);
       allResults = [...allResults, ...results];
       if (results[0].config.code === "workflow") {
         break;
@@ -330,14 +333,15 @@ describe("execute to completion", () => {
     });
 
     while (true) {
-      const results = await driver.execute(workflow);
+      const results = await driver.execute(workflow, runId);
       if (results[0].config.code === "workflow") {
         break;
       }
     }
 
     // Force garbage collection
-    globalThis?.gc?.();
+    // @ts-expect-error
+    globalThis.gc();
 
     // Need to poll our assertion because GC runs async
     await vi.waitFor(

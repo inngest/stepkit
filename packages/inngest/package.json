@@ -1,13 +1,20 @@
 {
   "name": "@open-workflow/inngest",
   "version": "0.0.0",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./src/main.ts",
+  "types": "./src/main.ts",
   "scripts": {
     "build": "tsc",
     "test": "echo \"No tests yet\""
   },
   "dependencies": {
-    "@open-workflow/core": "*"
+    "@open-workflow/core": "*",
+    "zod": "^4.1.12"
+  },
+  "optionalDependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5"
   }
 }

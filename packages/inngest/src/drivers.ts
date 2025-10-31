@@ -1,8 +1,10 @@
 import type { RunStateDriver, OpResult, Workflow } from "@open-workflow/core";
-import { BaseExecutionDriver } from "@open-workflow/core";
-import { BaseContext, StdContext } from "packages/core/src/types";
+import { BaseExecutionDriver, createStdStepContext } from "@open-workflow/core";
+import { ReportOp } from "packages/core/src/process";
+import { createControlledPromise } from "packages/core/src/promises";
+import { BaseContext, StdContext, StdOpcode } from "packages/core/src/types";
 
-export class InMemoryRunStateDriver implements RunStateDriver {
+export class InngestRunStateDriver implements RunStateDriver<StdContext> {
   private ops: Map<string, OpResult>;
 
   constructor() {
@@ -13,7 +15,7 @@ export class InMemoryRunStateDriver implements RunStateDriver {
     return { runId };
   }
 
-  private getKey({
+  private createOpKey({
     runId,
     hashedOpId,
   }: {
@@ -30,7 +32,7 @@ export class InMemoryRunStateDriver implements RunStateDriver {
     runId: string;
     hashedOpId: string;
   }): OpResult | undefined {
-    const key = this.getKey({ runId, hashedOpId });
+    const key = this.createOpKey({ runId, hashedOpId });
     if (this.ops.has(key)) {
       return this.ops.get(key);
     }
@@ -40,14 +42,19 @@ export class InMemoryRunStateDriver implements RunStateDriver {
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
     op: OpResult
   ): void {
-    const key = this.getKey({ runId, hashedOpId });
+    const key = this.createOpKey({ runId, hashedOpId });
     this.ops.set(key, op);
   }
 }
 
-const stateDriver = new InMemoryRunStateDriver();
+const stateDriver = new InngestRunStateDriver();
 
-export class InMemoryDriver extends BaseExecutionDriver {
+type Context = StdContext & {
+  step: {
+    sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
+  };
+};
+export class InngestDriver extends BaseExecutionDriver<Context> {
   private activeRuns: Set<string>;
 
   constructor() {
@@ -55,12 +62,33 @@ export class InMemoryDriver extends BaseExecutionDriver {
     this.activeRuns = new Set();
   }
 
-  async execute(workflow: Workflow<StdContext, any>, runId: string) {
+  async execute(workflow: Workflow<Context, any>, runId: string) {
     return super.execute(workflow, runId);
   }
 
+  getContext = async (reportOp: ReportOp, runId: string): Promise<Context> => {
+    const baseContext = await this.state.getBaseContext(runId);
+
+    return {
+      ...baseContext,
+      step: {
+        ...createStdStepContext(reportOp),
+        sleepUntil: async (stepId: string, wakeupAt: Date) => {
+          return await reportOp<void>({
+            config: {
+              code: StdOpcode.stepSleep,
+              options: { wakeupAt },
+            },
+            id: { hashed: stepId, id: stepId, index: 0 },
+            promise: createControlledPromise<void>(),
+          });
+        },
+      },
+    };
+  };
+
   async invoke<TOutput>(
-    workflow: Workflow<StdContext, TOutput>
+    workflow: Workflow<Context, TOutput>
   ): Promise<TOutput> {
     const runId = crypto.randomUUID();
     this.activeRuns.add(runId);
