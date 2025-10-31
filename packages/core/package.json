@@ -6,13 +6,14 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest",
-    "test:watch": "vitest --watch",
+    "test:watch": "NODE_OPTIONS='--expose-gc' vitest --watch",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@types/node": "^24.9.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.5"
   }

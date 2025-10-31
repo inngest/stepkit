@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { BaseExecutionDriver, OWClient } from "./main";
 import { OpResult } from "./types";
 
@@ -297,4 +297,54 @@ describe("execute to completion", () => {
       },
     ]);
   });
+
+  it("promise cleanup", async () => {
+    // Ensure intentionally paused promises are deleted by the garbage
+    // collector. This works because they don't have any references to them
+
+    const driver = new BaseExecutionDriver(new StateDriver());
+    const client = new OWClient({ driver });
+
+    const heldValues = {
+      greetingPromise: 0,
+      namePromise: 0,
+    };
+    const registry = new FinalizationRegistry((heldValue) => {
+      // console.log("heldValue:", heldValue);
+      heldValues[heldValue as keyof typeof heldValues]++;
+    });
+
+    const workflow = client.workflow({ id: "workflow" }, async ({ step }) => {
+      const greetingPromise = step.run("get-greeting", async () => {
+        return "Hello";
+      });
+      registry.register(greetingPromise, "greetingPromise");
+      const greeting = await greetingPromise;
+
+      const namePromise = step.run("get-name", async () => {
+        return "Alice";
+      });
+      registry.register(namePromise, "namePromise");
+      const name = await namePromise;
+
+      return `${greeting}, ${name}!`;
+    });
+
+    while (true) {
+      const results = await driver.execute(workflow);
+      if (results[0].config.code === "workflow") {
+        break;
+      }
+    }
+
+    await vi.waitFor(
+      () => {
+        expect(heldValues).toEqual({
+          greetingPromise: 3,
+          namePromise: 2,
+        });
+      },
+      { timeout: 19_000 }
+    );
+  }, 20_000);
 });
