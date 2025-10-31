@@ -24,12 +24,28 @@ importers:
         specifier: ^4.0.5
         version: 4.0.5(@types/node@24.9.2)(tsx@4.20.6)
 
+  examples/in-memory:
+    dependencies:
+      '@open-workflow/core':
+        specifier: '*'
+        version: link:../../packages/core
+      '@open-workflow/in-memory':
+        specifier: '*'
+        version: link:../../packages/in-memory
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/core:
     dependencies:
       zod:
         specifier: ^4.1.12
         version: 4.1.12
     devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
       vitest:
         specifier: ^4.0.5
         version: 4.0.5(@types/node@24.9.2)(tsx@4.20.6)
@@ -40,6 +56,9 @@ importers:
         specifier: '*'
         version: link:../core
     devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
       vitest:
         specifier: ^4.0.5
         version: 4.0.5(@types/node@24.9.2)(tsx@4.20.6)

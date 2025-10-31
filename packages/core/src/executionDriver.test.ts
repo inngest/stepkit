@@ -193,9 +193,12 @@ describe("execute once", () => {
       top: 1,
       bottom: 0,
     });
-    expect(result).toEqual([
+    expect(result).toStrictEqual([
       {
-        config: { code: "step.sleep" },
+        config: {
+          code: "step.sleep",
+          options: { wakeupAt: expect.any(Date) },
+        },
         id: {
           hashed: "zzz",
           id: "zzz",

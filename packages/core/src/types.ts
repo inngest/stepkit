@@ -37,18 +37,28 @@ export const stdOpConfigSchemas = {
 
 // Create a standard op result
 export const stdOpResult = {
-  stepRunSuccess: (foundOp: OpFound, output: unknown) => ({
-    config: { code: StdOpcode.stepRun },
-    id: foundOp.id,
-    result: { status: "success", output },
-  }),
-  stepRunError: (foundOp: OpFound, error: Error) => ({
-    config: { code: StdOpcode.stepRun },
-    id: foundOp.id,
-    result: { status: "error", error },
-  }),
+  stepRunSuccess: (foundOp: OpFound, output: unknown) => {
+    const config = { ...foundOp.config };
+    delete config.options;
+
+    return {
+      config,
+      id: foundOp.id,
+      result: { status: "success", output },
+    };
+  },
+  stepRunError: (foundOp: OpFound, error: Error) => {
+    const config = { ...foundOp.config };
+    delete config.options;
+
+    return {
+      config,
+      id: foundOp.id,
+      result: { status: "error", error },
+    };
+  },
   stepSleep: (foundOp: OpFound) => ({
-    config: { code: StdOpcode.stepSleep },
+    config: foundOp.config,
     id: foundOp.id,
     result: { status: "success", output: undefined },
   }),
@@ -84,14 +94,17 @@ export type OpResult<TOpConfig extends OpConfig = OpConfig> = {
 };
 
 // When an op is found (i.e. has not succeeded or failed yet)
-export type OpFound<TOpConfig extends OpConfig = OpConfig> = {
+export type OpFound<
+  TOpConfig extends OpConfig = OpConfig,
+  TOutput = unknown,
+> = {
   config: TOpConfig;
   id: {
     hashed: string;
     id: string;
     index: number;
   };
-  promise: ControlledPromise<unknown>;
+  promise: ControlledPromise<TOutput>;
 };
 
 // Whether to continue or interrupt the execution

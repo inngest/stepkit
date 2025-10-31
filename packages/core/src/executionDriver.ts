@@ -9,7 +9,9 @@ import type { RunStateDriver } from "./runStateDriver";
 
 export type ExecutionDriver<TContext> = {
   execute: (workflow: Workflow<TContext, any>) => Promise<OpResult[]>;
-  getContext: (reportOp: (operation: OpFound) => Promise<void>) => TContext;
+  getContext: (
+    reportOp: <TOutput>(op: OpFound<any, TOutput>) => Promise<TOutput>
+  ) => TContext;
 };
 
 /**
@@ -28,14 +30,17 @@ export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
     });
   }
 
-  getContext(reportOp: (operation: OpFound) => Promise<void>): StdContext {
+  getContext(
+    reportOp: <TOutput>(op: OpFound<any, TOutput>) => Promise<TOutput>
+  ): StdContext {
     return {
       step: {
-        run: async <T>(stepId: string, handler: () => Promise<T>) => {
-          const controlledPromise = createControlledPromise<any>();
-
+        run: async <T>(
+          stepId: string,
+          handler: () => Promise<T>
+        ): Promise<T> => {
           // Pause until all steps are reported
-          await reportOp({
+          const output = await reportOp<T>({
             config: {
               code: StdOpcode.stepRun,
               options: { handler },
@@ -45,13 +50,12 @@ export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
               id: stepId,
               index: 0,
             },
-            promise: controlledPromise,
+            promise: createControlledPromise<T>(),
           });
-
-          return controlledPromise.promise;
+          return output;
         },
         sleep: async (stepId: string, duration: number) => {
-          await reportOp({
+          return await reportOp({
             config: {
               code: StdOpcode.stepSleep,
               options: { wakeupAt: new Date(Date.now() + duration) },
@@ -70,14 +74,7 @@ export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
   ): Promise<ControlFlow> => {
     const newOps = handleOps(this.state, _ops);
 
-    if (newOps.length === 1) {
-      return handleNewOps(this.state, newOps);
-    } else if (newOps.length > 1) {
-      // TODO: Implement
-      return controlFlow.interrupt([]);
-    }
-
-    return controlFlow.continue();
+    return handleNewOps(this.state, newOps);
   };
 }
 
@@ -141,8 +138,7 @@ async function handleNewOps(
 
     throw new Error(`unexpected op code: ${newOp.config.code}`);
   } else if (newOps.length > 1) {
-    // TODO: Implement
-    return controlFlow.interrupt([]);
+    throw new Error("not implemented");
   }
 
   return controlFlow.continue();

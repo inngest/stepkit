@@ -30,7 +30,9 @@ export async function process<TContext, TOutput>({
     workflow: Workflow<any, TOutput>,
     ops: OpFound[]
   ) => Promise<ControlFlow>;
-  getContext: (reportOp: (op: OpFound) => Promise<void>) => TContext;
+  getContext: (
+    reportOp: <TOutput>(op: OpFound<any, TOutput>) => Promise<TOutput>
+  ) => TContext;
 }): Promise<OpResult[]> {
   const foundOps: OpFound[] = [];
 
@@ -39,14 +41,13 @@ export async function process<TContext, TOutput>({
   /**
    * Reports an op and pauses it until it's allowed to continue.
    */
-  async function reportOp(op: OpFound): Promise<any> {
+  async function reportOp(op: OpFound<any, any>): Promise<any> {
     foundOps.push(op);
 
     // Only continue when the driver allows it
     await pause.promise;
 
-    const output = await op.promise.promise;
-    return output;
+    return await op.promise.promise;
   }
 
   const context = getContext(reportOp);
@@ -72,33 +73,36 @@ export async function process<TContext, TOutput>({
     let maxIterations = 10_000;
 
     while (true) {
-      i++;
-      if (i > maxIterations) {
-        throw new Error("unreachable: infinite loop detected");
-      }
+      try {
+        i++;
+        if (i > maxIterations) {
+          throw new Error("unreachable: infinite loop detected");
+        }
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      if (foundOps.length === 0) {
-        pause.reset();
-        continue;
-      }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        if (foundOps.length === 0) {
+          pause.reset();
+          continue;
+        }
 
-      const flow = await onOpsFound(workflow, foundOps);
-      if (flow.type === "continue") {
+        const flow = await onOpsFound(workflow, foundOps);
+        if (flow.type === "continue") {
+          // Allow ops to continue
+          pause = pause.resolve(undefined);
+          continue;
+        }
+        if (flow.type === "interrupt") {
+          // Interrupt control flow and return the results
+          return {
+            type: "loop_result",
+            results: flow.results,
+          };
+        }
+
+        throw new Error("unreachable");
+      } finally {
         foundOps.splice(0, foundOps.length);
-        // Allow ops to continue
-        pause = pause.resolve(undefined);
-        continue;
       }
-      if (flow.type === "interrupt") {
-        // Interrupt control flow and return the results
-        return {
-          type: "loop_result",
-          results: flow.results,
-        };
-      }
-
-      throw new Error("unreachable");
     }
   }
 

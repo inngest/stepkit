@@ -6,12 +6,14 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@open-workflow/core": "*"
   },
   "devDependencies": {
+    "typescript": "^5.9.3",
     "vitest": "^4.0.5"
   }
 }
