@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "examples:in-memory:start": "pnpm -C examples/in-memory start",
     "precommit": "pnpm type-check && pnpm test",
     "test": "pnpm -r test",
     "type-check": "pnpm -r type-check"
@@ -10,7 +11,6 @@
   "devDependencies": {
     "@types/node": "^24.9.2",
     "prettier": "^3.6.2",
-    "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^4.0.5"
   }
