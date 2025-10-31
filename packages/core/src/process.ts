@@ -3,6 +3,7 @@ import { type Workflow } from "./workflow";
 import { createControlledPromise } from "./promises";
 import type { OpFound, OpResult } from "./types";
 import { stdOpResult } from "./types";
+import { RunStateDriver } from "./runStateDriver";
 
 export type ReportOp = <TOutput = void>(
   op: OpFound<any, TOutput>

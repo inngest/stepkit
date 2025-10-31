@@ -1,4 +1,4 @@
-import { StdOpcode, Workflow } from "@open-workflow/core";
+import { OpResult, StdOpcode, Workflow } from "@open-workflow/core";
 import type { Request, Response } from "express";
 import { z } from "zod";
 
@@ -46,6 +46,20 @@ async function sync() {
   }
 }
 
+const commRequestBody = z.object({
+  ctx: z.object({
+    run_id: z.string(),
+  }),
+  steps: z.record(
+    z.string(),
+    z.union([
+      z.object({ data: z.any() }),
+      z.object({ error: z.any() }),
+      z.null(),
+    ])
+  ),
+});
+
 type CommResponse = {
   body: any;
   statusCode: number;
@@ -53,9 +67,44 @@ type CommResponse = {
 
 async function execute(
   workflow: Workflow<any, any>,
-  runId: string
+  req: z.infer<typeof commRequestBody>
 ): Promise<CommResponse> {
-  const ops = await workflow.driver.execute(workflow, runId);
+  for (const [stepId, stepResult] of Object.entries(req.steps)) {
+    let opResult: OpResult;
+    if (stepResult === null) {
+      opResult = {
+        config: { code: "unknown" },
+        id: { hashed: stepId, id: stepId, index: 0 },
+        result: {
+          status: "success",
+          output: undefined,
+        },
+      };
+    } else if ("data" in stepResult) {
+      opResult = {
+        config: { code: "unknown" },
+        id: { hashed: stepId, id: stepId, index: 0 },
+        result: {
+          status: "success",
+          output: stepResult.data,
+        },
+      };
+    } else {
+      opResult = {
+        config: { code: "unknown" },
+        id: { hashed: stepId, id: stepId, index: 0 },
+        result: {
+          status: "error",
+          error: stepResult.error,
+        },
+      };
+    }
+    workflow.driver.state.setOp(
+      { runId: req.ctx.run_id, hashedOpId: stepId },
+      opResult
+    );
+  }
+  const ops = await workflow.driver.execute(workflow, req.ctx.run_id);
   if (ops.length === 1) {
     const op = ops[0];
     if (op.config.code === StdOpcode.workflow) {
@@ -72,11 +121,17 @@ async function execute(
 
   return {
     body: ops.map((op) => {
+      let displayName = op.id.id;
+      let name = op.id.id;
       let opcode: string;
+      let opts = {};
       if (op.config.code === StdOpcode.stepRun) {
         opcode = "StepRun";
       } else if (op.config.code === StdOpcode.stepSleep) {
         opcode = "Sleep";
+
+        // @ts-expect-error - TODO: fix this
+        name = op.config.options?.wakeupAt?.toISOString();
       } else {
         throw new Error(`unexpected op code: ${op.config.code}`);
       }
@@ -89,22 +144,17 @@ async function execute(
       }
 
       return {
+        displayName,
         id: op.id.hashed,
         op: opcode,
-        name: op.id.id,
-        opts: {},
-        data: data,
+        name,
+        opts,
+        data,
       };
     }),
     statusCode: 206,
   };
 }
-
-const commRequestBody = z.object({
-  ctx: z.object({
-    run_id: z.string(),
-  }),
-});
 
 export function serve(workflows: Workflow<any, any>[]): any {
   return async (req: Request, res: Response) => {
@@ -116,7 +166,7 @@ export function serve(workflows: Workflow<any, any>[]): any {
       const body = commRequestBody.parse(req.body);
       res.setHeader("content-type", "application/json");
       res.setHeader("x-inngest-sdk", "js:v0.0.0");
-      const result = await execute(workflows[0], body.ctx.run_id);
+      const result = await execute(workflows[0], body);
       res.status(result.statusCode);
       return res.json(result.body);
     }

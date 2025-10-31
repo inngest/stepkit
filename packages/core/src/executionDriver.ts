@@ -14,6 +14,8 @@ import { stdOpResult } from "./types";
 import type { RunStateDriver } from "./runStateDriver";
 
 export type ExecutionDriver<TContext extends StdContext> = {
+  state: RunStateDriver;
+
   execute: (
     workflow: Workflow<TContext, any>,
     runId: string
