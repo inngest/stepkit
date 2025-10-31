@@ -39,6 +39,10 @@ importers:
       '@open-workflow/core':
         specifier: '*'
         version: link:../core
+    devDependencies:
+      vitest:
+        specifier: ^4.0.5
+        version: 4.0.5(@types/node@24.9.2)(tsx@4.20.6)
 
   packages/inngest:
     dependencies:

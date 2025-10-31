@@ -2,7 +2,6 @@ import { type ControlFlow } from "./types";
 import { type Workflow } from "./workflow";
 import { createControlledPromise } from "./promises";
 import type { OpConfig, OpFound, OpResult } from "./types";
-import type { RunStateDriver } from "./runStateDriver";
 import { stdOpResult } from "./types";
 
 type LoopResult = {
