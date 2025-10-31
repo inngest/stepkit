@@ -1,25 +1,23 @@
 import { type ControlFlow } from "./types";
-import { type Workflow, HandlerContext } from "./workflow";
+import { type Workflow } from "./workflow";
 import { createControlledPromise } from "./promises";
-import type { OpFound, OpResult , RunState} from "./types";
+import type { OpFound, OpResult, RunState } from "./types";
 import { toResult } from "./types";
 
-export async function execute<TOutput>({
+export async function execute<TContext, TOutput>({
   workflow,
   state,
   onOpsFound,
   getContext,
 }: {
-  workflow: Workflow<TOutput>;
+  workflow: Workflow<any, TOutput>;
   state: RunState;
   onOpsFound: (
-    workflow: Workflow<TOutput>,
+    workflow: Workflow<any, TOutput>,
     state: RunState,
     ops: OpFound[]
   ) => Promise<ControlFlow>;
-  getContext: (
-    reportOp: (op: OpFound) => Promise<void>
-  ) => HandlerContext;
+  getContext: (reportOp: (op: OpFound) => Promise<void>) => TContext;
 }): Promise<OpResult[]> {
   // Collect a stack of ops discovered on this tick
   const stack: any[] = [];
@@ -27,7 +25,7 @@ export async function execute<TOutput>({
 
   async function reportOp(op: OpFound) {
     stack.push(op);
-    await pause.promise;
+    await Promise.all([pause.promise, op.promise.promise]);
   }
 
   const context = getContext(reportOp);

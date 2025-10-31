@@ -1,12 +1,33 @@
 import type { Workflow } from "./workflow";
 import type { OpResult, OpFound, ControlFlow, RunState } from "./types";
-import { isStepRunFound, toResult, Opcode, controlFlow } from "./types";
+import { toResult, Opcode, controlFlow } from "./types";
 import { execute } from "./execute";
 import { createControlledPromise } from "./promises";
 
+type Context = {
+  step: {
+    run: <T>(stepId: string, handler: () => Promise<T>) => Promise<T>;
+    sleep: (stepId: string, duration: number) => Promise<void>;
+  };
+};
+
+export function isStepRunFound(step: OpFound): step is OpFound<{
+  code: typeof Opcode.stepRunFound;
+  options: { handler: () => Promise<unknown> };
+}> {
+  return step.config.code === Opcode.stepRunFound;
+}
+
+export function isStepSleepFound(op: OpFound): op is OpFound<{
+  code: typeof Opcode.stepSleep;
+  options: { wakeupAt: Date };
+}> {
+  return op.config.code === Opcode.stepSleep;
+}
+
 export class BaseExecutionDriver {
-  async execute(state: RunState, workflow: Workflow<any>) {
-    return execute<any>({
+  async execute(state: RunState, workflow: Workflow<Context, any>) {
+    return execute<Context, any>({
       workflow,
       state,
       onOpsFound: this.onOpsFound,
@@ -14,7 +35,7 @@ export class BaseExecutionDriver {
     });
   }
 
-  getContext(reportOp: (operation: OpFound) => Promise<void>) {
+  getContext(reportOp: (operation: OpFound) => Promise<void>): Context {
     return {
       step: {
         run: async <T>(stepId: string, handler: () => Promise<T>) => {
@@ -36,12 +57,22 @@ export class BaseExecutionDriver {
 
           return controlledPromise.promise;
         },
+        sleep: async (stepId: string, duration: number) => {
+          await reportOp({
+            config: {
+              code: Opcode.stepSleep,
+              options: { wakeupAt: new Date(Date.now() + duration) },
+            },
+            id: { hashed: stepId, id: stepId, index: 0 },
+            promise: createControlledPromise<any>(),
+          });
+        },
       },
     };
   }
 
   async onOpsFound(
-    workflow: Workflow<unknown>,
+    workflow: Workflow<Context, any>,
     state: RunState,
     ops: OpFound[]
   ): Promise<ControlFlow> {
@@ -83,6 +114,9 @@ export class BaseExecutionDriver {
           state.setOp(newOp.id.hashed, result);
         }
         return controlFlow.interrupt([result]);
+      }
+      if (isStepSleepFound(newOp)) {
+        return controlFlow.interrupt([toResult.stepSleep(newOp)]);
       }
     } else if (newOps.length > 1) {
       // TODO: Implement

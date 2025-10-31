@@ -21,9 +21,9 @@ class RunState {
   }
 }
 
-export class Workflow<TOutput> {
+export class Workflow<TContext, TOutput> {
   id: string;
-  public readonly handler: (ctx: HandlerContext) => Promise<TOutput>;
+  public readonly handler: (ctx: TContext) => Promise<TOutput>;
   private readonly driver: BaseExecutionDriver;
 
   constructor({
@@ -32,7 +32,7 @@ export class Workflow<TOutput> {
     driver,
   }: {
     id: string;
-    handler: (ctx: HandlerContext) => Promise<TOutput>;
+    handler: (ctx: TContext) => Promise<TOutput>;
     driver: BaseExecutionDriver;
   }) {
     this.id = id;
@@ -41,6 +41,7 @@ export class Workflow<TOutput> {
   }
 
   async invoke(input: unknown): Promise<TOutput> {
+    throw new Error("not implemented");
     // TODO: Implement
     // this should be elsewhere:
     // return await executionLoop<TOutput>({
@@ -56,6 +57,3 @@ export type Steps = {
   run: <T>(stepId: string, callback: () => Promise<T>) => Promise<T>;
 };
 
-export type HandlerContext = {
-  step: Steps;
-};

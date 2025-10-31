@@ -169,4 +169,48 @@ describe("execute", () => {
       },
     ]);
   });
+
+  it("step.sleep", async () => {
+    // When successfully running a step, interrupt with step result
+
+    const state = new RunState();
+    const driver = new BaseExecutionDriver();
+    const client = new OWClient({ driver });
+
+    const counters = {
+      top: 0,
+      bottom: 0,
+    };
+    const workflow = client.workflow({ id: "workflow" }, async ({ step }) => {
+      counters.top++;
+      await step.sleep("zzz", 1000);
+      counters.bottom++;
+      return "Hello";
+    });
+
+    const start = Date.now();
+    const result = await driver.execute(state, workflow);
+
+    // Did not actually sleep since we only reported it
+    expect(Date.now() - start).toBeLessThan(100);
+
+    expect(counters).toEqual({
+      top: 1,
+      bottom: 0,
+    });
+    expect(result).toEqual([
+      {
+        config: { code: "step.sleep" },
+        id: {
+          hashed: "zzz",
+          id: "zzz",
+          index: 0,
+        },
+        result: {
+          status: "success",
+          output: undefined,
+        },
+      },
+    ]);
+  });
 });

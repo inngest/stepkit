@@ -11,13 +11,6 @@ export const Opcode = {
 } as const;
 export type Opcode = (typeof Opcode)[keyof typeof Opcode];
 
-export function isStepRunFound(step: OpFound): step is OpFound<{
-  code: typeof Opcode.stepRunFound;
-  options: { handler: () => Promise<unknown> };
-}> {
-  return step.config.code === Opcode.stepRunFound;
-}
-
 type OpConfig = {
   code: string;
   options?: Record<string, unknown>;
@@ -33,6 +26,11 @@ export const toResult = {
     config: { code: Opcode.stepRunError },
     id: foundOp.id,
     result: { status: "error", error },
+  }),
+  stepSleep: (foundOp: OpFound) => ({
+    config: { code: Opcode.stepSleep },
+    id: foundOp.id,
+    result: { status: "success", output: undefined },
   }),
   workflowSuccess: (output: unknown) => ({
     config: { code: Opcode.workflowSuccess },
