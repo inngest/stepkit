@@ -1,5 +1,5 @@
 {
-  "name": "@open-workflow/core",
+  "name": "@stepkit/core",
   "version": "0.0.0",
   "main": "./src/main.ts",
   "types": "./src/main.ts",

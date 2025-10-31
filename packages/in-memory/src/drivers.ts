@@ -1,5 +1,5 @@
-import type { RunStateDriver, OpResult, Workflow } from "@open-workflow/core";
-import { BaseExecutionDriver } from "@open-workflow/core";
+import type { RunStateDriver, OpResult, Workflow } from "@stepkit/core";
+import { BaseExecutionDriver } from "@stepkit/core";
 import { BaseContext, StdContext } from "packages/core/src/types";
 
 export class InMemoryRunStateDriver implements RunStateDriver {

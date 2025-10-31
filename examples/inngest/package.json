@@ -8,8 +8,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@open-workflow/core": "*",
-    "@open-workflow/inngest": "*",
+    "@stepkit/core": "*",
+    "@stepkit/inngest": "*",
     "express": "^5.1.0"
   },
   "devDependencies": {

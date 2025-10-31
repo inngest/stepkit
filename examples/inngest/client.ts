@@ -1,6 +1,6 @@
-import { OWClient } from "@open-workflow/core";
-import { InngestDriver } from "@open-workflow/inngest";
+import { StepKitClient } from '@stepkit/core';
+import { InngestDriver } from '@stepkit/inngest';
 
-export const client = new OWClient({
+export const client = new StepKitClient({
   driver: new InngestDriver(),
 });

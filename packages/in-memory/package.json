@@ -1,5 +1,5 @@
 {
-  "name": "@open-workflow/in-memory",
+  "name": "@stepkit/in-memory",
   "version": "0.0.0",
   "main": "./src/main.ts",
   "types": "./src/main.ts",
@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@open-workflow/core": "*"
+    "@stepkit/core": "*"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

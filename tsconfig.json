@@ -12,9 +12,9 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@open-workflow/core": ["packages/core/src/main.ts"],
-      "@open-workflow/in-memory": ["packages/in-memory/src/main.ts"],
-      "@open-workflow/inngest": ["packages/inngest/src/index.ts"]
+      "@stepkit/core": ["packages/core/src/main.ts"],
+      "@stepkit/in-memory": ["packages/in-memory/src/main.ts"],
+      "@stepkit/inngest": ["packages/inngest/src/index.ts"]
     }
   }
 }

@@ -1,5 +1,5 @@
-import type { RunStateDriver, OpResult, Workflow } from "@open-workflow/core";
-import { BaseExecutionDriver, createStdStepContext } from "@open-workflow/core";
+import type { RunStateDriver, OpResult, Workflow } from "@stepkit/core";
+import { BaseExecutionDriver, createStdStepContext } from "@stepkit/core";
 import { ReportOp } from "packages/core/src/process";
 import { createControlledPromise } from "packages/core/src/promises";
 import { BaseContext, StdContext, StdOpcode } from "packages/core/src/types";

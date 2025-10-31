@@ -4,15 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Open Workflow is a framework for building durable, resumable workflow execution systems. It provides an abstraction layer that allows workflows to be executed on different backends (in-memory for testing, or distributed systems like Inngest) while maintaining the same workflow code.
+StepKit is a framework for building durable, resumable workflow execution systems. It provides an abstraction layer that allows workflows to be executed on different backends (in-memory for testing, or distributed systems like Inngest) while maintaining the same workflow code.
 
 ## Monorepo Structure
 
 This is a pnpm workspace monorepo with three packages:
 
-- **@open-workflow/core**: Core abstractions and execution logic. Other packages depend on this package.
-- **@open-workflow/in-memory**: Simple in-memory driver.
-- **@open-workflow/inngest**: Integration with Inngest.
+- **@stepkit/core**: Core abstractions and execution logic. Other packages depend on this package.
+- **@stepkit/in-memory**: Simple in-memory driver.
+- **@stepkit/inngest**: Integration with Inngest.
 
 There are also examples in the `examples` directory.
 
@@ -80,4 +80,4 @@ pnpm -C packages/in-memory test
 
 ## Architecture Concepts
 
-New SDKs are implemented by building on top of `@open-workflow/core`. See that package for more details.
+New SDKs are implemented by building on top of `@stepkit/core`. See that package for more details.

@@ -8,8 +8,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@open-workflow/core": "*",
-    "@open-workflow/in-memory": "*"
+    "@stepkit/core": "*",
+    "@stepkit/in-memory": "*"
   },
   "devDependencies": {
     "tsx": "^4.20.6",
