@@ -1,13 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { InMemoryOrchestrator } from "./orchestrator";
 import { OWClient } from "@open-workflow/core";
+import { InMemoryDriver } from "./drivers";
 
 describe("Orchestrator", () => {
   it.only("invoke success", async () => {
     // Keep looping through interrupts until the run completes
 
-    const orc = new InMemoryOrchestrator();
-    const client = new OWClient({ driver: orc.driver });
+    const client = new OWClient({ driver: new InMemoryDriver() });
 
     const counters = {
       top: 0,
@@ -32,7 +31,7 @@ describe("Orchestrator", () => {
       return `${greeting}, ${name}!`;
     });
 
-    const output = await orc.invoke(workflow);
+    const output = await workflow.invoke({});
 
     expect(counters).toEqual({
       top: 3,

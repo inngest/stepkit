@@ -12,13 +12,14 @@ export type ExecutionDriver<TContext> = {
   getContext: (
     reportOp: <TOutput>(op: OpFound<any, TOutput>) => Promise<TOutput>
   ) => TContext;
+  invoke: <TOutput>(workflow: Workflow<TContext, TOutput>) => Promise<TOutput>;
 };
 
 /**
  * Concrete execution driver implementation. Can be extended.
  */
 export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
-  constructor(private state: RunStateDriver) {
+  constructor(public state: RunStateDriver) {
     this.state = state;
   }
 
@@ -66,6 +67,12 @@ export class BaseExecutionDriver implements ExecutionDriver<StdContext> {
         },
       },
     };
+  }
+
+  async invoke<TOutput>(
+    workflow: Workflow<StdContext, TOutput>
+  ): Promise<TOutput> {
+    throw new Error("not implemented");
   }
 
   onOpsFound = async (

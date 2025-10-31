@@ -15,6 +15,7 @@ export class OWClient<TContext> {
     handler: (ctx: TContext) => Promise<TOutput>
   ): Workflow<TContext, TOutput> {
     return new Workflow<TContext, TOutput>({
+      driver: this.driver,
       id: opts.id,
       handler,
     });

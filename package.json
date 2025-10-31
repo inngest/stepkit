@@ -3,9 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "pnpm -r build",
+    "precommit": "pnpm type-check && pnpm test",
     "test": "pnpm -r test",
-    "test:watch": "pnpm -r test:watch",
     "type-check": "pnpm -r type-check"
   },
   "devDependencies": {
