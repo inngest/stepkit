@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { BaseExecutionDriver, OWClient } from "./main";
-import { OpResult } from "./types";
+import { BaseExecutionDriver, OWClient } from "../main";
+import { OpResult } from "../types";
 
 class RunState {
   private ops: Map<string, OpResult>;

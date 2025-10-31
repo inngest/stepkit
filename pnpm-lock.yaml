@@ -11,6 +11,9 @@ importers:
       '@types/node':
         specifier: ^24.9.2
         version: 24.9.2
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
@@ -21,7 +24,15 @@ importers:
         specifier: ^4.0.5
         version: 4.0.5(@types/node@24.9.2)(tsx@4.20.6)
 
-  packages/core: {}
+  packages/core:
+    dependencies:
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+    devDependencies:
+      vitest:
+        specifier: ^4.0.5
+        version: 4.0.5(@types/node@24.9.2)(tsx@4.20.6)
 
   packages/in-memory:
     dependencies:
@@ -424,6 +435,11 @@ packages:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
 
+  prettier@3.6.2:
+    resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
 
@@ -550,6 +566,9 @@ packages:
     resolution: {integrity: sha512-hUrmaWBdVDcxvYqnyh09zunKzROWjbZTiNy8dBEjkS7ehEDQibXJ7XvlmtbwuTclUiIyN+CyXQD4Vmko8fNm8w==}
     engines: {node: '>=8'}
     hasBin: true
+
+  zod@4.1.12:
+    resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
 
 snapshots:
 
@@ -829,6 +848,8 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
+  prettier@3.6.2: {}
+
   resolve-pkg-maps@1.0.0: {}
 
   rollup@4.52.5:
@@ -944,3 +965,5 @@ snapshots:
     dependencies:
       siginfo: 2.0.0
       stackback: 0.0.2
+
+  zod@4.1.12: {}

@@ -5,6 +5,13 @@
   "types": "./src/main.ts",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"No tests yet\""
+    "test": "vitest",
+    "test:watch": "vitest --watch"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.5"
   }
 }

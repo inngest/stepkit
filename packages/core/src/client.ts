@@ -1,11 +1,10 @@
-import { type BaseExecutionDriver } from './baseExecutionDriver';
-import { Workflow } from './workflow';
-import type { HandlerContext } from './workflow';
+import { ExecutionDriver } from "./baseExecutionDriver/driver";
+import { Workflow } from "./workflow";
 
-export class OWClient {
-  private readonly driver: BaseExecutionDriver;
+export class OWClient<TContext> {
+  private readonly driver: ExecutionDriver<TContext>;
 
-  constructor({ driver }: { driver: BaseExecutionDriver }) {
+  constructor({ driver }: { driver: ExecutionDriver<TContext> }) {
     this.driver = driver;
   }
 
@@ -13,12 +12,11 @@ export class OWClient {
     opts: {
       id: string;
     },
-    handler: (ctx: HandlerContext) => Promise<TOutput>
-  ): Workflow<TOutput> {
-    return new Workflow({
+    handler: (ctx: TContext) => Promise<TOutput>
+  ): Workflow<TContext, TOutput> {
+    return new Workflow<TContext, TOutput>({
       id: opts.id,
       handler,
-      driver: this.driver,
     });
   }
 }

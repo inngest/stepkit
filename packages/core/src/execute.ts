@@ -1,8 +1,8 @@
 import { type ControlFlow } from "./types";
 import { type Workflow } from "./workflow";
 import { createControlledPromise } from "./promises";
-import type { OpFound, OpResult, RunState } from "./types";
-import { toResult } from "./types";
+import type { OpFound, OpResult, RunStateDriver } from "./types";
+import { stdOpResult } from "./types";
 
 export async function execute<TContext, TOutput>({
   workflow,
@@ -11,10 +11,10 @@ export async function execute<TContext, TOutput>({
   getContext,
 }: {
   workflow: Workflow<any, TOutput>;
-  state: RunState;
+  state: RunStateDriver;
   onOpsFound: (
     workflow: Workflow<any, TOutput>,
-    state: RunState,
+    state: RunStateDriver,
     ops: OpFound[]
   ) => Promise<ControlFlow>;
   getContext: (reportOp: (op: OpFound) => Promise<void>) => TContext;
@@ -68,10 +68,11 @@ export async function execute<TContext, TOutput>({
     // Clear the stack
     stack.splice(0, stack.length);
   }
+
   const output = await handlerPromise;
   if (output instanceof Error) {
-    return [toResult.workflowError(output)];
+    return [stdOpResult.workflowError(output)];
   }
 
-  return [toResult.workflowSuccess(output)];
+  return [stdOpResult.workflowSuccess(output)];
 }
