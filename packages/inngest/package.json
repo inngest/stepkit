@@ -5,9 +5,11 @@
   "types": "./src/index.ts",
   "scripts": {
     "build": "tsc",
-    "test": "echo \"No tests yet\""
+    "test": "echo \"No tests yet\"",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@open-workflow/core": "*"
+    "@open-workflow/core": "*",
+    "inngest": "^3.44.4"
   }
 }

@@ -3,4 +3,6 @@ export type { Workflow } from "./workflow";
 export { BaseExecutionDriver } from "./executionDriver";
 export type { ExecutionDriver } from "./executionDriver";
 export type { RunStateDriver } from "./runStateDriver";
-export type { OpResult } from "./types";
+export type { OpResult, StdContext, OpFound } from "./types";
+export { StdOpcode } from "./types";
+export { createControlledPromise } from "./promises";
