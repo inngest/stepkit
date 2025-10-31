@@ -1,5 +1,5 @@
-import { OWClient } from "@open-workflow/core";
-import { InMemoryDriver } from "@open-workflow/in-memory";
+import { OWClient } from "@stepkit/core";
+import { InMemoryDriver } from "@stepkit/in-memory";
 
 export const client = new OWClient({
   driver: new InMemoryDriver(),

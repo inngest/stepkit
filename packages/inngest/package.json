@@ -1,5 +1,5 @@
 {
-  "name": "@open-workflow/inngest",
+  "name": "@stepkit/inngest",
   "version": "0.0.0",
   "main": "./src/main.ts",
   "types": "./src/main.ts",
@@ -8,7 +8,7 @@
     "test": "echo \"No tests yet\""
   },
   "dependencies": {
-    "@open-workflow/core": "*",
+    "@stepkit/core": "*",
     "zod": "^4.1.12"
   },
   "optionalDependencies": {

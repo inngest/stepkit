@@ -23,10 +23,10 @@ importers:
 
   examples/in-memory:
     dependencies:
-      '@open-workflow/core':
+      '@stepkit/core':
         specifier: '*'
         version: link:../../packages/core
-      '@open-workflow/in-memory':
+      '@stepkit/in-memory':
         specifier: '*'
         version: link:../../packages/in-memory
     devDependencies:
@@ -39,10 +39,10 @@ importers:
 
   examples/inngest:
     dependencies:
-      '@open-workflow/core':
+      '@stepkit/core':
         specifier: '*'
         version: link:../../packages/core
-      '@open-workflow/inngest':
+      '@stepkit/inngest':
         specifier: '*'
         version: link:../../packages/inngest
       express:
@@ -77,7 +77,7 @@ importers:
 
   packages/in-memory:
     dependencies:
-      '@open-workflow/core':
+      '@stepkit/core':
         specifier: '*'
         version: link:../core
     devDependencies:
@@ -90,7 +90,7 @@ importers:
 
   packages/inngest:
     dependencies:
-      '@open-workflow/core':
+      '@stepkit/core':
         specifier: '*'
         version: link:../core
       zod:

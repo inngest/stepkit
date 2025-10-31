@@ -1,6 +1,6 @@
-# `@open-workflow/inngest`
+# `@stepkit/inngest`
 
-Inngest implementation of Open Workflow. An Inngest server (Inngest Dev Server or Inngest Cloud) is required to run workflows.
+Inngest implementation of StepKit. An Inngest server (Inngest Dev Server or Inngest Cloud) is required to run workflows.
 
 ## Testing
 

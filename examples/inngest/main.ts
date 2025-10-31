@@ -1,5 +1,5 @@
 import express from "express";
-import { serve } from "@open-workflow/inngest";
+import { serve } from "@stepkit/inngest";
 import { workflow } from "./workflows";
 
 const app = express();

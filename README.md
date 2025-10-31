@@ -1,3 +1,3 @@
-# Open Workflow
+# StepKit
 
 WIP

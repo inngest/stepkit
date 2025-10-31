@@ -1,6 +1,6 @@
-# `@open-workflow/in-memory`
+# `@stepkit/in-memory`
 
-In-memory implementation of Open Workflow.
+In-memory implementation of StepKit.
 
 ## Testing
 

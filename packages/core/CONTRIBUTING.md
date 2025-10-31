@@ -1,6 +1,6 @@
-# `@open-workflow/core`
+# `@stepkit/core`
 
-Core tools for building an Open Workflow SDK.
+Core tools for building an StepKit.
 
 ## Testing
 

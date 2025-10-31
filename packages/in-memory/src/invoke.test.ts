@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { OWClient } from "@open-workflow/core";
+import { OWClient } from "@stepkit/core";
 import { InMemoryDriver } from "./drivers";
 
 describe("Orchestrator", () => {

@@ -1,4 +1,4 @@
-import { OpResult, StdOpcode, Workflow } from "@open-workflow/core";
+import { OpResult, StdOpcode, Workflow } from "@stepkit/core";
 import type { Request, Response } from "express";
 import { z } from "zod";
 
