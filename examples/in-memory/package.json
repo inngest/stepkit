@@ -1,0 +1,16 @@
+{
+  "name": "examples/in-memory",
+  "version": "0.0.0",
+  "main": "./src/main.ts",
+  "types": "./src/main.ts",
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@open-workflow/core": "*",
+    "@open-workflow/in-memory": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

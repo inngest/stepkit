@@ -1,0 +1,13 @@
+{
+  "name": "@open-workflow/inngest",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@open-workflow/core": "*"
+  }
+}
