@@ -4,6 +4,10 @@ import { createControlledPromise } from "./promises";
 import type { OpFound, OpResult } from "./types";
 import { stdOpResult } from "./types";
 
+export type ReportOp = <TOutput = void>(
+  op: OpFound<any, TOutput>
+) => Promise<TOutput>;
+
 /**
  * Finds ops in a controlled way, allowing the driver to make decisions when ops
  * are found. Also handles control flow.
@@ -12,15 +16,16 @@ export async function process<TContext, TOutput>({
   workflow,
   onOpsFound,
   getContext,
+  runId,
 }: {
   workflow: Workflow<any, TOutput>;
   onOpsFound: (
     workflow: Workflow<any, TOutput>,
+    runId: string,
     ops: OpFound[]
   ) => Promise<ControlFlow>;
-  getContext: (
-    reportOp: <TOutput>(op: OpFound<any, TOutput>) => Promise<TOutput>
-  ) => TContext;
+  getContext: (reportOp: ReportOp, runId: string) => Promise<TContext>;
+  runId: string;
 }): Promise<OpResult[]> {
   const foundOps: OpFound[] = [];
 
@@ -38,7 +43,7 @@ export async function process<TContext, TOutput>({
     return await op.promise.promise;
   }
 
-  const context = getContext(reportOp);
+  const context = await getContext(reportOp, runId);
 
   let handlerPromise: Promise<TOutput | Error>;
 
@@ -73,7 +78,7 @@ export async function process<TContext, TOutput>({
           return [];
         }
 
-        const flow = await onOpsFound(workflow, foundOps);
+        const flow = await onOpsFound(workflow, runId, foundOps);
         if (flow.type === "continue") {
           // Allow ops to continue
           pause = pause.resolve(undefined);

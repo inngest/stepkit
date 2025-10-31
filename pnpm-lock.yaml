@@ -93,6 +93,9 @@ importers:
       '@open-workflow/core':
         specifier: '*'
         version: link:../core
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
     devDependencies:
       '@types/express':
         specifier: ^5.0.5

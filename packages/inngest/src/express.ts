@@ -1,5 +1,6 @@
 import { StdOpcode, Workflow } from "@open-workflow/core";
 import type { Request, Response } from "express";
+import { z } from "zod";
 
 async function sync() {
   const body = {
@@ -50,10 +51,11 @@ type CommResponse = {
   statusCode: number;
 };
 
-async function execute(workflow: Workflow<any, any>): Promise<CommResponse> {
-  const ops = await workflow.driver.execute(workflow, {
-    runId: "foo",
-  });
+async function execute(
+  workflow: Workflow<any, any>,
+  runId: string
+): Promise<CommResponse> {
+  const ops = await workflow.driver.execute(workflow, runId);
   if (ops.length === 1) {
     const op = ops[0];
     if (op.config.code === StdOpcode.workflow) {
@@ -73,6 +75,8 @@ async function execute(workflow: Workflow<any, any>): Promise<CommResponse> {
       let opcode: string;
       if (op.config.code === StdOpcode.stepRun) {
         opcode = "StepRun";
+      } else if (op.config.code === StdOpcode.stepSleep) {
+        opcode = "Sleep";
       } else {
         throw new Error(`unexpected op code: ${op.config.code}`);
       }
@@ -96,6 +100,12 @@ async function execute(workflow: Workflow<any, any>): Promise<CommResponse> {
   };
 }
 
+const commRequestBody = z.object({
+  ctx: z.object({
+    run_id: z.string(),
+  }),
+});
+
 export function serve(workflows: Workflow<any, any>[]): any {
   return async (req: Request, res: Response) => {
     if (req.method == "GET") {
@@ -103,9 +113,10 @@ export function serve(workflows: Workflow<any, any>[]): any {
     }
 
     if (req.method == "POST") {
+      const body = commRequestBody.parse(req.body);
       res.setHeader("content-type", "application/json");
       res.setHeader("x-inngest-sdk", "js:v0.0.0");
-      const result = await execute(workflows[0]);
+      const result = await execute(workflows[0], body.ctx.run_id);
       res.status(result.statusCode);
       return res.json(result.body);
     }

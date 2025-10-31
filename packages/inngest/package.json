@@ -8,7 +8,8 @@
     "test": "echo \"No tests yet\""
   },
   "dependencies": {
-    "@open-workflow/core": "*"
+    "@open-workflow/core": "*",
+    "zod": "^4.1.12"
   },
   "optionalDependencies": {
     "express": "^5.1.0"
