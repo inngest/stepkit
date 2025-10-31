@@ -61,54 +61,25 @@ export class InngestDriver extends BaseExecutionDriver {
   }
 
   //
-  // Override getContext to wrap step.run calls with Inngest's step execution
-  // Using arrow function to preserve 'this' binding
-  getContext = (reportOp: <TOutput>(op: any) => Promise<TOutput>): StdContext => {
+  // wrap the handler functions in Inngest step equivalents
+  getContext = (
+    _reportOp: <TOutput>(op: any) => Promise<TOutput>
+  ): StdContext => {
     return {
       step: {
         run: async <T>(
           stepId: string,
           handler: () => Promise<T>
         ): Promise<T> => {
-          //
-          // Wrap the Open Workflow step in an Inngest step.
-          // Inngest handles memoization and state management automatically.
-          return (await this.inngestStep.run(stepId, async () => {
-            const output = await reportOp<T>({
-              config: {
-                code: StdOpcode.stepRun,
-                options: { handler },
-              },
-              id: {
-                hashed: stepId,
-                id: stepId,
-                index: 0,
-              },
-              promise: createControlledPromise<T>(),
-            });
-            return output;
-          })) as T;
+          return (await this.inngestStep.run(stepId, handler)) as T;
         },
         sleep: async (stepId: string, duration: number): Promise<void> => {
-          await this.inngestStep.run(stepId, async () => {
-            await reportOp({
-              config: {
-                code: StdOpcode.stepSleep,
-                options: { wakeupAt: new Date(Date.now() + duration) },
-              },
-              id: { hashed: stepId, id: stepId, index: 0 },
-              promise: createControlledPromise<any>(),
-            });
-            return null;
-          });
+          await this.inngestStep.sleep(stepId, duration);
         },
       },
     };
   };
 
-  //
-  // For Inngest, invoke runs the workflow once within an Inngest function context.
-  // Inngest handles the orchestration loop automatically through step memoization.
   async invoke<TOutput>(
     workflow: Workflow<StdContext, TOutput>
   ): Promise<TOutput> {
@@ -125,9 +96,11 @@ export class InngestDriver extends BaseExecutionDriver {
       throw workflowOp.result.error;
     }
 
-    //
-    // If no workflow result, we're still in progress
-    // This shouldn't happen in practice since Inngest handles the orchestration
     throw new Error("Workflow did not complete");
+    //
+    // do we need to invoke explicitly or can we just do?
+    // return await workflow.handler(
+    //   this.getContext(() => Promise.resolve(undefined as any))
+    // );
   }
 }

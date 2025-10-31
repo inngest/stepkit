@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "examples:in-memory:start": "pnpm -C examples/in-memory start",
+    "examples:inngest:start": "pnpm -C examples/inngest start",
     "precommit": "pnpm type-check && pnpm test",
     "test": "pnpm -r test",
     "type-check": "pnpm -r type-check"
