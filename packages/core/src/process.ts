@@ -1,20 +1,8 @@
 import { type ControlFlow } from "./types";
 import { type Workflow } from "./workflow";
 import { createControlledPromise } from "./promises";
-import type { OpConfig, OpFound, OpResult } from "./types";
+import type { OpFound, OpResult } from "./types";
 import { stdOpResult } from "./types";
-
-type LoopResult = {
-  results: OpResult<OpConfig>[];
-  type: "loop_result";
-};
-
-function isLoopResult(result: any): result is LoopResult {
-  if (typeof result !== "object" || result === null) {
-    return false;
-  }
-  return "type" in result && result.type === "loop_result";
-}
 
 /**
  * Finds ops in a controlled way, allowing the driver to make decisions when ops
@@ -66,7 +54,7 @@ export async function process<TContext, TOutput>({
     return new Error(String(e));
   });
 
-  async function opLoop(): Promise<LoopResult> {
+  async function opLoop() {
     let i = 0;
 
     // Arbitrarily limit the number of iterations to prevent infinite loops
@@ -82,7 +70,7 @@ export async function process<TContext, TOutput>({
         await new Promise((resolve) => setTimeout(resolve, 0));
         if (foundOps.length === 0) {
           pause.reset();
-          continue;
+          return [];
         }
 
         const flow = await onOpsFound(workflow, foundOps);
@@ -93,10 +81,7 @@ export async function process<TContext, TOutput>({
         }
         if (flow.type === "interrupt") {
           // Interrupt control flow and return the results
-          return {
-            type: "loop_result",
-            results: flow.results,
-          };
+          return flow.results;
         }
 
         throw new Error("unreachable");
@@ -106,14 +91,14 @@ export async function process<TContext, TOutput>({
     }
   }
 
-  const output = await Promise.race([opLoop(), handlerPromise]);
-  if (isLoopResult(output)) {
-    return output.results;
+  const ops = await opLoop();
+  if (ops.length > 0) {
+    return ops;
   }
 
+  const output = await handlerPromise;
   if (output instanceof Error) {
     return [stdOpResult.workflowError(output)];
   }
-
   return [stdOpResult.workflowSuccess(output)];
 }
