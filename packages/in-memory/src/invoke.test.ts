@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { StepKitClient } from "@stepkit/core";
 import { InMemoryDriver } from "./drivers";
 
-describe("Orchestrator", () => {
-  it.only("invoke success", async () => {
+describe("invoke", () => {
+  it("invoke success", async () => {
     // Keep looping through interrupts until the run completes
 
     const client = new StepKitClient({ driver: new InMemoryDriver() });
