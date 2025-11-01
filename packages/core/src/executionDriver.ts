@@ -117,7 +117,7 @@ export class BaseExecutionDriver<
             options: { wakeupAt: new Date(Date.now() + duration) },
           },
           id: { hashed: stepId, id: stepId, index: 0 },
-          promise: createControlledPromise<any>(),
+          promise: createControlledPromise(),
         });
       },
     };
