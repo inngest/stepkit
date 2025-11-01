@@ -1,8 +1,12 @@
 import type { RunStateDriver, OpResult, Workflow } from "@stepkit/core";
-import { BaseExecutionDriver, createStdStepContext } from "@stepkit/core";
+import {
+  BaseExecutionDriver,
+  createStdStepContext,
+  StdStep,
+} from "@stepkit/core";
 import { ReportOp } from "packages/core/src/process";
 import { createControlledPromise } from "packages/core/src/promises";
-import { BaseContext, StdContext, StdOpcode } from "packages/core/src/types";
+import { StdContext, StdOpcode } from "packages/core/src/types";
 
 export class InngestRunStateDriver implements RunStateDriver<StdContext> {
   private ops: Map<string, OpResult>;
@@ -49,12 +53,11 @@ export class InngestRunStateDriver implements RunStateDriver<StdContext> {
 
 const stateDriver = new InngestRunStateDriver();
 
-type Context = StdContext & {
-  step: {
-    sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
-  };
+export type Step = StdStep & {
+  sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
 };
-export class InngestDriver extends BaseExecutionDriver<Context> {
+
+export class InngestDriver extends BaseExecutionDriver<StdContext, Step> {
   private activeRuns: Set<string>;
 
   constructor() {
@@ -62,33 +65,28 @@ export class InngestDriver extends BaseExecutionDriver<Context> {
     this.activeRuns = new Set();
   }
 
-  async execute(workflow: Workflow<Context, any>, runId: string) {
+  async execute(workflow: Workflow<StdContext, Step, any>, runId: string) {
     return super.execute(workflow, runId);
   }
 
-  getContext = async (reportOp: ReportOp, runId: string): Promise<Context> => {
-    const baseContext = await this.state.getBaseContext(runId);
-
+  getStep = async (reportOp: ReportOp, runId: string): Promise<Step> => {
     return {
-      ...baseContext,
-      step: {
-        ...createStdStepContext(reportOp),
-        sleepUntil: async (stepId: string, wakeupAt: Date) => {
-          return await reportOp<void>({
-            config: {
-              code: StdOpcode.stepSleep,
-              options: { wakeupAt },
-            },
-            id: { hashed: stepId, id: stepId, index: 0 },
-            promise: createControlledPromise<void>(),
-          });
-        },
+      ...createStdStepContext(reportOp),
+      sleepUntil: async (stepId: string, wakeupAt: Date) => {
+        return await reportOp<void>({
+          config: {
+            code: StdOpcode.stepSleep,
+            options: { wakeupAt },
+          },
+          id: { hashed: stepId, id: stepId, index: 0 },
+          promise: createControlledPromise<void>(),
+        });
       },
     };
   };
 
   async invoke<TOutput>(
-    workflow: Workflow<Context, TOutput>
+    workflow: Workflow<StdContext, Step, TOutput>
   ): Promise<TOutput> {
     const runId = crypto.randomUUID();
     this.activeRuns.add(runId);

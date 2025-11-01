@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { StepKitClient } from '@stepkit/core';
-import { InMemoryDriver } from './drivers';
+import { describe, it, expect } from "vitest";
+import { StepKitClient } from "@stepkit/core";
+import { InMemoryDriver } from "./drivers";
 
-describe('Orchestrator', () => {
-  it.only('invoke success', async () => {
+describe("Orchestrator", () => {
+  it.only("invoke success", async () => {
     // Keep looping through interrupts until the run completes
 
     const client = new StepKitClient({ driver: new InMemoryDriver() });
@@ -14,17 +14,17 @@ describe('Orchestrator', () => {
       getName: 0,
       bottom: 0,
     };
-    const workflow = client.workflow({ id: 'workflow' }, async ({ step }) => {
+    const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
       counters.top++;
 
-      const greeting = await step.run('get-greeting', async () => {
+      const greeting = await step.run("get-greeting", async () => {
         counters.getGreeting++;
-        return 'Hello';
+        return "Hello";
       });
 
-      const name = await step.run('get-name', async () => {
+      const name = await step.run("get-name", async () => {
         counters.getName++;
-        return 'Alice';
+        return "Alice";
       });
 
       counters.bottom++;
@@ -39,6 +39,6 @@ describe('Orchestrator', () => {
       getName: 1,
       bottom: 1,
     });
-    expect(output).toEqual('Hello, Alice!');
+    expect(output).toEqual("Hello, Alice!");
   });
 });

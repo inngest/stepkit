@@ -1,11 +1,11 @@
-import { ExecutionDriver } from './executionDriver';
-import { Workflow } from './workflow';
-import { StdContext } from './types';
+import { ExecutionDriver } from "./executionDriver";
+import { Workflow } from "./workflow";
+import { StdContext, StdStep } from "./types";
 
-export class StepKitClient<TContext extends StdContext> {
-  private readonly driver: ExecutionDriver<TContext>;
+export class StepKitClient<TContext extends StdContext, TStep extends StdStep> {
+  private readonly driver: ExecutionDriver<TContext, TStep>;
 
-  constructor({ driver }: { driver: ExecutionDriver<TContext> }) {
+  constructor({ driver }: { driver: ExecutionDriver<TContext, TStep> }) {
     this.driver = driver;
   }
 
@@ -13,9 +13,9 @@ export class StepKitClient<TContext extends StdContext> {
     opts: {
       id: string;
     },
-    handler: (ctx: TContext) => Promise<TOutput>,
-  ): Workflow<TContext, TOutput> {
-    return new Workflow<TContext, TOutput>({
+    handler: (ctx: TContext, step: TStep) => Promise<TOutput>
+  ): Workflow<TContext, TStep, TOutput> {
+    return new Workflow<TContext, TStep, TOutput>({
       driver: this.driver,
       id: opts.id,
       handler,

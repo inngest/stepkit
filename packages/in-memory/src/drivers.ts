@@ -1,6 +1,6 @@
 import type { RunStateDriver, OpResult, Workflow } from "@stepkit/core";
 import { BaseExecutionDriver } from "@stepkit/core";
-import { BaseContext, StdContext } from "packages/core/src/types";
+import { StdContext, StdStep } from "packages/core/src/types";
 
 export class InMemoryRunStateDriver implements RunStateDriver {
   private ops: Map<string, OpResult>;
@@ -55,12 +55,15 @@ export class InMemoryDriver extends BaseExecutionDriver {
     this.activeRuns = new Set();
   }
 
-  async execute(workflow: Workflow<StdContext, any>, runId: string) {
+  async execute<TOutput>(
+    workflow: Workflow<StdContext, StdStep, TOutput>,
+    runId: string
+  ) {
     return super.execute(workflow, runId);
   }
 
   async invoke<TOutput>(
-    workflow: Workflow<StdContext, TOutput>
+    workflow: Workflow<StdContext, StdStep, TOutput>
   ): Promise<TOutput> {
     const runId = crypto.randomUUID();
     this.activeRuns.add(runId);

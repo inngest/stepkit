@@ -125,10 +125,9 @@ export const controlFlow = {
 
 export type StdContext = {
   runId: string;
-  step: {
-    run: <T>(stepId: string, handler: () => Promise<T>) => Promise<T>;
-    sleep: (stepId: string, duration: number) => Promise<void>;
-  };
 };
 
-export type BaseContext<TContext extends StdContext> = Omit<TContext, "step">;
+export type StdStep = {
+  run: <T>(stepId: string, handler: () => Promise<T>) => Promise<T>;
+  sleep: (stepId: string, duration: number) => Promise<void>;
+};

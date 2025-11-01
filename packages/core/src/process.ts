@@ -1,7 +1,12 @@
 import { type ControlFlow } from "./types";
 import { type Workflow } from "./workflow";
 import { createControlledPromise } from "./promises";
-import type { OpFound, OpResult } from "./types";
+import type {
+  OpFound,
+  OpResult,
+  StdContext,
+  StdStep as StdSteps,
+} from "./types";
 import { stdOpResult } from "./types";
 import { RunStateDriver } from "./runStateDriver";
 
@@ -13,19 +18,25 @@ export type ReportOp = <TOutput = void>(
  * Finds ops in a controlled way, allowing the driver to make decisions when ops
  * are found. Also handles control flow.
  */
-export async function process<TContext, TOutput>({
+export async function process<
+  TContext extends StdContext,
+  TSteps extends StdSteps,
+  TOutput,
+>({
   workflow,
+  ctx,
   onOpsFound,
-  getContext,
+  getSteps,
   runId,
 }: {
-  workflow: Workflow<any, TOutput>;
+  workflow: Workflow<TContext, TSteps, TOutput>;
+  ctx: TContext;
   onOpsFound: (
-    workflow: Workflow<any, TOutput>,
+    workflow: Workflow<TContext, TSteps, TOutput>,
     runId: string,
     ops: OpFound[]
   ) => Promise<ControlFlow>;
-  getContext: (reportOp: ReportOp, runId: string) => Promise<TContext>;
+  getSteps: (reportOp: ReportOp) => Promise<TSteps>;
   runId: string;
 }): Promise<OpResult[]> {
   const foundOps: OpFound[] = [];
@@ -44,12 +55,12 @@ export async function process<TContext, TOutput>({
     return await op.promise.promise;
   }
 
-  const context = await getContext(reportOp, runId);
+  const step = await getSteps(reportOp);
 
   let handlerPromise: Promise<TOutput | Error>;
 
   // Run the handler and pause until the next tick to discover ops
-  handlerPromise = workflow.handler(context).catch((e) => {
+  handlerPromise = workflow.handler(ctx, step).catch((e) => {
     // Need to catch and return the error here instead of letting it throw. If
     // we don't we'll get "unhandled promise error" error messages during
     // testing
