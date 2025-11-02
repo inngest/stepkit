@@ -7,6 +7,7 @@
     "dev": "tsx --watch main.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "server": "npx inngest-cli@latest dev -u localhost:3000/api/inngest",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

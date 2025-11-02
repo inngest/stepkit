@@ -16,10 +16,6 @@ class StateDriver {
     this.ops = new Map();
   }
 
-  async getContext(runId: string): Promise<Omit<StdContext, "step">> {
-    return { runId };
-  }
-
   getOp(id: { runId: string; hashedOpId: string }): OpResult | undefined {
     if (this.ops.has(id.hashedOpId)) {
       return this.ops.get(id.hashedOpId);
@@ -32,7 +28,7 @@ class StateDriver {
 }
 
 describe("execute once", () => {
-  const runId = "test-run-id";
+  const ctx = { runId: "test-run-id" };
 
   it("no steps success", async () => {
     // When no steps, interrupt with workflow result
@@ -45,7 +41,7 @@ describe("execute once", () => {
       counter++;
       return "Hello, Alice!";
     });
-    const output = await driver.execute(workflow, runId);
+    const output = await driver.execute(workflow, ctx);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -74,7 +70,7 @@ describe("execute once", () => {
       counter++;
       throw new Error("oh no");
     });
-    const output = await driver.execute(workflow, runId);
+    const output = await driver.execute(workflow, ctx);
     expect(counter).toBe(1);
     expect(output).toEqual([
       {
@@ -112,7 +108,7 @@ describe("execute once", () => {
       counters.bottom++;
       return `Hello, ${name}!`;
     });
-    const result = await driver.execute(workflow, runId);
+    const result = await driver.execute(workflow, ctx);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
@@ -153,7 +149,7 @@ describe("execute once", () => {
       });
       counters.bottom++;
     });
-    const result = await driver.execute(workflow, runId);
+    const result = await driver.execute(workflow, ctx);
     expect(counters).toEqual({
       top: 1,
       getName: 1,
@@ -192,7 +188,7 @@ describe("execute once", () => {
       return "Hello";
     });
     const start = Date.now();
-    const result = await driver.execute(workflow, runId);
+    const result = await driver.execute(workflow, ctx);
 
     // Did not actually sleep since we only reported it
     expect(Date.now() - start).toBeLessThan(100);
@@ -222,7 +218,7 @@ describe("execute once", () => {
 });
 
 describe("execute to completion", () => {
-  const runId = "test-run-id";
+  const ctx = { runId: "test-run-id" };
 
   it("step.run success", async () => {
     // Keep looping through interrupts until the run completes
@@ -255,7 +251,7 @@ describe("execute to completion", () => {
 
     let allResults: OpResult[] = [];
     while (true) {
-      const results = await driver.execute(workflow, runId);
+      const results = await driver.execute(workflow, ctx);
       allResults = [...allResults, ...results];
       if (results[0].config.code === "workflow") {
         break;
@@ -340,7 +336,7 @@ describe("execute to completion", () => {
     });
 
     while (true) {
-      const results = await driver.execute(workflow, runId);
+      const results = await driver.execute(workflow, ctx);
       if (results[0].config.code === "workflow") {
         break;
       }
@@ -366,7 +362,7 @@ describe("execute to completion", () => {
 it("custom step", async () => {
   // Define a custom step. Ensure that the step's logic is only called once
 
-  const runId = "test-run-id";
+  const ctx = { runId: "test-run-id" };
 
   const counters = {
     workflowTop: 0,
@@ -413,7 +409,7 @@ it("custom step", async () => {
     counters.workflowBottom++;
     return result;
   });
-  const ops = await driver.execute(workflow, "run-id");
+  const ops = await driver.execute(workflow, ctx);
   expect(counters).toEqual({
     workflowTop: 1,
     multiply: 1,
@@ -434,7 +430,7 @@ it("custom step", async () => {
     },
   ]);
 
-  const output = await executeUntilDone(driver, workflow, runId);
+  const output = await executeUntilDone(() => driver.execute(workflow, ctx));
   expect(output).toBe(6);
   expect(counters).toEqual({
     workflowTop: 2,

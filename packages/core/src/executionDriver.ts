@@ -18,12 +18,8 @@ export type ExecutionDriver<
   TContext extends StdContext,
   TStep extends StdStep,
 > = {
-  state: RunStateDriver<TContext>;
+  state: RunStateDriver;
 
-  execute: (
-    workflow: Workflow<TContext, TStep, any>,
-    runId: string
-  ) => Promise<OpResult[]>;
   getSteps: (reportOp: ReportOp) => Promise<TStep>;
   invoke: <TOutput>(
     workflow: Workflow<TContext, TStep, TOutput>
@@ -55,20 +51,18 @@ export class BaseExecutionDriver<
   TStep extends StdStep = StdStep,
 > implements ExecutionDriver<TContext, TStep>
 {
-  constructor(public state: RunStateDriver<TContext>) {
+  constructor(public state: RunStateDriver) {
     this.state = state;
   }
 
   async execute<TOutput>(
     workflow: Workflow<TContext, TStep, TOutput>,
-    runId: string
+    ctx: TContext
   ): Promise<OpResult[]> {
-    const ctx = await this.state.getContext(runId);
-
     return findOps<TContext, TStep, TOutput>({
       workflow,
       ctx,
-      onOpsFound: (ops) => this.onOpsFound(workflow, runId, ops),
+      onOpsFound: (ops) => this.onOpsFound(workflow, ctx.runId, ops),
       getSteps: (reportOp) => this.getSteps(reportOp),
     });
   }
@@ -80,7 +74,6 @@ export class BaseExecutionDriver<
     return createStdStep(reportOp);
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await -- We need to let child classes override this method with their own async logic
   async invoke<TOutput>(
     _workflow: Workflow<TContext, TStep, TOutput>
   ): Promise<TOutput> {

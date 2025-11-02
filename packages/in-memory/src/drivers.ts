@@ -15,11 +15,6 @@ export class InMemoryRunStateDriver implements RunStateDriver {
     this.ops = new Map();
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async getContext(runId: string): Promise<Omit<StdContext, "step">> {
-    return { runId };
-  }
-
   private getKey({
     runId,
     hashedOpId,
@@ -67,9 +62,10 @@ export class InMemoryDriver extends BaseExecutionDriver {
   ): Promise<TOutput> {
     const runId = crypto.randomUUID();
     this.activeRuns.add(runId);
+    const ctx = { runId };
 
     try {
-      return await executeUntilDone(this, workflow, runId);
+      return await executeUntilDone(() => this.execute(workflow, ctx));
     } finally {
       this.activeRuns.delete(runId);
     }

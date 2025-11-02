@@ -1,25 +1,20 @@
-import type { Workflow } from "@stepkit/core";
 import {
   BaseExecutionDriver,
   createOpFound,
   createStdStep,
-  OpResult,
-  ReportOp,
-  RunStateDriver,
-  StdContext,
   StdOpCode,
-  StdStep,
+  type OpResult,
+  type ReportOp,
+  type RunStateDriver,
+  type StdContext,
+  type StdStep,
 } from "@stepkit/core/implementer";
 
-export class InngestRunStateDriver implements RunStateDriver<StdContext> {
+export class InngestRunStateDriver implements RunStateDriver {
   private ops: Map<string, OpResult>;
 
   constructor() {
     this.ops = new Map();
-  }
-
-  async getContext(runId: string): Promise<Omit<StdContext, "step">> {
-    return { runId };
   }
 
   private createOpKey({
@@ -61,66 +56,19 @@ export type Step = StdStep & {
 };
 
 export class InngestDriver extends BaseExecutionDriver<StdContext, Step> {
-  private activeRuns: Set<string>;
-
   constructor() {
     super(stateDriver);
-    this.activeRuns = new Set();
-  }
-
-  async execute(workflow: Workflow<StdContext, Step, any>, runId: string) {
-    return super.execute(workflow, runId);
   }
 
   async getSteps(reportOp: ReportOp): Promise<Step> {
     return {
       ...createStdStep(reportOp),
       sleepUntil: async (stepId: string, wakeupAt: Date) => {
-        return await createOpFound(reportOp, stepId, {
+        await createOpFound(reportOp, stepId, {
           code: StdOpCode.sleep,
           options: { wakeupAt },
         });
       },
     };
-  }
-
-  async invoke<TOutput>(
-    workflow: Workflow<StdContext, Step, TOutput>
-  ): Promise<TOutput> {
-    const runId = crypto.randomUUID();
-    this.activeRuns.add(runId);
-
-    let i = 0;
-    let maxIterations = 10_000;
-    while (true) {
-      i++;
-      if (i > maxIterations) {
-        throw new Error("unreachable: infinite loop detected");
-      }
-
-      const ops = await this.execute(workflow, runId);
-      if (ops.length !== 1) {
-        // Not done yet
-        continue;
-      }
-      const op = ops[0];
-      if (op.config.code !== "workflow") {
-        // Not done yet
-        continue;
-      }
-
-      try {
-        if (op.result.status !== "success") {
-          throw op.result.error;
-        }
-
-        // @ts-expect-error
-        return op.result.output;
-      } catch (e) {
-        throw e;
-      } finally {
-        this.activeRuns.delete(runId);
-      }
-    }
   }
 }
