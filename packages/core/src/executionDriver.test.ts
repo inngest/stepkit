@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { StepKitClient } from "./client";
 import { executeUntilDone } from "./utils";
 import { OpResult, StdContext, StdStep } from "./types";
-import { ReportOp } from "./process";
+import { ReportOp } from "./findOps";
 import {
   createOpFound,
   createStdStep,
