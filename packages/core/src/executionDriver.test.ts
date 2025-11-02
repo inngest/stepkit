@@ -28,7 +28,7 @@ class StateDriver {
 }
 
 describe("execute once", () => {
-  const ctx = { runId: "test-run-id" };
+  const ctx = { attempt: 0, runId: "test-run-id" };
 
   describe("no steps", () => {
     it("success", async () => {
@@ -82,7 +82,9 @@ describe("execute once", () => {
             index: 0,
           },
           result: {
+            canRetry: true,
             error: {
+              cause: undefined,
               name: "Error",
               message: "oh no",
               stack: expect.any(String),
@@ -171,7 +173,9 @@ describe("execute once", () => {
             index: 0,
           },
           result: {
+            canRetry: true,
             error: {
+              cause: undefined,
               name: "Error",
               message: "oh no",
               stack: expect.any(String),
@@ -230,7 +234,7 @@ describe("execute once", () => {
 });
 
 describe("execute to completion", () => {
-  const ctx = { runId: "test-run-id" };
+  const ctx = { attempt: 0, runId: "test-run-id" };
 
   it("step.run success", async () => {
     // Keep looping through interrupts until the run completes
@@ -374,7 +378,7 @@ describe("execute to completion", () => {
 it("custom step", async () => {
   // Define a custom step. Ensure that the step's logic is only called once
 
-  const ctx = { runId: "test-run-id" };
+  const ctx = { attempt: 0, runId: "test-run-id" };
 
   const counters = {
     workflowTop: 0,
@@ -442,7 +446,11 @@ it("custom step", async () => {
     },
   ]);
 
-  const output = await executeUntilDone(() => driver.execute(workflow, ctx));
+  const output = await executeUntilDone(
+    (ctx, workflow) => driver.execute(workflow, ctx),
+    workflow,
+    ctx
+  );
   expect(output).toBe(6);
   expect(counters).toEqual({
     workflowTop: 2,

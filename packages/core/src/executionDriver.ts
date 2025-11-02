@@ -61,10 +61,11 @@ export class BaseExecutionDriver<
     ctx: TContext
   ): Promise<OpResult[]> {
     return findOps<TContext, TStep, TOutput>({
-      workflow,
       ctx,
-      onOpsFound: (ops) => this.onOpsFound(workflow, ctx.runId, ops),
       getSteps: (reportOp) => this.getSteps(reportOp),
+      onOpsFound: (ops) => this.onOpsFound(workflow, ctx, ops),
+      onWorkflowOpResult: (op) => this.onWorkflowOpResult(workflow, ctx, op),
+      workflow,
     });
   }
 
@@ -83,12 +84,31 @@ export class BaseExecutionDriver<
 
   onOpsFound = async (
     workflow: Workflow<TContext, TStep, any>,
-    runId: string,
+    ctx: TContext,
     ops: OpFound[]
   ): Promise<ControlFlow> => {
-    const newOps = handleExistingOps(this.state, runId, ops);
+    const newOps = handleExistingOps(this.state, ctx, ops);
 
-    return await createOpResults(this.state, newOps, runId);
+    return await createOpResults(this.state, workflow, ctx, newOps);
+  };
+
+  onWorkflowOpResult = async (
+    workflow: Workflow<TContext, TStep, any>,
+    ctx: TContext,
+    op: OpResult
+  ): Promise<OpResult> => {
+    if (op.result.status === "error") {
+      op = {
+        ...op,
+        result: {
+          ...op.result,
+          canRetry: ctx.attempt + 1 < workflow.maxAttempts,
+        },
+      };
+    }
+
+    this.state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, op);
+    return op;
   };
 }
 
@@ -97,12 +117,12 @@ export class BaseExecutionDriver<
  */
 export function handleExistingOps(
   state: RunStateDriver,
-  runId: string,
+  ctx: StdContext,
   ops: OpFound[]
 ): OpFound[] {
   const newOps: OpFound[] = [];
   for (const op of ops) {
-    const item = state.getOp({ runId, hashedOpId: op.id.hashed });
+    const item = state.getOp({ runId: ctx.runId, hashedOpId: op.id.hashed });
     if (item !== undefined) {
       if (item.result.status === "success") {
         // Op already succeeded, so return its output
@@ -137,10 +157,15 @@ export async function createOpFound<TOutput>(
   });
 }
 
-export async function createOpResults<TOutput>(
+export async function createOpResults<
+  TContext extends StdContext,
+  TStep extends StdStep,
+  TOutput,
+>(
   state: RunStateDriver,
-  ops: OpFound<OpConfig, TOutput>[],
-  runId: string
+  workflow: Workflow<TContext, TStep, any>,
+  ctx: StdContext,
+  ops: OpFound<OpConfig, TOutput>[]
 ): Promise<ControlFlow> {
   const opResults: OpResult[] = [];
   for (const op of ops) {
@@ -156,11 +181,15 @@ export async function createOpResults<TOutput>(
         const output = await op.handler();
         opResult.result = { status: "success", output };
       } catch (e) {
-        opResult.result = { status: "error", error: toJsonError(e) };
+        opResult.result = {
+          status: "error",
+          error: toJsonError(e),
+          canRetry: ctx.attempt + 1 < workflow.maxAttempts,
+        };
       }
     }
 
-    state.setOp({ runId, hashedOpId: op.id.hashed }, opResult);
+    state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, opResult);
     opResults.push(opResult);
   }
 

@@ -9,19 +9,23 @@ export class Workflow<
   driver: ExecutionDriver<TContext, TStep>;
   id: string;
   public readonly handler: (ctx: TContext, step: TStep) => Promise<TOutput>;
+  public readonly maxAttempts: number;
 
   constructor({
     driver,
-    id,
     handler,
+    id,
+    maxAttempts = 4,
   }: {
     driver: ExecutionDriver<TContext, TStep>;
-    id: string;
     handler: (ctx: TContext, step: TStep) => Promise<TOutput>;
+    id: string;
+    maxAttempts?: number;
   }) {
     this.driver = driver;
     this.id = id;
     this.handler = handler;
+    this.maxAttempts = maxAttempts;
   }
 
   async invoke(_input: unknown): Promise<TOutput> {
