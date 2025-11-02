@@ -23,15 +23,17 @@ export async function findOps<
   TSteps extends StdSteps,
   TOutput,
 >({
-  workflow,
   ctx,
-  onOpsFound,
   getSteps,
+  onOpsFound,
+  onWorkflowOpResult,
+  workflow,
 }: {
-  workflow: Workflow<TContext, TSteps, TOutput>;
   ctx: TContext;
-  onOpsFound: (ops: OpFound[]) => Promise<ControlFlow>;
   getSteps: (reportOp: ReportOp) => Promise<TSteps>;
+  onOpsFound: (ops: OpFound[]) => Promise<ControlFlow>;
+  onWorkflowOpResult: (op: OpResult) => Promise<OpResult>;
+  workflow: Workflow<TContext, TSteps, TOutput>;
 }): Promise<OpResult[]> {
   const foundOps: OpFound[] = [];
 
@@ -101,21 +103,28 @@ export async function findOps<
     return ops;
   }
 
+  let opResult: OpResult;
   const output = await handlerPromise;
   if (output instanceof Error) {
-    return [
-      {
-        config: { code: StdOpCode.workflow },
-        id: { hashed: "", id: "", index: 0 },
-        result: { status: "error", error: toJsonError(output) },
-      },
-    ];
-  }
-  return [
-    {
+    opResult = {
       config: { code: StdOpCode.workflow },
       id: { hashed: "", id: "", index: 0 },
-      result: { status: "success", output },
-    },
-  ];
+      result: {
+        status: "error",
+        error: toJsonError(output),
+        canRetry: true,
+      },
+    };
+  } else {
+    opResult = {
+      config: { code: StdOpCode.workflow },
+      id: { hashed: "", id: "", index: 0 },
+      result: {
+        status: "success",
+        output,
+      },
+    };
+  }
+
+  return [await onWorkflowOpResult(opResult)];
 }

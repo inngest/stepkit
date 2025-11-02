@@ -43,6 +43,11 @@ export class InMemoryRunStateDriver implements RunStateDriver {
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
     op: OpResult
   ): void {
+    if (op.result.status === "error" && op.result.canRetry) {
+      // Retry by not storing the error
+      return;
+    }
+
     const key = this.getKey({ runId, hashedOpId });
     this.ops.set(key, JSON.stringify(op));
   }
@@ -61,14 +66,17 @@ export class InMemoryDriver extends BaseExecutionDriver {
   async invoke<TOutput>(
     workflow: Workflow<StdContext, StdStep, TOutput>
   ): Promise<TOutput> {
-    const runId = crypto.randomUUID();
-    this.activeRuns.add(runId);
-    const ctx = { runId };
+    const ctx: StdContext = { attempt: 0, runId: crypto.randomUUID() };
+    this.activeRuns.add(ctx.runId);
 
     try {
-      return await executeUntilDone(() => this.execute(workflow, ctx));
+      return await executeUntilDone(
+        (ctx, workflow) => this.execute(workflow, ctx),
+        workflow,
+        ctx
+      );
     } finally {
-      this.activeRuns.delete(runId);
+      this.activeRuns.delete(ctx.runId);
     }
   }
 }

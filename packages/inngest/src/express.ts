@@ -56,6 +56,7 @@ async function sync() {
 
 const commRequestBody = z.object({
   ctx: z.object({
+    attempt: z.number(),
     run_id: z.string(),
   }),
   steps: z.record(
@@ -109,6 +110,7 @@ async function execute(
           status: "error",
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           error: stepResult.error,
+          canRetry: false,
         },
       };
     }
@@ -118,7 +120,7 @@ async function execute(
     );
   }
 
-  const ctx = { runId: req.ctx.run_id };
+  const ctx = { attempt: req.ctx.attempt, runId: req.ctx.run_id };
   const ops = await workflow.driver.execute(workflow, ctx);
   if (ops.length === 1) {
     const op = ops[0];

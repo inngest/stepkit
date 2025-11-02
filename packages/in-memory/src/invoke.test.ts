@@ -43,10 +43,9 @@ describe("invoke", () => {
     expect(output).toEqual("Hello, Alice!");
   });
 
-  it("error", async () => {
+  it("fail", async () => {
     const client = new StepKitClient({ driver: new InMemoryDriver() });
 
-    new Error();
     class FooError extends Error {
       constructor(message: string, options?: ErrorOptions) {
         super(message, options);
@@ -68,23 +67,26 @@ describe("invoke", () => {
       catch: 0,
       bottom: 0,
     };
-    const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
-      counters.top++;
+    const workflow = client.workflow(
+      { id: "workflow", maxAttempts: 2 },
+      async (_, step) => {
+        counters.top++;
 
-      try {
-        await step.run("a", async () => {
-          counters.insideStep++;
-          throw new FooError("oh no", { cause: new BarError("the cause") });
-        });
-      } catch (e) {
-        counters.catch++;
-        errorInsideWorkflow = e as Error;
-        throw e;
+        try {
+          await step.run("a", async () => {
+            counters.insideStep++;
+            throw new FooError("oh no", { cause: new BarError("the cause") });
+          });
+        } catch (e) {
+          counters.catch++;
+          errorInsideWorkflow = e as Error;
+          throw e;
+        }
+
+        counters.bottom++;
+        return "hi";
       }
-
-      counters.bottom++;
-      return "hi";
-    });
+    );
 
     let errorOutsideWorkflow: Error | undefined;
     try {
@@ -94,9 +96,9 @@ describe("invoke", () => {
     }
 
     expect(counters).toEqual({
-      top: 2,
-      insideStep: 1,
-      catch: 1,
+      top: 4,
+      insideStep: 2,
+      catch: 2,
       bottom: 0,
     });
 
@@ -124,6 +126,41 @@ describe("invoke", () => {
         message: "the cause",
         name: "BarError",
       },
+    });
+  });
+
+  it("successful retry", async () => {
+    const client = new StepKitClient({ driver: new InMemoryDriver() });
+
+    const counters = {
+      top: 0,
+      insideStep: 0,
+      bottom: 0,
+    };
+    const workflow = client.workflow(
+      { id: "workflow" },
+      async ({ attempt }, step) => {
+        counters.top++;
+
+        const output = await step.run("a", async () => {
+          counters.insideStep++;
+          if (attempt === 0) {
+            throw new Error("oh no");
+          }
+          return "hi";
+        });
+
+        counters.bottom++;
+        return output;
+      }
+    );
+
+    expect(await workflow.invoke({})).toEqual("hi");
+
+    expect(counters).toEqual({
+      top: 3,
+      insideStep: 2,
+      bottom: 1,
     });
   });
 });

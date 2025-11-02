@@ -2,6 +2,7 @@ import type { JsonError } from "./errors";
 import type { ControlledPromise } from "./promises";
 
 export type StdContext = {
+  attempt: number;
   runId: string;
 };
 
@@ -43,6 +44,7 @@ export type OpResult<
     | {
         status: "error";
         error: JsonError;
+        canRetry: boolean;
       };
 };
 

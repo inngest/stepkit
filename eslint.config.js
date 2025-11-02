@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import prettier from "eslint-config-prettier";
+import vitest from "eslint-plugin-vitest";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
@@ -107,10 +108,15 @@ export default tseslint.config(
 
   {
     files: ["**/*.test.ts"],
+    plugins: {
+      vitest,
+    },
     rules: {
+      ...vitest.configs.recommended.rules,
       "@typescript-eslint/no-unnecessary-condition": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/require-await": "off",
+      "vitest/no-focused-tests": "error",
     },
   },
 

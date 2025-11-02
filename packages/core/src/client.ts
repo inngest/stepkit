@@ -12,12 +12,13 @@ export class StepKitClient<TContext extends StdContext, TStep extends StdStep> {
   workflow<TOutput>(
     opts: {
       id: string;
+      maxAttempts?: number;
     },
     handler: (ctx: TContext, step: TStep) => Promise<TOutput>
   ): Workflow<TContext, TStep, TOutput> {
     return new Workflow<TContext, TStep, TOutput>({
+      ...opts,
       driver: this.driver,
-      id: opts.id,
       handler,
     });
   }
