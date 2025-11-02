@@ -1,18 +1,23 @@
 import { ExecutionDriver } from "./executionDriver";
-import { StdContext } from "./types";
-export class Workflow<TContext extends StdContext, TOutput> {
-  driver: ExecutionDriver<TContext>;
+import { StdContext, StdStep } from "./types";
+
+export class Workflow<
+  TContext extends StdContext,
+  TStep extends StdStep,
+  TOutput,
+> {
+  driver: ExecutionDriver<TContext, TStep>;
   id: string;
-  public readonly handler: (ctx: TContext) => Promise<TOutput>;
+  public readonly handler: (ctx: TContext, step: TStep) => Promise<TOutput>;
 
   constructor({
     driver,
     id,
     handler,
   }: {
-    driver: ExecutionDriver<TContext>;
+    driver: ExecutionDriver<TContext, TStep>;
     id: string;
-    handler: (ctx: TContext) => Promise<TOutput>;
+    handler: (ctx: TContext, step: TStep) => Promise<TOutput>;
   }) {
     this.driver = driver;
     this.id = id;

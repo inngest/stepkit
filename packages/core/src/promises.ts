@@ -1,7 +1,7 @@
 export type ControlledPromise<T> = {
   promise: Promise<T>;
   resolve: (value: T) => ControlledPromise<T>;
-  reject: (reason: any) => ControlledPromise<T>;
+  reject: (reason: unknown) => ControlledPromise<T>;
   reset: () => void;
 };
 

@@ -1,6 +1,7 @@
-import { OpResult, StdOpcode, Workflow } from "@stepkit/core";
+import { OpResult, StdContext, StdOpcode, Workflow } from "@stepkit/core";
 import type { Request, Response } from "express";
 import { z } from "zod";
+import { Step } from "./drivers";
 
 async function sync() {
   const body = {
@@ -66,7 +67,7 @@ type CommResponse = {
 };
 
 async function execute(
-  workflow: Workflow<any, any>,
+  workflow: Workflow<StdContext, Step, any>,
   req: z.infer<typeof commRequestBody>
 ): Promise<CommResponse> {
   for (const [stepId, stepResult] of Object.entries(req.steps)) {
@@ -156,7 +157,7 @@ async function execute(
   };
 }
 
-export function serve(workflows: Workflow<any, any>[]): any {
+export function serve(workflows: Workflow<StdContext, Step, any>[]): any {
   return async (req: Request, res: Response) => {
     if (req.method == "GET") {
       return res.json({});

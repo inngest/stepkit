@@ -4,7 +4,7 @@ import type {
   OpFound,
   ControlFlow,
   StdContext,
-  BaseContext,
+  StdStep,
 } from "./types";
 import { StdOpcode, controlFlow } from "./types";
 import { process, ReportOp } from "./process";
@@ -13,18 +13,23 @@ import { parseOpConfig } from "./ops";
 import { stdOpResult } from "./types";
 import type { RunStateDriver } from "./runStateDriver";
 
-export type ExecutionDriver<TContext extends StdContext> = {
-  state: RunStateDriver;
+export type ExecutionDriver<
+  TContext extends StdContext,
+  TStep extends StdStep,
+> = {
+  state: RunStateDriver<TContext>;
 
   execute: (
-    workflow: Workflow<TContext, any>,
+    workflow: Workflow<TContext, TStep, any>,
     runId: string
   ) => Promise<OpResult[]>;
-  getContext: (reportOp: ReportOp, runId: string) => Promise<TContext>;
-  invoke: <TOutput>(workflow: Workflow<TContext, TOutput>) => Promise<TOutput>;
+  getSteps: (reportOp: ReportOp) => Promise<TStep>;
+  invoke: <TOutput>(
+    workflow: Workflow<TContext, TStep, TOutput>
+  ) => Promise<TOutput>;
 };
 
-export function createStdStepContext(reportOp: ReportOp): StdContext["step"] {
+export function createStdStep(reportOp: ReportOp): StdStep {
   return {
     run: async <TStepRunOutput>(
       stepId: string,
@@ -58,108 +63,74 @@ export function createStdStepContext(reportOp: ReportOp): StdContext["step"] {
   };
 }
 
-// export function createStdStepContext(reportOp: ReportOp): StdContext["step"] {
-//   return {
-//     run: async <TStepRunOutput>(
-//       stepId: string,
-//       handler: () => Promise<TStepRunOutput>
-//     ): Promise<TStepRunOutput> => {
-//       // Pause until all steps are reported
-//       const output = await reportOp<TStepRunOutput>({
-//         config: {
-//           code: StdOpcode.stepRun,
-//           options: { handler },
-//         },
-//         id: {
-//           hashed: stepId,
-//           id: stepId,
-//           index: 0,
-//         },
-//         promise: createControlledPromise<TStepRunOutput>(),
-//       });
-//       return output;
-//     },
-//     sleep: async (stepId: string, duration: number) => {
-//       return await reportOp({
-//         config: {
-//           code: StdOpcode.stepSleep,
-//           options: { wakeupAt: new Date(Date.now() + duration) },
-//         },
-//         id: { hashed: stepId, id: stepId, index: 0 },
-//         promise: createControlledPromise(),
-//       });
-//     },
-//   };
-// }
-
 /**
  * Concrete execution driver implementation. Can be extended.
  */
-export class BaseExecutionDriver<TContext extends StdContext = StdContext>
-  implements ExecutionDriver<TContext>
+export class BaseExecutionDriver<
+  TContext extends StdContext = StdContext,
+  TStep extends StdStep = StdStep,
+> implements ExecutionDriver<TContext, TStep>
 {
-  constructor(public state: RunStateDriver) {
+  constructor(public state: RunStateDriver<TContext>) {
     this.state = state;
   }
 
-  async execute(workflow: Workflow<TContext, any>, runId: string) {
-    return process<TContext, any>({
+  async execute<TOutput>(
+    workflow: Workflow<TContext, TStep, TOutput>,
+    runId: string
+  ) {
+    const ctx = await this.state.getBaseContext(runId);
+
+    return process<TContext, TStep, TOutput>({
       workflow,
+      ctx,
       onOpsFound: this.onOpsFound,
-      getContext: this.getContext,
+      getSteps: this.getSteps,
       runId,
     });
   }
 
-  getContext = async (reportOp: ReportOp, runId: string): Promise<TContext> => {
-    const baseContext = await this.state.getBaseContext(runId);
-
+  getSteps = async (reportOp: ReportOp): Promise<TStep> => {
     // @ts-expect-error - TODO: fix this. Since child classes can add more
     // steps, the returned steps may not be all the defined steps
     return {
-      ...baseContext,
-      step: {
-        run: async <T>(
-          stepId: string,
-          handler: () => Promise<T>
-        ): Promise<T> => {
-          // Pause until all steps are reported
-          const output = await reportOp<T>({
-            config: {
-              code: StdOpcode.stepRun,
-              options: { handler },
-            },
-            id: {
-              hashed: stepId,
-              id: stepId,
-              index: 0,
-            },
-            promise: createControlledPromise<T>(),
-          });
-          return output;
-        },
-        sleep: async (stepId: string, duration: number) => {
-          return await reportOp({
-            config: {
-              code: StdOpcode.stepSleep,
-              options: { wakeupAt: new Date(Date.now() + duration) },
-            },
-            id: { hashed: stepId, id: stepId, index: 0 },
-            promise: createControlledPromise<any>(),
-          });
-        },
+      run: async <T>(stepId: string, handler: () => Promise<T>): Promise<T> => {
+        // Pause until all steps are reported
+        const output = await reportOp<T>({
+          config: {
+            code: StdOpcode.stepRun,
+            options: { handler },
+          },
+          id: {
+            hashed: stepId,
+            id: stepId,
+            index: 0,
+          },
+          promise: createControlledPromise<T>(),
+        });
+        return output;
+      },
+      sleep: async (stepId: string, duration: number) => {
+        return await reportOp({
+          config: {
+            code: StdOpcode.stepSleep,
+            options: { wakeupAt: new Date(Date.now() + duration) },
+          },
+          id: { hashed: stepId, id: stepId, index: 0 },
+          promise: createControlledPromise(),
+        });
       },
     };
   };
 
   async invoke<TOutput>(
-    workflow: Workflow<TContext, TOutput>
+    workflow: Workflow<TContext, TStep, TOutput>
   ): Promise<TOutput> {
     throw new Error("not implemented");
   }
 
   onOpsFound = async (
-    workflow: Workflow<TContext, any>,
+    workflow: Workflow<TContext, TStep, any>,
     runId: string,
     ops: OpFound[]
   ): Promise<ControlFlow> => {
