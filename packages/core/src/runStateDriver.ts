@@ -1,7 +1,6 @@
-import type { OpResult, StdContext } from "./types";
+import type { OpResult } from "./types";
 
-export type RunStateDriver<TContext extends StdContext = StdContext> = {
-  getContext(runId: string): Promise<TContext>;
+export type RunStateDriver = {
   getOp(id: { runId: string; hashedOpId: string }): OpResult | undefined;
   setOp(id: { runId: string; hashedOpId: string }, op: OpResult): void;
 };

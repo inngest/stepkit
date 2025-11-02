@@ -8,7 +8,7 @@ import {
   type StdContext,
 } from "@stepkit/core/implementer";
 
-import type { Step } from "./drivers";
+import { InngestDriver, type Step } from "./drivers";
 
 async function sync() {
   const body = {
@@ -77,6 +77,10 @@ async function execute(
   workflow: Workflow<StdContext, Step, any>,
   req: z.infer<typeof commRequestBody>
 ): Promise<CommResponse> {
+  if (!(workflow.driver instanceof InngestDriver)) {
+    throw new Error("workflow driver is not an InngestDriver");
+  }
+
   for (const [stepId, stepResult] of Object.entries(req.steps)) {
     let opResult: OpResult;
     if (stepResult === null) {
@@ -113,7 +117,9 @@ async function execute(
       opResult
     );
   }
-  const ops = await workflow.driver.execute(workflow, req.ctx.run_id);
+
+  const ctx = { runId: req.ctx.run_id };
+  const ops = await workflow.driver.execute(workflow, ctx);
   if (ops.length === 1) {
     const op = ops[0];
     if (op.config.code === StdOpCode.workflow) {

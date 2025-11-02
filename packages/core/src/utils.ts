@@ -1,19 +1,11 @@
-import type { ExecutionDriver } from "./executionDriver";
-import type { StdContext, StdStep } from "./types";
-import type { Workflow } from "./workflow";
+import type { OpResult } from "./types";
 
-export async function executeUntilDone<
-  TContext extends StdContext,
-  TStep extends StdStep,
-  TOutput,
->(
-  driver: ExecutionDriver<TContext, TStep>,
-  workflow: Workflow<TContext, TStep, TOutput>,
-  runId: string
+export async function executeUntilDone<TOutput>(
+  execute: () => Promise<OpResult[]>
 ): Promise<TOutput> {
   const maxIterations = 10_000;
   for (let i = 0; i < maxIterations; i++) {
-    const ops = await driver.execute(workflow, runId);
+    const ops = await execute();
     if (ops.length !== 1) {
       // Not done yet
       continue;

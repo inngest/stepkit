@@ -81,7 +81,10 @@ export default tseslint.config(
       "@typescript-eslint/unified-signatures": "off",
       "@typescript-eslint/consistent-type-definitions": "off", // Allow both type and interface
       "@typescript-eslint/no-non-null-assertion": "warn", // Warn instead of error
-      "@typescript-eslint/require-await": "warn", // Warn instead of error
+
+      // Disable because child classes may need to be async, but base classes
+      // don't necessarily have `await` in them
+      "@typescript-eslint/require-await": "off",
 
       // Best practices
       "no-console": ["warn", { allow: ["warn", "error"] }],
