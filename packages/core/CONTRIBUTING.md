@@ -45,3 +45,7 @@ The process loop is responsible for:
 - Handling the execution driver's desired control flow (continue or interrupt)
 
 An important implementation detail is that some ops are permanently paused. This is intentional, since it allows us to interrupt the workflow early. This promise is eventually deleted by the garbage collector, since it isn't referenced anywhere else.
+
+### Exports
+
+The main exports (`@stepkit/core`) are for end users. The `@stepkit/core/implementer` package is for SDK implementers only.

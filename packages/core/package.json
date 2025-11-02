@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "main": "./src/main.ts",
   "types": "./src/main.ts",
+  "exports": {
+    ".": "./src/main.ts",
+    "./implementer": "./src/implementer.ts"
+  },
   "scripts": {
     "build": "tsc",
     "test": "NODE_OPTIONS='--expose-gc' vitest",

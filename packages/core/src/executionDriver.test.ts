@@ -1,6 +1,13 @@
 import { describe, it, expect, vi } from "vitest";
-import { BaseExecutionDriver, StepKitClient } from "./main";
-import { OpResult, StdContext } from "./types";
+import { StepKitClient } from "./client";
+import { executeUntilDone } from "./utils";
+import { OpResult, StdContext, StdStep } from "./types";
+import { ReportOp } from "./process";
+import {
+  createOpFound,
+  createStdStep,
+  BaseExecutionDriver,
+} from "./implementer";
 
 class StateDriver {
   private ops: Map<string, OpResult>;
@@ -8,7 +15,7 @@ class StateDriver {
     this.ops = new Map();
   }
 
-  async getBaseContext(runId: string): Promise<Omit<StdContext, "step">> {
+  async getContext(runId: string): Promise<Omit<StdContext, "step">> {
     return { runId };
   }
 
@@ -353,5 +360,85 @@ describe("execute to completion", () => {
       },
       { timeout: 2000 }
     );
+  });
+});
+
+it("custom step", async () => {
+  // Define a custom step. Ensure that the step's logic is only called once
+
+  const runId = "test-run-id";
+
+  const counters = {
+    workflowTop: 0,
+    multiply: 0,
+    workflowBottom: 0,
+  };
+
+  async function multiply(a: number, b: number): Promise<number> {
+    counters.multiply++;
+    return a * b;
+  }
+
+  type Step = StdStep & {
+    multiply: (stepId: string, a: number, b: number) => Promise<number>;
+  };
+
+  class ExecutionDriver extends BaseExecutionDriver<StdContext, Step> {
+    async getSteps(reportOp: ReportOp): Promise<Step> {
+      return {
+        ...createStdStep(reportOp),
+        multiply: async (
+          stepId: string,
+          a: number,
+          b: number
+        ): Promise<number> => {
+          return await createOpFound(
+            reportOp,
+            stepId,
+            { code: "step.multiply" },
+            () => multiply(a, b)
+          );
+        },
+      };
+    }
+  }
+
+  const driver = new ExecutionDriver(new StateDriver());
+  const client = new StepKitClient({ driver });
+
+  let result: number;
+  const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
+    counters.workflowTop++;
+    result = await step.multiply("foo", 2, 3);
+    counters.workflowBottom++;
+    return result;
+  });
+  const ops = await driver.execute(workflow, "run-id");
+  expect(counters).toEqual({
+    workflowTop: 1,
+    multiply: 1,
+    workflowBottom: 0,
+  });
+  expect(ops).toEqual([
+    {
+      config: { code: "step.multiply" },
+      id: {
+        hashed: "foo",
+        id: "foo",
+        index: 0,
+      },
+      result: {
+        output: 6,
+        status: "success",
+      },
+    },
+  ]);
+
+  const output = await executeUntilDone(driver, workflow, runId);
+  expect(output).toBe(6);
+  expect(counters).toEqual({
+    workflowTop: 2,
+    multiply: 1,
+    workflowBottom: 1,
   });
 });

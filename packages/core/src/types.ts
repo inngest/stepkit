@@ -1,81 +1,34 @@
 import type { ControlledPromise } from "./promises";
 import z from "zod";
 
-// Standard opcodes
-export const StdOpcode = {
-  stepRun: "step.run",
-  stepSleep: "step.sleep",
+export type StdContext = {
+  runId: string;
+};
+
+// Standard step methods
+export type StdStep = {
+  run: <T>(stepId: string, handler: () => Promise<T>) => Promise<T>;
+  sleep: (stepId: string, duration: number) => Promise<void>;
+};
+
+// Standard op codes
+export const StdOpCode = {
+  run: "step.run",
+  sleep: "step.sleep",
   workflow: "workflow",
-} as const;
-export type StdOpcode = (typeof StdOpcode)[keyof typeof StdOpcode];
+} as const satisfies Record<keyof StdStep, string> & { workflow: string };
+export type StdOpCode = (typeof StdOpCode)[keyof typeof StdOpCode];
 
 export type OpConfig = {
   code: string;
   options?: Record<string, unknown>;
 };
 
-// Schema for standard op configs
-export const stdOpConfigSchemas = {
-  [StdOpcode.stepRun]: z.object({
-    code: z.literal(StdOpcode.stepRun),
-    options: z.object({
-      handler: z.function({
-        output: z.promise(z.any()),
-      }),
-    }),
-  }),
-  [StdOpcode.stepSleep]: z.object({
-    code: z.literal(StdOpcode.stepSleep),
-    options: z.object({
-      wakeupAt: z.date(),
-    }),
-  }),
-  [StdOpcode.workflow]: z.object({
-    code: z.literal(StdOpcode.workflow),
-  }),
-} as const;
-
-// Create a standard op result
-export const stdOpResult = {
-  stepRunSuccess: (foundOp: OpFound, output: unknown) => {
-    const config = { ...foundOp.config };
-    delete config.options;
-
-    return {
-      config,
-      id: foundOp.id,
-      result: { status: "success", output },
-    };
-  },
-  stepRunError: (foundOp: OpFound, error: Error) => {
-    const config = { ...foundOp.config };
-    delete config.options;
-
-    return {
-      config,
-      id: foundOp.id,
-      result: { status: "error", error },
-    };
-  },
-  stepSleep: (foundOp: OpFound) => ({
-    config: foundOp.config,
-    id: foundOp.id,
-    result: { status: "success", output: undefined },
-  }),
-  workflowSuccess: (output: unknown) => ({
-    config: { code: StdOpcode.workflow },
-    id: { hashed: "", id: "", index: 0 },
-    result: { status: "success", output },
-  }),
-  workflowError: (error: Error) => ({
-    config: { code: StdOpcode.workflow },
-    id: { hashed: "", id: "", index: 0 },
-    result: { status: "error", error },
-  }),
-} as const satisfies Record<string, (...args: any[]) => OpResult>;
-
-// When an op has succeeded or failed
-export type OpResult<TOpConfig extends OpConfig = OpConfig> = {
+// When an op has succeeded or errored
+export type OpResult<
+  TOpConfig extends OpConfig = OpConfig,
+  TOutput = unknown,
+> = {
   config: TOpConfig;
   id: {
     hashed: string;
@@ -85,7 +38,7 @@ export type OpResult<TOpConfig extends OpConfig = OpConfig> = {
   result:
     | {
         status: "success";
-        output: unknown;
+        output: TOutput;
       }
     | {
         status: "error";
@@ -99,6 +52,7 @@ export type OpFound<
   TOutput = unknown,
 > = {
   config: TOpConfig;
+  handler?: () => Promise<TOutput>;
   id: {
     hashed: string;
     id: string;
@@ -122,12 +76,3 @@ export const controlFlow = {
   continue: () => ({ type: "continue" }),
   interrupt: (results: OpResult[]) => ({ type: "interrupt", results }),
 } as const satisfies Record<string, (...args: any[]) => ControlFlow>;
-
-export type StdContext = {
-  runId: string;
-};
-
-export type StdStep = {
-  run: <T>(stepId: string, handler: () => Promise<T>) => Promise<T>;
-  sleep: (stepId: string, duration: number) => Promise<void>;
-};

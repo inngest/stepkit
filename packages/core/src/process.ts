@@ -1,4 +1,4 @@
-import { type ControlFlow } from "./types";
+import { StdOpCode, type ControlFlow } from "./types";
 import { type Workflow } from "./workflow";
 import { createControlledPromise } from "./promises";
 import type {
@@ -7,8 +7,6 @@ import type {
   StdContext,
   StdStep as StdSteps,
 } from "./types";
-import { stdOpResult } from "./types";
-import { RunStateDriver } from "./runStateDriver";
 
 export type ReportOp = <TOutput = void>(
   op: OpFound<any, TOutput>
@@ -115,7 +113,19 @@ export async function process<
 
   const output = await handlerPromise;
   if (output instanceof Error) {
-    return [stdOpResult.workflowError(output)];
+    return [
+      {
+        config: { code: StdOpCode.workflow },
+        id: { hashed: "", id: "", index: 0 },
+        result: { status: "error", error: output },
+      },
+    ];
   }
-  return [stdOpResult.workflowSuccess(output)];
+  return [
+    {
+      config: { code: StdOpCode.workflow },
+      id: { hashed: "", id: "", index: 0 },
+      result: { status: "success", output },
+    },
+  ];
 }
