@@ -1,4 +1,5 @@
-import { OpResult, StdContext, StdOpCode, Workflow } from "@stepkit/core";
+import { Workflow } from "@stepkit/core";
+import { OpResult, StdContext, StdOpCode } from "@stepkit/core/implementer";
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { Step } from "./drivers";

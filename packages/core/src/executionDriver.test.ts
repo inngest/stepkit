@@ -1,9 +1,13 @@
 import { describe, it, expect, vi } from "vitest";
-import { BaseExecutionDriver, StepKitClient } from "./main";
+import { StepKitClient } from "./client";
 import { executeUntilDone } from "./utils";
 import { OpResult, StdContext, StdStep } from "./types";
 import { ReportOp } from "./process";
-import { createOpFound, createStdStep } from "./executionDriver";
+import {
+  createOpFound,
+  createStdStep,
+  BaseExecutionDriver,
+} from "./implementer";
 
 class StateDriver {
   private ops: Map<string, OpResult>;

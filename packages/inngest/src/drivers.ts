@@ -1,12 +1,15 @@
-import type { RunStateDriver, OpResult, Workflow } from "@stepkit/core";
+import type { Workflow } from "@stepkit/core";
 import {
   BaseExecutionDriver,
-  createStdStepContext,
+  StdOpCode,
+  createStdStep,
+  createOpFound,
+  ReportOp,
+  StdContext,
   StdStep,
-} from "@stepkit/core";
-import { createOpFound } from "packages/core/src/executionDriver";
-import { ReportOp } from "packages/core/src/process";
-import { StdContext, StdOpCode } from "packages/core/src/types";
+  RunStateDriver,
+  OpResult,
+} from "@stepkit/core/implementer";
 
 export class InngestRunStateDriver implements RunStateDriver<StdContext> {
   private ops: Map<string, OpResult>;
@@ -71,7 +74,7 @@ export class InngestDriver extends BaseExecutionDriver<StdContext, Step> {
 
   async getSteps(reportOp: ReportOp): Promise<Step> {
     return {
-      ...createStdStepContext(reportOp),
+      ...createStdStep(reportOp),
       sleepUntil: async (stepId: string, wakeupAt: Date) => {
         return await createOpFound(reportOp, stepId, {
           code: StdOpCode.sleep,
