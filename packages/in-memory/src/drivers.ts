@@ -1,5 +1,5 @@
 import type { RunStateDriver, OpResult, Workflow } from "@stepkit/core";
-import { BaseExecutionDriver } from "@stepkit/core";
+import { BaseExecutionDriver, executeUntilDone } from "@stepkit/core";
 import { StdContext, StdStep } from "packages/core/src/types";
 
 export class InMemoryRunStateDriver implements RunStateDriver {
@@ -9,7 +9,7 @@ export class InMemoryRunStateDriver implements RunStateDriver {
     this.ops = new Map();
   }
 
-  async getBaseContext(runId: string): Promise<Omit<StdContext, "step">> {
+  async getContext(runId: string): Promise<Omit<StdContext, "step">> {
     return { runId };
   }
 
@@ -55,50 +55,16 @@ export class InMemoryDriver extends BaseExecutionDriver {
     this.activeRuns = new Set();
   }
 
-  async execute<TOutput>(
-    workflow: Workflow<StdContext, StdStep, TOutput>,
-    runId: string
-  ) {
-    return super.execute(workflow, runId);
-  }
-
   async invoke<TOutput>(
     workflow: Workflow<StdContext, StdStep, TOutput>
   ): Promise<TOutput> {
     const runId = crypto.randomUUID();
     this.activeRuns.add(runId);
 
-    let i = 0;
-    let maxIterations = 10_000;
-    while (true) {
-      i++;
-      if (i > maxIterations) {
-        throw new Error("unreachable: infinite loop detected");
-      }
-
-      const ops = await this.execute(workflow, runId);
-      if (ops.length !== 1) {
-        // Not done yet
-        continue;
-      }
-      const op = ops[0];
-      if (op.config.code !== "workflow") {
-        // Not done yet
-        continue;
-      }
-
-      try {
-        if (op.result.status !== "success") {
-          throw op.result.error;
-        }
-
-        // @ts-expect-error
-        return op.result.output;
-      } catch (e) {
-        throw e;
-      } finally {
-        this.activeRuns.delete(runId);
-      }
+    try {
+      return await executeUntilDone(this, workflow, runId);
+    } finally {
+      this.activeRuns.delete(runId);
     }
   }
 }

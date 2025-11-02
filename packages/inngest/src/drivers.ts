@@ -4,9 +4,9 @@ import {
   createStdStepContext,
   StdStep,
 } from "@stepkit/core";
+import { createOpFound } from "packages/core/src/executionDriver";
 import { ReportOp } from "packages/core/src/process";
-import { createControlledPromise } from "packages/core/src/promises";
-import { StdContext, StdOpcode } from "packages/core/src/types";
+import { StdContext, StdOpCode } from "packages/core/src/types";
 
 export class InngestRunStateDriver implements RunStateDriver<StdContext> {
   private ops: Map<string, OpResult>;
@@ -15,7 +15,7 @@ export class InngestRunStateDriver implements RunStateDriver<StdContext> {
     this.ops = new Map();
   }
 
-  async getBaseContext(runId: string): Promise<Omit<StdContext, "step">> {
+  async getContext(runId: string): Promise<Omit<StdContext, "step">> {
     return { runId };
   }
 
@@ -69,21 +69,17 @@ export class InngestDriver extends BaseExecutionDriver<StdContext, Step> {
     return super.execute(workflow, runId);
   }
 
-  getStep = async (reportOp: ReportOp, runId: string): Promise<Step> => {
+  async getSteps(reportOp: ReportOp): Promise<Step> {
     return {
       ...createStdStepContext(reportOp),
       sleepUntil: async (stepId: string, wakeupAt: Date) => {
-        return await reportOp<void>({
-          config: {
-            code: StdOpcode.stepSleep,
-            options: { wakeupAt },
-          },
-          id: { hashed: stepId, id: stepId, index: 0 },
-          promise: createControlledPromise<void>(),
+        return await createOpFound(reportOp, stepId, {
+          code: StdOpCode.sleep,
+          options: { wakeupAt },
         });
       },
     };
-  };
+  }
 
   async invoke<TOutput>(
     workflow: Workflow<StdContext, Step, TOutput>

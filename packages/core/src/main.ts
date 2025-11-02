@@ -1,5 +1,5 @@
 export { StepKitClient } from "./client";
-export { StdOpcode, StdContext, StdStep } from "./types";
+export { StdOpCode as StdOpcode, StdContext, StdStep } from "./types";
 export type { Workflow } from "./workflow";
 export {
   BaseExecutionDriver,
@@ -8,3 +8,4 @@ export {
 export type { ExecutionDriver } from "./executionDriver";
 export type { RunStateDriver } from "./runStateDriver";
 export type { OpResult } from "./types";
+export { executeUntilDone } from "./utils";

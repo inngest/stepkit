@@ -126,9 +126,9 @@ async function execute(
       let name = op.id.id;
       let opcode: string;
       let opts = {};
-      if (op.config.code === StdOpcode.stepRun) {
+      if (op.config.code === StdOpcode.run) {
         opcode = "StepRun";
-      } else if (op.config.code === StdOpcode.stepSleep) {
+      } else if (op.config.code === StdOpcode.sleep) {
         opcode = "Sleep";
 
         // @ts-expect-error - TODO: fix this
