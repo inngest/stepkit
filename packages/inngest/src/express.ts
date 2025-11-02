@@ -1,8 +1,14 @@
-import { Workflow } from "@stepkit/core";
-import { OpResult, StdContext, StdOpCode } from "@stepkit/core/implementer";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { Step } from "./drivers";
+
+import type { Workflow } from "@stepkit/core";
+import {
+  StdOpCode,
+  type OpResult,
+  type StdContext,
+} from "@stepkit/core/implementer";
+
+import type { Step } from "./drivers";
 
 async function sync() {
   const body = {

@@ -1,18 +1,18 @@
-import type { Workflow } from "./workflow";
-import type {
-  OpResult,
-  OpFound,
-  ControlFlow,
-  StdContext,
-  StdStep,
-  OpConfig,
-} from "./types";
-import { StdOpCode, controlFlow } from "./types";
-import type { ReportOp } from "./findOps";
-import { findOps } from "./findOps";
+import { findOps, type ReportOp } from "./findOps";
 import { createControlledPromise } from "./promises";
 import type { RunStateDriver } from "./runStateDriver";
+import {
+  controlFlow,
+  StdOpCode,
+  type ControlFlow,
+  type OpConfig,
+  type OpFound,
+  type OpResult,
+  type StdContext,
+  type StdStep,
+} from "./types";
 import { ensureAsync } from "./utils";
+import type { Workflow } from "./workflow";
 
 export type ExecutionDriver<
   TContext extends StdContext,

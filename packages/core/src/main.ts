@@ -1,2 +1,4 @@
-export { StepKitClient } from "./client";
-export { Workflow } from "./workflow";
+import { StepKitClient } from "./client";
+import { Workflow } from "./workflow";
+
+export { StepKitClient, Workflow };

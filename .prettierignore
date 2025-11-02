@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.tsup/
+coverage/
+pnpm-lock.yaml
+*.min.js
+
+# Only format js, json, ts, yml, and yaml files
+*.md
+*.css
+*.scss
+*.html
+*.xml
+*.svg

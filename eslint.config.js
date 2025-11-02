@@ -1,4 +1,5 @@
 import js from "@eslint/js";
+import prettier from "eslint-config-prettier";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
@@ -108,5 +109,8 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/require-await": "off",
     },
-  }
+  },
+
+  // Disable ESLint rules that conflict with Prettier
+  prettier
 );

@@ -6,17 +6,22 @@
   "scripts": {
     "examples:in-memory": "pnpm -C examples/in-memory dev",
     "examples:inngest": "pnpm -C examples/inngest dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
-    "precommit": "pnpm lint && pnpm type-check && pnpm test",
+    "precommit": "pnpm format:check && pnpm lint && pnpm type-check && pnpm test",
     "test": "pnpm -r test",
     "type-check": "pnpm -r type-check"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@types/node": "^24.9.2",
     "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.6.2",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
     "vitest": "^4.0.5"

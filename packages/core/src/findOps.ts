@@ -1,12 +1,13 @@
-import { StdOpCode, type ControlFlow } from "./types";
-import { type Workflow } from "./workflow";
 import { createControlledPromise } from "./promises";
-import type {
-  OpFound,
-  OpResult,
-  StdContext,
-  StdStep as StdSteps,
+import {
+  StdOpCode,
+  type ControlFlow,
+  type OpFound,
+  type OpResult,
+  type StdContext,
+  type StdStep as StdSteps,
 } from "./types";
+import { type Workflow } from "./workflow";
 
 export type ReportOp = <TOutput = void>(
   op: OpFound<any, TOutput>

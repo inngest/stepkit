@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "main": "./src/main.ts",
   "types": "./src/main.ts",
+  "exports": {
+    ".": "./src/main.ts",
+    "./express": "./src/express.ts"
+  },
   "scripts": {
     "build": "tsc",
     "test": "echo \"No tests yet\""

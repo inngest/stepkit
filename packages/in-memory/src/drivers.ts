@@ -1,13 +1,11 @@
 import type { Workflow } from "@stepkit/core";
-import type {
-  RunStateDriver,
-  OpResult,
-  StdContext,
-  StdStep,
-} from "@stepkit/core/implementer";
 import {
   BaseExecutionDriver,
   executeUntilDone,
+  type OpResult,
+  type RunStateDriver,
+  type StdContext,
+  type StdStep,
 } from "@stepkit/core/implementer";
 
 export class InMemoryRunStateDriver implements RunStateDriver {
