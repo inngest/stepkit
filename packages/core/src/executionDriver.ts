@@ -8,7 +8,7 @@ import type {
   OpConfig,
 } from "./types";
 import { StdOpCode, controlFlow } from "./types";
-import { process, ReportOp } from "./process";
+import { findOps, ReportOp } from "./findOps";
 import { createControlledPromise } from "./promises";
 import type { RunStateDriver } from "./runStateDriver";
 
@@ -63,12 +63,11 @@ export class BaseExecutionDriver<
   ) {
     const ctx = await this.state.getContext(runId);
 
-    return process<TContext, TStep, TOutput>({
+    return findOps<TContext, TStep, TOutput>({
       workflow,
       ctx,
-      onOpsFound: this.onOpsFound,
+      onOpsFound: (ops) => this.onOpsFound(workflow, runId, ops),
       getSteps: this.getSteps,
-      runId,
     });
   }
 
@@ -77,7 +76,7 @@ export class BaseExecutionDriver<
     // more steps. So if more steps exist in TStep then the child class must
     // extend this method's return type
     return createStdStep(reportOp);
-  };
+  }
 
   async invoke<TOutput>(
     workflow: Workflow<TContext, TStep, TOutput>

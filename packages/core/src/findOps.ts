@@ -16,7 +16,7 @@ export type ReportOp = <TOutput = void>(
  * Finds ops in a controlled way, allowing the driver to make decisions when ops
  * are found. Also handles control flow.
  */
-export async function process<
+export async function findOps<
   TContext extends StdContext,
   TSteps extends StdSteps,
   TOutput,
@@ -25,17 +25,11 @@ export async function process<
   ctx,
   onOpsFound,
   getSteps,
-  runId,
 }: {
   workflow: Workflow<TContext, TSteps, TOutput>;
   ctx: TContext;
-  onOpsFound: (
-    workflow: Workflow<TContext, TSteps, TOutput>,
-    runId: string,
-    ops: OpFound[]
-  ) => Promise<ControlFlow>;
+  onOpsFound: (ops: OpFound[]) => Promise<ControlFlow>;
   getSteps: (reportOp: ReportOp) => Promise<TSteps>;
-  runId: string;
 }): Promise<OpResult[]> {
   const foundOps: OpFound[] = [];
 
@@ -88,7 +82,7 @@ export async function process<
           return [];
         }
 
-        const flow = await onOpsFound(workflow, runId, foundOps);
+        const flow = await onOpsFound(foundOps);
         if (flow.type === "continue") {
           // Allow ops to continue
           pause = pause.resolve(undefined);

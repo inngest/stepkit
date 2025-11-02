@@ -5,5 +5,5 @@ export {
   BaseExecutionDriver,
 } from "./executionDriver";
 export { StdOpCode, StdStep, StdContext, OpResult } from "./types";
-export { ReportOp } from "./process";
+export { ReportOp } from "./findOps";
 export { RunStateDriver } from "./runStateDriver";
