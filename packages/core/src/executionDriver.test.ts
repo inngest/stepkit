@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { BaseExecutionDriver, executeUntilDone, StepKitClient } from "./main";
+import { BaseExecutionDriver, StepKitClient } from "./main";
+import { executeUntilDone } from "./utils";
 import { OpResult, StdContext, StdStep } from "./types";
 import { ReportOp } from "./process";
 import { createOpFound, createStdStep } from "./executionDriver";

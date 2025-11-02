@@ -1,4 +1,4 @@
-import { OpResult, StdContext, StdOpcode, Workflow } from "@stepkit/core";
+import { OpResult, StdContext, StdOpCode, Workflow } from "@stepkit/core";
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { Step } from "./drivers";
@@ -108,7 +108,7 @@ async function execute(
   const ops = await workflow.driver.execute(workflow, req.ctx.run_id);
   if (ops.length === 1) {
     const op = ops[0];
-    if (op.config.code === StdOpcode.workflow) {
+    if (op.config.code === StdOpCode.workflow) {
       if (op.result.status === "success") {
         return {
           body: op.result.output,
@@ -126,9 +126,9 @@ async function execute(
       let name = op.id.id;
       let opcode: string;
       let opts = {};
-      if (op.config.code === StdOpcode.run) {
+      if (op.config.code === StdOpCode.run) {
         opcode = "StepRun";
-      } else if (op.config.code === StdOpcode.sleep) {
+      } else if (op.config.code === StdOpCode.sleep) {
         opcode = "Sleep";
 
         // @ts-expect-error - TODO: fix this

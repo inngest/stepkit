@@ -8,4 +8,3 @@ export {
 export type { ExecutionDriver } from "./executionDriver";
 export type { RunStateDriver } from "./runStateDriver";
 export type { OpResult } from "./types";
-export { executeUntilDone } from "./utils";

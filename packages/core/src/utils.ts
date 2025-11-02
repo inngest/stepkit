@@ -1,5 +1,5 @@
 import { ExecutionDriver } from "./executionDriver";
-import { OpResult, StdContext, StdStep } from "./types";
+import { StdContext, StdStep } from "./types";
 import { Workflow } from "./workflow";
 
 export async function executeUntilDone<
