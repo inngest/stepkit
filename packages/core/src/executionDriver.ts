@@ -1,3 +1,4 @@
+import { fromJsonError, toJsonError } from "./errors";
 import { findOps, type ReportOp } from "./findOps";
 import { createControlledPromise } from "./promises";
 import type { RunStateDriver } from "./runStateDriver";
@@ -108,7 +109,7 @@ export function handleExistingOps(
         op.promise.resolve(item.result.output);
       } else {
         // Op already failed, so throw its error
-        op.promise.reject(item.result.error);
+        op.promise.reject(fromJsonError(item.result.error));
       }
     } else {
       // Op found for the first time
@@ -155,13 +156,7 @@ export async function createOpResults<TOutput>(
         const output = await op.handler();
         opResult.result = { status: "success", output };
       } catch (e) {
-        let error: Error;
-        if (e instanceof Error) {
-          error = e;
-        } else {
-          error = new Error(String(e));
-        }
-        opResult.result = { status: "error", error };
+        opResult.result = { status: "error", error: toJsonError(e) };
       }
     }
 

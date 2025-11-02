@@ -9,7 +9,7 @@ import {
 } from "@stepkit/core/implementer";
 
 export class InMemoryRunStateDriver implements RunStateDriver {
-  private ops: Map<string, OpResult>;
+  private ops: Map<string, string>;
 
   constructor() {
     this.ops = new Map();
@@ -33,8 +33,9 @@ export class InMemoryRunStateDriver implements RunStateDriver {
     hashedOpId: string;
   }): OpResult | undefined {
     const key = this.getKey({ runId, hashedOpId });
-    if (this.ops.has(key)) {
-      return this.ops.get(key);
+    const value = this.ops.get(key);
+    if (value !== undefined) {
+      return JSON.parse(value) as OpResult;
     }
     return undefined;
   }
@@ -43,7 +44,7 @@ export class InMemoryRunStateDriver implements RunStateDriver {
     op: OpResult
   ): void {
     const key = this.getKey({ runId, hashedOpId });
-    this.ops.set(key, op);
+    this.ops.set(key, JSON.stringify(op));
   }
 }
 

@@ -1,3 +1,4 @@
+import { fromJsonError } from "./errors";
 import type { OpResult } from "./types";
 
 export async function executeUntilDone<TOutput>(
@@ -17,7 +18,7 @@ export async function executeUntilDone<TOutput>(
     }
 
     if (op.result.status !== "success") {
-      throw op.result.error;
+      throw fromJsonError(op.result.error);
     }
 
     // @ts-expect-error - Necessary because of generics

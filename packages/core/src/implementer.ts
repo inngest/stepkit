@@ -1,3 +1,4 @@
+import type { JsonError } from "./errors";
 import {
   BaseExecutionDriver,
   createOpFound,
@@ -13,7 +14,14 @@ import {
 } from "./types";
 import { executeUntilDone } from "./utils";
 
-export type { OpResult, ReportOp, RunStateDriver, StdContext, StdStep };
+export type {
+  JsonError,
+  OpResult,
+  ReportOp,
+  RunStateDriver,
+  StdContext,
+  StdStep,
+};
 
 export {
   BaseExecutionDriver,

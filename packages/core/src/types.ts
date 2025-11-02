@@ -1,3 +1,4 @@
+import type { JsonError } from "./errors";
 import type { ControlledPromise } from "./promises";
 
 export type StdContext = {
@@ -41,7 +42,7 @@ export type OpResult<
       }
     | {
         status: "error";
-        error: Error;
+        error: JsonError;
       };
 };
 

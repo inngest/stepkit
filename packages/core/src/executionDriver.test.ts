@@ -30,145 +30,157 @@ class StateDriver {
 describe("execute once", () => {
   const ctx = { runId: "test-run-id" };
 
-  it("no steps success", async () => {
-    // When no steps, interrupt with workflow result
+  describe("no steps", () => {
+    it("success", async () => {
+      // When no steps, interrupt with workflow result
 
-    const driver = new BaseExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver });
+      const driver = new BaseExecutionDriver(new StateDriver());
+      const client = new StepKitClient({ driver });
 
-    let counter = 0;
-    const workflow = client.workflow({ id: "workflow" }, async () => {
-      counter++;
-      return "Hello, Alice!";
-    });
-    const output = await driver.execute(workflow, ctx);
-    expect(counter).toBe(1);
-    expect(output).toEqual([
-      {
-        config: { code: "workflow" },
-        id: {
-          hashed: "",
-          id: "",
-          index: 0,
-        },
-        result: {
-          output: "Hello, Alice!",
-          status: "success",
-        },
-      },
-    ]);
-  });
-
-  it("no steps error", async () => {
-    // When no steps, interrupt with workflow result
-
-    const driver = new BaseExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver });
-
-    let counter = 0;
-    const workflow = client.workflow({ id: "workflow" }, async () => {
-      counter++;
-      throw new Error("oh no");
-    });
-    const output = await driver.execute(workflow, ctx);
-    expect(counter).toBe(1);
-    expect(output).toEqual([
-      {
-        config: { code: "workflow" },
-        id: {
-          hashed: "",
-          id: "",
-          index: 0,
-        },
-        result: {
-          error: expect.any(Error),
-          status: "error",
-        },
-      },
-    ]);
-  });
-
-  it("step.run success", async () => {
-    // When successfully running a step, interrupt with step result
-
-    const driver = new BaseExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver });
-
-    const counters = {
-      top: 0,
-      getName: 0,
-      bottom: 0,
-    };
-    const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
-      counters.top++;
-      const name = await step.run("get-name", async () => {
-        counters.getName++;
-        return "Alice";
+      let counter = 0;
+      const workflow = client.workflow({ id: "workflow" }, async () => {
+        counter++;
+        return "Hello, Alice!";
       });
-      counters.bottom++;
-      return `Hello, ${name}!`;
-    });
-    const result = await driver.execute(workflow, ctx);
-    expect(counters).toEqual({
-      top: 1,
-      getName: 1,
-      bottom: 0,
-    });
-    expect(result).toEqual([
-      {
-        config: { code: "step.run" },
-        id: {
-          hashed: "get-name",
-          id: "get-name",
-          index: 0,
+      const output = await driver.execute(workflow, ctx);
+      expect(counter).toBe(1);
+      expect(output).toEqual([
+        {
+          config: { code: "workflow" },
+          id: {
+            hashed: "",
+            id: "",
+            index: 0,
+          },
+          result: {
+            output: "Hello, Alice!",
+            status: "success",
+          },
         },
-        result: {
-          output: "Alice",
-          status: "success",
-        },
-      },
-    ]);
-  });
+      ]);
+    });
 
-  it("step.run error", async () => {
-    // When successfully running a step, interrupt with step result
+    it("error", async () => {
+      // When no steps, interrupt with workflow result
 
-    const driver = new BaseExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver });
+      const driver = new BaseExecutionDriver(new StateDriver());
+      const client = new StepKitClient({ driver });
 
-    const counters = {
-      top: 0,
-      getName: 0,
-      bottom: 0,
-    };
-    const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
-      counters.top++;
-      await step.run("get-name", async () => {
-        counters.getName++;
+      let counter = 0;
+      const workflow = client.workflow({ id: "workflow" }, async () => {
+        counter++;
         throw new Error("oh no");
       });
-      counters.bottom++;
-    });
-    const result = await driver.execute(workflow, ctx);
-    expect(counters).toEqual({
-      top: 1,
-      getName: 1,
-      bottom: 0,
-    });
-    expect(result).toEqual([
-      {
-        config: { code: "step.run" },
-        id: {
-          hashed: "get-name",
-          id: "get-name",
-          index: 0,
+      const output = await driver.execute(workflow, ctx);
+      expect(counter).toBe(1);
+      expect(output).toEqual([
+        {
+          config: { code: "workflow" },
+          id: {
+            hashed: "",
+            id: "",
+            index: 0,
+          },
+          result: {
+            error: {
+              name: "Error",
+              message: "oh no",
+              stack: expect.any(String),
+            },
+            status: "error",
+          },
         },
-        result: {
-          error: expect.any(Error),
-          status: "error",
+      ]);
+    });
+  });
+
+  describe("step.run", () => {
+    it("success", async () => {
+      // When successfully running a step, interrupt with step result
+
+      const driver = new BaseExecutionDriver(new StateDriver());
+      const client = new StepKitClient({ driver });
+
+      const counters = {
+        top: 0,
+        getName: 0,
+        bottom: 0,
+      };
+      const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
+        counters.top++;
+        const name = await step.run("get-name", async () => {
+          counters.getName++;
+          return "Alice";
+        });
+        counters.bottom++;
+        return `Hello, ${name}!`;
+      });
+      const result = await driver.execute(workflow, ctx);
+      expect(counters).toEqual({
+        top: 1,
+        getName: 1,
+        bottom: 0,
+      });
+      expect(result).toEqual([
+        {
+          config: { code: "step.run" },
+          id: {
+            hashed: "get-name",
+            id: "get-name",
+            index: 0,
+          },
+          result: {
+            output: "Alice",
+            status: "success",
+          },
         },
-      },
-    ]);
+      ]);
+    });
+
+    it("error", async () => {
+      // When successfully running a step, interrupt with step result
+
+      const driver = new BaseExecutionDriver(new StateDriver());
+      const client = new StepKitClient({ driver });
+
+      const counters = {
+        top: 0,
+        getName: 0,
+        bottom: 0,
+      };
+      const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
+        counters.top++;
+        await step.run("get-name", async () => {
+          counters.getName++;
+          throw new Error("oh no");
+        });
+        counters.bottom++;
+      });
+      const result = await driver.execute(workflow, ctx);
+      expect(counters).toEqual({
+        top: 1,
+        getName: 1,
+        bottom: 0,
+      });
+      expect(result).toEqual([
+        {
+          config: { code: "step.run" },
+          id: {
+            hashed: "get-name",
+            id: "get-name",
+            index: 0,
+          },
+          result: {
+            error: {
+              name: "Error",
+              message: "oh no",
+              stack: expect.any(String),
+            },
+            status: "error",
+          },
+        },
+      ]);
+    });
   });
 
   it("step.sleep", async () => {

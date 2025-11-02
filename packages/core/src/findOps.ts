@@ -1,3 +1,4 @@
+import { toJsonError } from "./errors";
 import { createControlledPromise } from "./promises";
 import {
   StdOpCode,
@@ -106,7 +107,7 @@ export async function findOps<
       {
         config: { code: StdOpCode.workflow },
         id: { hashed: "", id: "", index: 0 },
-        result: { status: "error", error: output },
+        result: { status: "error", error: toJsonError(output) },
       },
     ];
   }
