@@ -1,13 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
 import { StepKitClient } from "./client";
-import { executeUntilDone } from "./utils";
-import { OpResult, StdContext, StdStep } from "./types";
-import { ReportOp } from "./findOps";
+import type { ReportOp } from "./findOps";
 import {
+  BaseExecutionDriver,
   createOpFound,
   createStdStep,
-  BaseExecutionDriver,
 } from "./implementer";
+import type { OpResult, StdContext, StdStep } from "./types";
+import { executeUntilDone } from "./utils";
 
 class StateDriver {
   private ops: Map<string, OpResult>;
@@ -40,7 +41,7 @@ describe("execute once", () => {
     const client = new StepKitClient({ driver });
 
     let counter = 0;
-    const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
+    const workflow = client.workflow({ id: "workflow" }, async () => {
       counter++;
       return "Hello, Alice!";
     });
@@ -69,7 +70,7 @@ describe("execute once", () => {
     const client = new StepKitClient({ driver });
 
     let counter = 0;
-    const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
+    const workflow = client.workflow({ id: "workflow" }, async () => {
       counter++;
       throw new Error("oh no");
     });
@@ -146,12 +147,11 @@ describe("execute once", () => {
     };
     const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
       counters.top++;
-      const name = await step.run("get-name", async () => {
+      await step.run("get-name", async () => {
         counters.getName++;
         throw new Error("oh no");
       });
       counters.bottom++;
-      return `Hello, ${name}!`;
     });
     const result = await driver.execute(workflow, runId);
     expect(counters).toEqual({
@@ -347,7 +347,7 @@ describe("execute to completion", () => {
     }
 
     // Force garbage collection
-    // @ts-expect-error
+    // @ts-expect-error - We enable GC during testing
     globalThis.gc();
 
     // Need to poll our assertion because GC runs async

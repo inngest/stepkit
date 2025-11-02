@@ -5,12 +5,12 @@ export const workflow = client.workflow(
   async ({ runId }, step) => {
     console.log("workflow: top", runId);
 
-    const greeting = await step.run("get-greeting", async () => {
+    const greeting = await step.run("get-greeting", () => {
       console.log("get-greeting: executing");
       return "Hello";
     });
 
-    const name = await step.run("get-name", async () => {
+    const name = await step.run("get-name", () => {
       console.log("get-name: executing");
       return "Alice";
     });

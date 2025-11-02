@@ -5,6 +5,8 @@
   "types": "./src/main.ts",
   "scripts": {
     "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "type-check": "tsc --noEmit"

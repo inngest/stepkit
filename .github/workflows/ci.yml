@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  type-check:
+  static:
     name: "Type Check"
     runs-on: "ubuntu-latest"
     steps:
@@ -28,8 +28,14 @@ jobs:
       - name: "Install dependencies"
         run: "pnpm install --frozen-lockfile"
 
+      - name: "Lint"
+        run: "pnpm run lint"
+
       - name: "Type check"
         run: "pnpm run type-check"
+
+      - name: "Format check"
+        run: "pnpm run format:check"
 
   test:
     name: "Test"

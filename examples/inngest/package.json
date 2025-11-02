@@ -5,6 +5,8 @@
   "types": "./src/main.ts",
   "scripts": {
     "dev": "tsx --watch main.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

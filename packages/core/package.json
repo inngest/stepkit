@@ -9,6 +9,8 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "NODE_OPTIONS='--expose-gc' vitest",
     "test:watch": "NODE_OPTIONS='--expose-gc' vitest --watch",
     "type-check": "tsc --noEmit"

@@ -1,1 +1,3 @@
-export { InMemoryDriver } from "./drivers";
+import { InMemoryDriver } from "./drivers";
+
+export { InMemoryDriver };

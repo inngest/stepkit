@@ -1,8 +1,14 @@
-import { Workflow } from "@stepkit/core";
-import { OpResult, StdContext, StdOpCode } from "@stepkit/core/implementer";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { Step } from "./drivers";
+
+import type { Workflow } from "@stepkit/core";
+import {
+  StdOpCode,
+  type OpResult,
+  type StdContext,
+} from "@stepkit/core/implementer";
+
+import type { Step } from "./drivers";
 
 async function sync() {
   const body = {
@@ -97,6 +103,7 @@ async function execute(
         id: { hashed: stepId, id: stepId, index: 0 },
         result: {
           status: "error",
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           error: stepResult.error,
         },
       };
@@ -123,22 +130,23 @@ async function execute(
 
   return {
     body: ops.map((op) => {
-      let displayName = op.id.id;
       let name = op.id.id;
       let opcode: string;
-      let opts = {};
       if (op.config.code === StdOpCode.run) {
         opcode = "StepRun";
       } else if (op.config.code === StdOpCode.sleep) {
         opcode = "Sleep";
 
-        // @ts-expect-error - TODO: fix this
-        name = op.config.options?.wakeupAt?.toISOString();
+        const { wakeupAt } = op.config.options ?? {};
+        if (!(wakeupAt instanceof Date)) {
+          throw new Error("unreachable: wakeupAt is not a Date");
+        }
+        name = wakeupAt.toISOString();
       } else {
         throw new Error(`unexpected op code: ${op.config.code}`);
       }
 
-      let data: any;
+      let data: unknown;
       if (op.result.status === "success") {
         data = op.result.output;
       } else {
@@ -146,11 +154,10 @@ async function execute(
       }
 
       return {
-        displayName,
+        displayName: op.id.id,
         id: op.id.hashed,
         op: opcode,
         name,
-        opts,
         data,
       };
     }),
@@ -160,11 +167,11 @@ async function execute(
 
 export function serve(workflows: Workflow<StdContext, Step, any>[]): any {
   return async (req: Request, res: Response) => {
-    if (req.method == "GET") {
+    if (req.method === "GET") {
       return res.json({});
     }
 
-    if (req.method == "POST") {
+    if (req.method === "POST") {
       const body = commRequestBody.parse(req.body);
       res.setHeader("content-type", "application/json");
       res.setHeader("x-inngest-sdk", "js:v0.0.0");
@@ -173,7 +180,7 @@ export function serve(workflows: Workflow<StdContext, Step, any>[]): any {
       return res.json(result.body);
     }
 
-    if (req.method == "PUT") {
+    if (req.method === "PUT") {
       await sync();
       return res.json({});
     }
