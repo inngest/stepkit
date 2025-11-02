@@ -1,6 +1,6 @@
-import { ExecutionDriver } from "./executionDriver";
+import type { ExecutionDriver } from "./executionDriver";
 import { Workflow } from "./workflow";
-import { StdContext, StdStep } from "./types";
+import type { StdContext, StdStep } from "./types";
 
 export class StepKitClient<TContext extends StdContext, TStep extends StdStep> {
   private readonly driver: ExecutionDriver<TContext, TStep>;

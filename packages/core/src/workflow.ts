@@ -1,5 +1,5 @@
-import { ExecutionDriver } from "./executionDriver";
-import { StdContext, StdStep } from "./types";
+import type { ExecutionDriver } from "./executionDriver";
+import type { StdContext, StdStep } from "./types";
 
 export class Workflow<
   TContext extends StdContext,
@@ -24,7 +24,7 @@ export class Workflow<
     this.handler = handler;
   }
 
-  async invoke(input: unknown): Promise<TOutput> {
+  async invoke(_input: unknown): Promise<TOutput> {
     return this.driver.invoke(this);
   }
 }

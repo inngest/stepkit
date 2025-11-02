@@ -1,11 +1,13 @@
 import type { Workflow } from "@stepkit/core";
-import {
-  BaseExecutionDriver,
+import type {
   RunStateDriver,
   OpResult,
   StdContext,
-  executeUntilDone,
   StdStep,
+} from "@stepkit/core/implementer";
+import {
+  BaseExecutionDriver,
+  executeUntilDone,
 } from "@stepkit/core/implementer";
 
 export class InMemoryRunStateDriver implements RunStateDriver {
@@ -15,6 +17,7 @@ export class InMemoryRunStateDriver implements RunStateDriver {
     this.ops = new Map();
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getContext(runId: string): Promise<Omit<StdContext, "step">> {
     return { runId };
   }

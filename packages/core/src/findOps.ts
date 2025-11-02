@@ -49,10 +49,8 @@ export async function findOps<
 
   const step = await getSteps(reportOp);
 
-  let handlerPromise: Promise<TOutput | Error>;
-
   // Run the handler and pause until the next tick to discover ops
-  handlerPromise = workflow.handler(ctx, step).catch((e) => {
+  const handlerPromise = workflow.handler(ctx, step).catch((e: unknown) => {
     // Need to catch and return the error here instead of letting it throw. If
     // we don't we'll get "unhandled promise error" error messages during
     // testing
@@ -64,12 +62,10 @@ export async function findOps<
   });
 
   async function opLoop() {
-    let i = 0;
-
     // Arbitrarily limit the number of iterations to prevent infinite loops
-    let maxIterations = 10_000;
+    const maxIterations = 10_000;
 
-    while (true) {
+    for (let i = 0; i < maxIterations; i++) {
       try {
         i++;
         if (i > maxIterations) {
@@ -88,16 +84,14 @@ export async function findOps<
           pause = pause.resolve(undefined);
           continue;
         }
-        if (flow.type === "interrupt") {
-          // Interrupt control flow and return the results
-          return flow.results;
-        }
-
-        throw new Error("unreachable");
+        // Interrupt control flow and return the results
+        return flow.results;
       } finally {
         foundOps.splice(0, foundOps.length);
       }
     }
+
+    throw new Error("unreachable: infinite loop detected");
   }
 
   const ops = await opLoop();

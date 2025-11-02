@@ -5,4 +5,4 @@ async function main() {
   console.log("output:", output);
 }
 
-main();
+void main();

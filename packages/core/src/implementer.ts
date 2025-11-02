@@ -4,6 +4,6 @@ export {
   createOpFound,
   BaseExecutionDriver,
 } from "./executionDriver";
-export { StdOpCode, StdStep, StdContext, OpResult } from "./types";
-export { ReportOp } from "./findOps";
-export { RunStateDriver } from "./runStateDriver";
+export { StdOpCode, type StdStep, type StdContext, type OpResult } from "./types";
+export type { ReportOp } from "./findOps";
+export type { RunStateDriver } from "./runStateDriver";

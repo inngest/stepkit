@@ -6,8 +6,8 @@ export type ControlledPromise<T> = {
 };
 
 export const createControlledPromise = <T = void>(): ControlledPromise<T> => {
-  let resolve: ControlledPromise<T>["resolve"];
-  let reject: ControlledPromise<T>["reject"];
+  let resolve: ControlledPromise<T>["resolve"] | undefined;
+  let reject: ControlledPromise<T>["reject"] | undefined;
 
   const promise = new Promise<T>((_resolve, _reject) => {
     resolve = (value: T) => {
@@ -16,12 +16,22 @@ export const createControlledPromise = <T = void>(): ControlledPromise<T> => {
     };
 
     reject = (reason: unknown) => {
-      _reject(reason);
+      let error: Error;
+      if (reason instanceof Error) {
+        error = reason;
+      } else {
+        error = new Error(String(reason));
+      }
+      _reject(error);
       return createControlledPromise<T>();
     };
   });
 
-  const out = { promise, resolve: resolve!, reject: reject! };
+  if (resolve === undefined || reject === undefined) {
+    throw new Error("unreachable");
+  }
+
+  const out = { promise, resolve, reject };
 
   const reset = () => {
     const newPromise = createControlledPromise<T>();

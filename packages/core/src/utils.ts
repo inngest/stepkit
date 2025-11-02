@@ -1,6 +1,6 @@
-import { ExecutionDriver } from "./executionDriver";
-import { StdContext, StdStep } from "./types";
-import { Workflow } from "./workflow";
+import type { ExecutionDriver } from "./executionDriver";
+import type { StdContext, StdStep } from "./types";
+import type { Workflow } from "./workflow";
 
 export async function executeUntilDone<
   TContext extends StdContext,
@@ -11,14 +11,8 @@ export async function executeUntilDone<
   workflow: Workflow<TContext, TStep, TOutput>,
   runId: string
 ): Promise<TOutput> {
-  let i = 0;
-  let maxIterations = 10_000;
-  while (true) {
-    i++;
-    if (i > maxIterations) {
-      throw new Error("unreachable: infinite loop detected");
-    }
-
+  const maxIterations = 10_000;
+  for (let i = 0; i < maxIterations; i++) {
     const ops = await driver.execute(workflow, runId);
     if (ops.length !== 1) {
       // Not done yet
@@ -30,15 +24,21 @@ export async function executeUntilDone<
       continue;
     }
 
-    try {
-      if (op.result.status !== "success") {
-        throw op.result.error;
-      }
-
-      // @ts-expect-error
-      return op.result.output;
-    } catch (e) {
-      throw e;
+    if (op.result.status !== "success") {
+      throw op.result.error;
     }
+
+    // @ts-expect-error - Necessary because of generics
+    return op.result.output;
   }
+
+  throw new Error("unreachable: infinite loop detected");
+}
+
+export function ensureAsync<T>(
+  callback: (() => Promise<T>) | (() => T)
+): () => Promise<T> {
+  return async () => {
+    return await callback();
+  };
 }

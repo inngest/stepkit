@@ -1,5 +1,4 @@
 import type { ControlledPromise } from "./promises";
-import z from "zod";
 
 export type StdContext = {
   runId: string;
@@ -7,7 +6,7 @@ export type StdContext = {
 
 // Standard step methods
 export type StdStep = {
-  run: <T>(stepId: string, handler: () => Promise<T>) => Promise<T>;
+  run: <T>(stepId: string, handler: () => T) => Promise<T>;
   sleep: (stepId: string, duration: number) => Promise<void>;
 };
 
