@@ -65,14 +65,14 @@ export default tseslint.config(
       "@typescript-eslint/prefer-optional-chain": "warn",
       "@typescript-eslint/no-unnecessary-type-assertion": "error",
       "@typescript-eslint/consistent-type-imports": [
-        "warn",
+        "error",
         {
           prefer: "type-imports",
           fixStyle: "separate-type-imports",
         },
       ],
       "@typescript-eslint/consistent-type-exports": [
-        "warn",
+        "error",
         {
           fixMixedExportsWithInlineTypeSpecifier: true,
         },

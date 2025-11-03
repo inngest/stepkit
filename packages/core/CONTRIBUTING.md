@@ -22,7 +22,7 @@ The architecture separates concerns using two driver interfaces:
 - Define custom ops (i.e. methods on the `step` object)
 - Custom ops are type-safe within workflow handlers due to generics
 
-**RunStateDriver** (`packages/core/src/runStateDriver.ts`):
+**StateDriver** (`packages/core/src/stateDriver.ts`):
 
 - Manages run and op state persistence
 

@@ -5,12 +5,12 @@ import {
   StdOpCode,
   type OpResult,
   type ReportOp,
-  type RunStateDriver,
+  type StateDriver,
   type StdContext,
   type StdStep,
 } from "@stepkit/core/implementer";
 
-export class InngestRunStateDriver implements RunStateDriver {
+export class InngestStateDriver implements StateDriver {
   private ops: Map<string, OpResult>;
 
   constructor() {
@@ -49,7 +49,7 @@ export class InngestRunStateDriver implements RunStateDriver {
   }
 }
 
-const stateDriver = new InngestRunStateDriver();
+const stateDriver = new InngestStateDriver();
 
 export type Step = StdStep & {
   sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;

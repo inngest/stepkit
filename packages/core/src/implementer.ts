@@ -5,7 +5,7 @@ import {
   createStdStep,
 } from "./executionDriver";
 import type { ReportOp } from "./findOps";
-import type { RunStateDriver } from "./runStateDriver";
+import type { StateDriver } from "./stateDriver";
 import {
   StdOpCode,
   type OpResult,
@@ -14,14 +14,7 @@ import {
 } from "./types";
 import { executeUntilDone } from "./utils";
 
-export type {
-  JsonError,
-  OpResult,
-  ReportOp,
-  RunStateDriver,
-  StdContext,
-  StdStep,
-};
+export type { JsonError, OpResult, ReportOp, StateDriver, StdContext, StdStep };
 
 export {
   BaseExecutionDriver,

@@ -1,7 +1,7 @@
 import { fromJsonError, toJsonError } from "./errors";
 import { findOps, type ReportOp } from "./findOps";
 import { createControlledPromise } from "./promises";
-import type { RunStateDriver } from "./runStateDriver";
+import type { StateDriver } from "./stateDriver";
 import {
   controlFlow,
   StdOpCode,
@@ -19,9 +19,6 @@ export type ExecutionDriver<
   TContext extends StdContext,
   TStep extends StdStep,
 > = {
-  state: RunStateDriver;
-
-  getSteps: (reportOp: ReportOp) => Promise<TStep>;
   invoke: <TOutput>(
     workflow: Workflow<TContext, TStep, TOutput>
   ) => Promise<TOutput>;
@@ -52,7 +49,7 @@ export class BaseExecutionDriver<
   TStep extends StdStep = StdStep,
 > implements ExecutionDriver<TContext, TStep>
 {
-  constructor(public state: RunStateDriver) {
+  constructor(public state: StateDriver) {
     this.state = state;
   }
 
@@ -116,7 +113,7 @@ export class BaseExecutionDriver<
  * Handle ops that have already been found. Return the new ops.
  */
 export function handleExistingOps(
-  state: RunStateDriver,
+  state: StateDriver,
   ctx: StdContext,
   ops: OpFound[]
 ): OpFound[] {
@@ -162,7 +159,7 @@ export async function createOpResults<
   TStep extends StdStep,
   TOutput,
 >(
-  state: RunStateDriver,
+  state: StateDriver,
   workflow: Workflow<TContext, TStep, any>,
   ctx: StdContext,
   ops: OpFound<OpConfig, TOutput>[]

@@ -1,14 +1,16 @@
 import type { Workflow } from "@stepkit/core";
 import {
   BaseExecutionDriver,
+  createStdStep,
   executeUntilDone,
   type OpResult,
-  type RunStateDriver,
+  type ReportOp,
+  type StateDriver,
   type StdContext,
   type StdStep,
 } from "@stepkit/core/implementer";
 
-export class InMemoryRunStateDriver implements RunStateDriver {
+export class InMemoryStateDriver implements StateDriver {
   private ops: Map<string, string>;
 
   constructor() {
@@ -53,7 +55,7 @@ export class InMemoryRunStateDriver implements RunStateDriver {
   }
 }
 
-const stateDriver = new InMemoryRunStateDriver();
+const stateDriver = new InMemoryStateDriver();
 
 export class InMemoryDriver extends BaseExecutionDriver {
   private activeRuns: Set<string>;
@@ -61,6 +63,10 @@ export class InMemoryDriver extends BaseExecutionDriver {
   constructor() {
     super(stateDriver);
     this.activeRuns = new Set();
+  }
+
+  async getSteps(reportOp: ReportOp): Promise<StdStep> {
+    return createStdStep(reportOp);
   }
 
   async invoke<TOutput>(
