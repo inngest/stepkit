@@ -33,9 +33,9 @@ describe("input type", () => {
   // eslint-disable-next-line vitest/expect-expect
   it("zod type", () => {
     const client = new StepKitClient({ driver });
-    const schema = z.object({ name: z.string() });
+    const inputSchema = z.object({ name: z.string() });
 
-    client.workflow({ id: "workflow", schema }, async (ctx) => {
+    client.workflow({ id: "workflow", inputSchema }, async (ctx) => {
       expectTypeOf(ctx).toEqualTypeOf<StdContext<{ name: string }>>();
       expectTypeOf(ctx.input).toEqualTypeOf<{ name: string }[]>();
     });

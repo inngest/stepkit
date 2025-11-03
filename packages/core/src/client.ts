@@ -21,7 +21,7 @@ export class StepKitClient<
     opts: {
       id: string;
       maxAttempts?: number;
-      schema?: z.ZodType<TInput>;
+      inputSchema?: z.ZodType<TInput>;
     },
     handler: (
       ctx: OverrideContextInput<TContext, TInput>,
