@@ -75,7 +75,7 @@ type CommResponse = {
 };
 
 async function execute(
-  workflow: Workflow<StdContext, Step, any>,
+  workflow: Workflow<any, any, StdContext<any>, Step>,
   req: z.infer<typeof commRequestBody>
 ): Promise<CommResponse> {
   if (!(workflow.driver instanceof InngestDriver)) {
@@ -119,7 +119,10 @@ async function execute(
     );
   }
 
-  const ctx = { attempt: req.ctx.attempt, runId: req.ctx.run_id };
+  const ctx: StdContext<any> = {
+    input: [],
+    runId: req.ctx.run_id,
+  };
   const ops = await workflow.driver.execute(workflow, ctx);
   if (ops.length === 1) {
     const op = ops[0];
@@ -172,7 +175,9 @@ async function execute(
   };
 }
 
-export function serve(workflows: Workflow<StdContext, Step, any>[]): any {
+export function serve(
+  workflows: Workflow<any, any, StdContext<any>, Step>[]
+): any {
   return async (req: Request, res: Response) => {
     if (req.method === "GET") {
       return res.json({});

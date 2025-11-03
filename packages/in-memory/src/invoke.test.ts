@@ -9,14 +9,16 @@ describe("invoke", () => {
   it("success", async () => {
     const client = new StepKitClient({ driver: new InMemoryDriver() });
 
+    let input: Record<string, unknown>[] = [];
     const counters = {
       top: 0,
       getGreeting: 0,
       getName: 0,
       bottom: 0,
     };
-    const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
+    const workflow = client.workflow({ id: "workflow" }, async (ctx, step) => {
       counters.top++;
+      input = ctx.input;
 
       const greeting = await step.run("get-greeting", async () => {
         counters.getGreeting++;
@@ -32,8 +34,9 @@ describe("invoke", () => {
       return `${greeting}, ${name}!`;
     });
 
-    const output = await workflow.invoke({});
+    const output = await workflow.invoke({ msg: "hi" });
 
+    expect(input).toEqual([{ msg: "hi" }]);
     expect(counters).toEqual({
       top: 3,
       getGreeting: 1,

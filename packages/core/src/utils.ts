@@ -1,19 +1,20 @@
 import hash from "hash.js";
 
 import { fromJsonError } from "./errors";
-import type { OpResult, StdContext, StdStep } from "./types";
+import type { InputDefault, OpResult, StdContext, StdStep } from "./types";
 import type { Workflow } from "./workflow";
 
 export async function executeUntilDone<
-  TContext extends StdContext,
-  TStep extends StdStep,
+  TInput extends InputDefault,
   TOutput,
+  TContext extends StdContext<TInput>,
+  TStep extends StdStep,
 >(
   execute: (
     ctx: TContext,
-    workflow: Workflow<TContext, TStep, TOutput>
+    workflow: Workflow<TInput, TOutput, TContext, TStep>
   ) => Promise<OpResult[]>,
-  workflow: Workflow<TContext, TStep, TOutput>,
+  workflow: Workflow<TInput, TOutput, TContext, TStep>,
   ctx: TContext
 ): Promise<TOutput> {
   const attempts: Record<string, number> = {};

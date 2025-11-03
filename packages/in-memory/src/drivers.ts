@@ -4,11 +4,13 @@ import {
   createStdStep,
   executeUntilDone,
   stdHashId,
+  type InputDefault,
   type OpResult,
   type ReportOp,
   type StateDriver,
   type StdContext,
   type StdStep,
+  type StripStandardSchema,
 } from "@stepkit/core/implementer";
 
 export class InMemoryStateDriver implements StateDriver {
@@ -105,12 +107,15 @@ export class InMemoryDriver extends BaseExecutionDriver {
     return createStdStep(stdHashId, reportOp);
   }
 
-  async invoke<TOutput>(
-    workflow: Workflow<StdContext, StdStep, TOutput>
+  override async invoke<TInput extends InputDefault, TOutput>(
+    workflow: Workflow<TInput, TOutput, StdContext<TInput>>,
+    input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
-    const ctx: StdContext = { runId: crypto.randomUUID() };
+    const ctx: StdContext<TInput> = {
+      input: [input],
+      runId: crypto.randomUUID(),
+    };
     stateDriver.addRun(ctx.runId, workflow.maxAttempts);
-    // stateDriver.setMaxAttempts(ctx.runId, workflow.maxAttempts);
 
     try {
       return await executeUntilDone(

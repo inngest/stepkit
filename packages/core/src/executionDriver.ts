@@ -6,21 +6,24 @@ import {
   controlFlow,
   StdOpCode,
   type ControlFlow,
+  type InputDefault,
   type OpConfig,
   type OpFound,
   type OpResult,
   type StdContext,
   type StdStep,
+  type StripStandardSchema,
 } from "./types";
 import { ensureAsync, type HashId } from "./utils";
 import type { Workflow } from "./workflow";
 
 export type ExecutionDriver<
-  TContext extends StdContext,
+  TContext extends StdContext<any>,
   TStep extends StdStep,
 > = {
-  invoke: <TOutput>(
-    workflow: Workflow<TContext, TStep, TOutput>
+  invoke: <TInput extends InputDefault, TOutput>(
+    workflow: Workflow<TInput, TOutput, TContext, TStep>,
+    input: StripStandardSchema<TInput>
   ) => Promise<TOutput>;
 };
 
@@ -51,7 +54,7 @@ export function createStdStep(hash: HashId, reportOp: ReportOp): StdStep {
  * Concrete execution driver implementation. Can be extended.
  */
 export class BaseExecutionDriver<
-  TContext extends StdContext = StdContext,
+  TContext extends StdContext<any> = StdContext<any>,
   TStep extends StdStep = StdStep,
 > implements ExecutionDriver<TContext, TStep>
 {
@@ -59,8 +62,8 @@ export class BaseExecutionDriver<
     this.state = state;
   }
 
-  async execute<TOutput>(
-    workflow: Workflow<TContext, TStep, TOutput>,
+  async execute<TInput extends InputDefault, TOutput>(
+    workflow: Workflow<TInput, TOutput, TContext, TStep>,
     ctx: TContext
   ): Promise<OpResult[]> {
     return findOps<TContext, TStep, TOutput>({
@@ -76,14 +79,15 @@ export class BaseExecutionDriver<
     throw new Error("not implemented");
   }
 
-  async invoke<TOutput>(
-    _workflow: Workflow<TContext, TStep, TOutput>
+  async invoke<TInput extends InputDefault, TOutput>(
+    _workflow: Workflow<TInput, TOutput, TContext, TStep>,
+    _input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
     throw new Error("not implemented");
   }
 
   onStepsFound = async (
-    workflow: Workflow<TContext, TStep, any>,
+    workflow: Workflow<any, any, TContext, TStep>,
     ctx: TContext,
     ops: OpFound[]
   ): Promise<ControlFlow> => {
@@ -93,7 +97,7 @@ export class BaseExecutionDriver<
   };
 
   onWorkflowResult = async (
-    workflow: Workflow<TContext, TStep, any>,
+    workflow: Workflow<any, any, TContext, TStep>,
     ctx: TContext,
     op: OpResult
   ): Promise<OpResult> => {
@@ -157,7 +161,7 @@ export async function createOpResults<
   TOutput,
 >(
   state: StateDriver,
-  workflow: Workflow<TContext, TStep, any>,
+  workflow: Workflow<any, any, TContext, TStep>,
   ctx: StdContext,
   ops: OpFound<OpConfig, TOutput>[]
 ): Promise<ControlFlow> {
