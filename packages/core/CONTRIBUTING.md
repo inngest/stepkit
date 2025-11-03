@@ -41,7 +41,7 @@ The process loop is responsible for:
 
 - Finding ops
 - Pausing ops until the execution driver allows them to continue
-- Informing the execution driver of the found ops (via the `onOpsFound` callback)
+- Informing the execution driver of the found ops (via the `onStepsFound` callback)
 - Handling the execution driver's desired control flow (continue or interrupt)
 
 An important implementation detail is that some ops are permanently paused. This is intentional, since it allows us to interrupt the workflow early. This promise is eventually deleted by the garbage collector, since it isn't referenced anywhere else.

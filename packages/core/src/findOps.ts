@@ -25,14 +25,14 @@ export async function findOps<
 >({
   ctx,
   getSteps,
-  onOpsFound,
-  onWorkflowOpResult,
+  onStepsFound,
+  onWorkflowResult,
   workflow,
 }: {
   ctx: TContext;
   getSteps: (reportOp: ReportOp) => Promise<TSteps>;
-  onOpsFound: (ops: OpFound[]) => Promise<ControlFlow>;
-  onWorkflowOpResult: (op: OpResult) => Promise<OpResult>;
+  onStepsFound: (ops: OpFound[]) => Promise<ControlFlow>;
+  onWorkflowResult: (op: OpResult) => Promise<OpResult>;
   workflow: Workflow<TContext, TSteps, TOutput>;
 }): Promise<OpResult[]> {
   const foundOps: OpFound[] = [];
@@ -82,7 +82,7 @@ export async function findOps<
           return [];
         }
 
-        const flow = await onOpsFound(foundOps);
+        const flow = await onStepsFound(foundOps);
         if (flow.type === "continue") {
           // Allow ops to continue
           pause = pause.resolve(undefined);
@@ -126,5 +126,5 @@ export async function findOps<
     };
   }
 
-  return [await onWorkflowOpResult(opResult)];
+  return [await onWorkflowResult(opResult)];
 }

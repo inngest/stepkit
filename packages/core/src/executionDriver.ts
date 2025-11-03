@@ -63,8 +63,8 @@ export class BaseExecutionDriver<
     return findOps<TContext, TStep, TOutput>({
       ctx,
       getSteps: (reportOp) => this.getSteps(reportOp),
-      onOpsFound: (ops) => this.onOpsFound(workflow, ctx, ops),
-      onWorkflowOpResult: (op) => this.onWorkflowOpResult(workflow, ctx, op),
+      onStepsFound: (ops) => this.onStepsFound(workflow, ctx, ops),
+      onWorkflowResult: (op) => this.onWorkflowResult(workflow, ctx, op),
       workflow,
     });
   }
@@ -82,7 +82,7 @@ export class BaseExecutionDriver<
     throw new Error("not implemented");
   }
 
-  onOpsFound = async (
+  onStepsFound = async (
     workflow: Workflow<TContext, TStep, any>,
     ctx: TContext,
     ops: OpFound[]
@@ -92,7 +92,7 @@ export class BaseExecutionDriver<
     return await createOpResults(this.state, workflow, ctx, newOps);
   };
 
-  onWorkflowOpResult = async (
+  onWorkflowResult = async (
     workflow: Workflow<TContext, TStep, any>,
     ctx: TContext,
     op: OpResult
