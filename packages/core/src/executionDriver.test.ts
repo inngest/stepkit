@@ -34,7 +34,7 @@ class ExecutionDriver extends BaseExecutionDriver {
 }
 
 describe("execute once", () => {
-  const ctx = { attempt: 0, runId: "test-run-id" };
+  const ctx: StdContext = { runId: "test-run-id" };
 
   describe("no steps", () => {
     it("success", async () => {
@@ -88,7 +88,6 @@ describe("execute once", () => {
             index: 0,
           },
           result: {
-            canRetry: true,
             error: {
               cause: undefined,
               name: "Error",
@@ -179,7 +178,6 @@ describe("execute once", () => {
             index: 0,
           },
           result: {
-            canRetry: true,
             error: {
               cause: undefined,
               name: "Error",
@@ -240,7 +238,7 @@ describe("execute once", () => {
 });
 
 describe("execute to completion", () => {
-  const ctx = { attempt: 0, runId: "test-run-id" };
+  const ctx: StdContext = { runId: "test-run-id" };
 
   it("step.run success", async () => {
     // Keep looping through interrupts until the run completes
@@ -384,7 +382,7 @@ describe("execute to completion", () => {
 it("custom step", async () => {
   // Define a custom step. Ensure that the step's logic is only called once
 
-  const ctx = { attempt: 0, runId: "test-run-id" };
+  const ctx: StdContext = { runId: "test-run-id" };
 
   const counters = {
     workflowTop: 0,

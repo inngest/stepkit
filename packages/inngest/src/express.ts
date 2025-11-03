@@ -110,7 +110,6 @@ async function execute(
           status: "error",
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           error: stepResult.error,
-          canRetry: false,
         },
       };
     }

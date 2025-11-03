@@ -88,7 +88,7 @@ export default tseslint.config(
       "@typescript-eslint/require-await": "off",
 
       // Best practices
-      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-console": ["error", { allow: ["warn", "error"] }],
       eqeqeq: ["error", "always", { null: "ignore" }],
       "no-var": "error",
       "prefer-const": "error",
