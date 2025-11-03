@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 
 import { StepKitClient } from "@stepkit/core";
 import type { JsonError } from "@stepkit/core/implementer";
@@ -9,7 +10,8 @@ describe("invoke", () => {
   it("success", async () => {
     const client = new StepKitClient({ driver: new InMemoryDriver() });
 
-    let input: Record<string, unknown>[] = [];
+    let input: Record<string, unknown> = {};
+    let inputs: Record<string, unknown>[] = [];
     const counters = {
       top: 0,
       getGreeting: 0,
@@ -19,6 +21,7 @@ describe("invoke", () => {
     const workflow = client.workflow({ id: "workflow" }, async (ctx, step) => {
       counters.top++;
       input = ctx.input;
+      inputs = ctx.inputs;
 
       const greeting = await step.run("get-greeting", async () => {
         counters.getGreeting++;
@@ -36,7 +39,8 @@ describe("invoke", () => {
 
     const output = await workflow.invoke({ msg: "hi" });
 
-    expect(input).toEqual([{ msg: "hi" }]);
+    expect(input).toEqual({ msg: "hi" });
+    expect(inputs).toEqual([{ msg: "hi" }]);
     expect(counters).toEqual({
       top: 3,
       getGreeting: 1,
@@ -162,6 +166,50 @@ describe("invoke", () => {
       insideStep: 2,
       bottom: 1,
     });
+  });
+
+  it("invalid input", async () => {
+    const client = new StepKitClient({ driver: new InMemoryDriver() });
+
+    let counter = 0;
+    const workflow = client.workflow(
+      {
+        id: "workflow",
+        inputSchema: z.object({ name: z.string() }),
+      },
+      async () => {
+        counter++;
+      }
+    );
+
+    let error: unknown;
+    try {
+      // @ts-expect-error - Intentional invalid input
+      await workflow.invoke({ name: 1 });
+    } catch (e) {
+      error = e;
+    }
+
+    expectError(error, {
+      message: "Invalid input",
+      name: "InvalidInputError",
+      cause: {
+        message: JSON.stringify(
+          [
+            {
+              expected: "string",
+              code: "invalid_type",
+              path: ["name"],
+              message: "Invalid input: expected string, received number",
+            },
+          ],
+          null,
+          2
+        ),
+        name: "Error",
+      },
+    });
+    expect(counter).toEqual(0);
   });
 });
 

@@ -1,4 +1,5 @@
 import type { StandardSchemaV1 } from "@standard-schema/spec";
+import { z } from "zod";
 
 import type { JsonError } from "./errors";
 import type { ControlledPromise } from "./promises";
@@ -9,23 +10,15 @@ export type StripStandardSchema<TInput extends InputDefault> =
   TInput extends StandardSchemaV1<infer U> ? U : never;
 
 // A schema that's static only. No runtime validation.
-const staticOnlySchema = Symbol.for("staticOnlySchema");
-
 export function staticSchema<
   TInput extends Record<string, unknown>,
 >(): StandardSchemaV1<TInput> {
-  return staticOnlySchema as unknown as StandardSchemaV1<TInput>;
+  return z.any();
 }
 
-// export type StdContext<
-//   TInput extends Record<string, unknown> = Record<string, unknown>,
-// > = {
-//   input: TInput[];
-//   runId: string;
-// };
-
 export type StdContext<TInput extends InputDefault = InputDefault> = {
-  input: StandardSchemaV1.InferOutput<TInput>[];
+  input: StandardSchemaV1.InferInput<TInput>;
+  inputs: StandardSchemaV1.InferOutput<TInput>[];
   runId: string;
 };
 
@@ -34,7 +27,10 @@ export type OverrideContextInput<
   TContext extends StdContext,
   TInput extends InputDefault,
 > = Pretty<
-  Omit<TContext, "input"> & { input: StandardSchemaV1.InferOutput<TInput>[] }
+  Omit<TContext, "input" | "inputs"> & {
+    input: StandardSchemaV1.InferOutput<TInput>;
+    inputs: StandardSchemaV1.InferOutput<TInput>[];
+  }
 >;
 
 // Standard step methods

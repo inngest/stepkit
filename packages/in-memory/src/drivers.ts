@@ -107,12 +107,13 @@ export class InMemoryDriver extends BaseExecutionDriver {
     return createStdStep(stdHashId, reportOp);
   }
 
-  override async invoke<TInput extends InputDefault, TOutput>(
+  async invoke<TInput extends InputDefault, TOutput>(
     workflow: Workflow<TInput, TOutput, StdContext<TInput>>,
     input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
     const ctx: StdContext<TInput> = {
-      input: [input],
+      input: input,
+      inputs: [input],
       runId: crypto.randomUUID(),
     };
     stateDriver.addRun(ctx.runId, workflow.maxAttempts);
@@ -124,7 +125,6 @@ export class InMemoryDriver extends BaseExecutionDriver {
         ctx
       );
     } finally {
-      // this.activeRuns.delete(ctx.runId);
       stateDriver.removeRun(ctx.runId);
     }
   }
