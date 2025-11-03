@@ -6,11 +6,13 @@ import {
   controlFlow,
   StdOpCode,
   type ControlFlow,
+  type InputDefault,
   type OpConfig,
   type OpFound,
   type OpResult,
   type StdContext,
   type StdStep,
+  type StripStandardSchema,
 } from "./types";
 import { ensureAsync, type HashId } from "./utils";
 import type { Workflow } from "./workflow";
@@ -19,9 +21,9 @@ export type ExecutionDriver<
   TContext extends StdContext<any>,
   TStep extends StdStep,
 > = {
-  invoke: <TInput extends Record<string, unknown>, TOutput>(
+  invoke: <TInput extends InputDefault, TOutput>(
     workflow: Workflow<TInput, TOutput, TContext, TStep>,
-    input: TInput
+    input: StripStandardSchema<TInput>
   ) => Promise<TOutput>;
 };
 
@@ -60,7 +62,7 @@ export class BaseExecutionDriver<
     this.state = state;
   }
 
-  async execute<TInput extends Record<string, unknown>, TOutput>(
+  async execute<TInput extends InputDefault, TOutput>(
     workflow: Workflow<TInput, TOutput, TContext, TStep>,
     ctx: TContext
   ): Promise<OpResult[]> {
@@ -77,9 +79,9 @@ export class BaseExecutionDriver<
     throw new Error("not implemented");
   }
 
-  async invoke<TInput extends Record<string, unknown>, TOutput>(
+  async invoke<TInput extends InputDefault, TOutput>(
     _workflow: Workflow<TInput, TOutput, TContext, TStep>,
-    _input: TInput
+    _input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
     throw new Error("not implemented");
   }

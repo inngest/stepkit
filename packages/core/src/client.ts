@@ -1,7 +1,10 @@
-import type { z } from "zod";
-
 import type { ExecutionDriver } from "./executionDriver";
-import type { OverrideContextInput, StdContext, StdStep } from "./types";
+import type {
+  InputDefault,
+  OverrideContextInput,
+  StdContext,
+  StdStep,
+} from "./types";
 import { Workflow } from "./workflow";
 
 export class StepKitClient<
@@ -14,14 +17,11 @@ export class StepKitClient<
     this.driver = driver;
   }
 
-  workflow<
-    TInput extends Record<string, unknown> = Record<string, unknown>,
-    TOutput = unknown,
-  >(
+  workflow<TInput extends InputDefault = InputDefault, TOutput = unknown>(
     opts: {
       id: string;
       maxAttempts?: number;
-      inputSchema?: z.ZodType<TInput>;
+      inputSchema?: TInput;
     },
     handler: (
       ctx: OverrideContextInput<TContext, TInput>,

@@ -16,6 +16,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@standard-schema/spec": "^1.0.0",
     "hash.js": "^1.1.7",
     "zod": "^4.1.12"
   },

@@ -1,10 +1,13 @@
-import type { z } from "zod";
-
 import type { ExecutionDriver } from "./executionDriver";
-import type { StdContext, StdStep } from "./types";
+import type {
+  InputDefault,
+  StdContext,
+  StdStep,
+  StripStandardSchema,
+} from "./types";
 
 export class Workflow<
-  TInput extends Record<string, unknown> = Record<string, unknown>,
+  TInput extends InputDefault = InputDefault,
   TOutput = unknown,
   TContext extends StdContext<TInput> = StdContext<TInput>,
   TStep extends StdStep = StdStep,
@@ -13,29 +16,29 @@ export class Workflow<
   readonly id: string;
   readonly handler: (ctx: TContext, step: TStep) => Promise<TOutput>;
   readonly maxAttempts: number;
-  readonly schema?: z.ZodType<TInput>;
+  readonly inputSchema?: TInput;
 
   constructor({
     driver,
     handler,
     id,
     maxAttempts = 4,
-    schema,
+    inputSchema: schema,
   }: {
     driver: ExecutionDriver<TContext, TStep>;
     handler: (ctx: TContext, step: TStep) => Promise<TOutput>;
     id: string;
     maxAttempts?: number;
-    schema?: z.ZodType<TInput>;
+    inputSchema?: TInput;
   }) {
     this.driver = driver;
     this.id = id;
     this.handler = handler;
     this.maxAttempts = maxAttempts;
-    this.schema = schema;
+    this.inputSchema = schema;
   }
 
-  async invoke(input: TInput): Promise<TOutput> {
+  async invoke(input: StripStandardSchema<TInput>): Promise<TOutput> {
     return this.driver.invoke(this, input);
   }
 }

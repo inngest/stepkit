@@ -4,11 +4,13 @@ import {
   createStdStep,
   executeUntilDone,
   stdHashId,
+  type InputDefault,
   type OpResult,
   type ReportOp,
   type StateDriver,
   type StdContext,
   type StdStep,
+  type StripStandardSchema,
 } from "@stepkit/core/implementer";
 
 export class InMemoryStateDriver implements StateDriver {
@@ -105,9 +107,9 @@ export class InMemoryDriver extends BaseExecutionDriver {
     return createStdStep(stdHashId, reportOp);
   }
 
-  async invoke<TInput extends Record<string, unknown>, TOutput>(
+  override async invoke<TInput extends InputDefault, TOutput>(
     workflow: Workflow<TInput, TOutput, StdContext<TInput>>,
-    input: TInput
+    input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
     const ctx: StdContext<TInput> = {
       input: [input],
