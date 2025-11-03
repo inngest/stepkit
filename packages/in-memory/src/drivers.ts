@@ -70,10 +70,15 @@ export class InMemoryDriver extends BaseExecutionDriver {
     return createStdStep(stdHashId, reportOp);
   }
 
-  async invoke<TOutput>(
-    workflow: Workflow<StdContext, StdStep, TOutput>
+  async invoke<TInput extends Record<string, unknown>, TOutput>(
+    workflow: Workflow<TInput, TOutput, StdContext<TInput>>,
+    input: TInput
   ): Promise<TOutput> {
-    const ctx: StdContext = { attempt: 0, runId: crypto.randomUUID() };
+    const ctx: StdContext<TInput> = {
+      attempt: 0,
+      input: [input],
+      runId: crypto.randomUUID(),
+    };
     this.activeRuns.add(ctx.runId);
 
     try {

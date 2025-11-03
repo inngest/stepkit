@@ -1,22 +1,39 @@
+import type { z } from "zod";
+
 import type { ExecutionDriver } from "./executionDriver";
-import type { StdContext, StdStep } from "./types";
+import type { OverrideContextInput, StdContext, StdStep } from "./types";
 import { Workflow } from "./workflow";
 
-export class StepKitClient<TContext extends StdContext, TStep extends StdStep> {
+export class StepKitClient<
+  TContext extends StdContext<any>,
+  TStep extends StdStep = StdStep,
+> {
   private readonly driver: ExecutionDriver<TContext, TStep>;
 
   constructor({ driver }: { driver: ExecutionDriver<TContext, TStep> }) {
     this.driver = driver;
   }
 
-  workflow<TOutput>(
+  workflow<
+    TInput extends Record<string, unknown> = Record<string, unknown>,
+    TOutput = unknown,
+  >(
     opts: {
       id: string;
       maxAttempts?: number;
+      schema?: z.ZodType<TInput>;
     },
-    handler: (ctx: TContext, step: TStep) => Promise<TOutput>
-  ): Workflow<TContext, TStep, TOutput> {
-    return new Workflow<TContext, TStep, TOutput>({
+    handler: (
+      ctx: OverrideContextInput<TContext, TInput>,
+      step: TStep
+    ) => Promise<TOutput>
+  ): Workflow<TInput, TOutput, OverrideContextInput<TContext, TInput>, TStep> {
+    return new Workflow<
+      TInput,
+      TOutput,
+      OverrideContextInput<TContext, TInput>,
+      TStep
+    >({
       ...opts,
       driver: this.driver,
       handler,

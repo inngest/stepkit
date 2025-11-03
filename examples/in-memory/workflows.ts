@@ -2,7 +2,8 @@ import { client } from "./client";
 
 export const workflow = client.workflow(
   { id: "my-workflow" },
-  async (_, step) => {
+  async (ctx, step) => {
+    console.log(ctx.input);
     console.log("workflow: top");
 
     const greeting = await step.run("get-greeting", () => {

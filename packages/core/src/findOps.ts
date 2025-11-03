@@ -33,7 +33,7 @@ export async function findOps<
   getSteps: (reportOp: ReportOp) => Promise<TSteps>;
   onStepsFound: (ops: OpFound[]) => Promise<ControlFlow>;
   onWorkflowResult: (op: OpResult) => Promise<OpResult>;
-  workflow: Workflow<TContext, TSteps, TOutput>;
+  workflow: Workflow<any, TOutput, TContext, TSteps>;
 }): Promise<OpResult[]> {
   const foundOps: OpFound[] = [];
 

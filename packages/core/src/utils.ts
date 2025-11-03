@@ -5,15 +5,16 @@ import type { OpResult, StdContext, StdStep } from "./types";
 import type { Workflow } from "./workflow";
 
 export async function executeUntilDone<
-  TContext extends StdContext,
-  TStep extends StdStep,
+  TInput extends Record<string, unknown>,
   TOutput,
+  TContext extends StdContext<TInput>,
+  TStep extends StdStep,
 >(
   execute: (
     ctx: TContext,
-    workflow: Workflow<TContext, TStep, TOutput>
+    workflow: Workflow<TInput, TOutput, TContext, TStep>
   ) => Promise<OpResult[]>,
-  workflow: Workflow<TContext, TStep, TOutput>,
+  workflow: Workflow<TInput, TOutput, TContext, TStep>,
   ctx: TContext
 ): Promise<TOutput> {
   const maxIterations = 10_000;

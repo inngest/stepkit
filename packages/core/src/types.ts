@@ -1,10 +1,19 @@
 import type { JsonError } from "./errors";
 import type { ControlledPromise } from "./promises";
 
-export type StdContext = {
+export type StdContext<
+  TInput extends Record<string, unknown> = Record<string, unknown>,
+> = {
   attempt: number;
+  input: TInput[];
   runId: string;
 };
+
+// Replace `TContext["input"]` with `TInput[]`
+export type OverrideContextInput<
+  TContext extends StdContext,
+  TInput extends Record<string, unknown>,
+> = Pretty<Omit<TContext, "input"> & { input: TInput[] }>;
 
 // Standard step methods
 export type StdStep = {
@@ -78,3 +87,7 @@ export const controlFlow = {
   continue: () => ({ type: "continue" }),
   interrupt: (results: OpResult[]) => ({ type: "interrupt", results }),
 } as const satisfies Record<string, (...args: any[]) => ControlFlow>;
+
+export type Pretty<T> = {
+  [K in keyof T]: T[K];
+} & {};
