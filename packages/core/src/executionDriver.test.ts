@@ -332,6 +332,149 @@ describe("execute to completion", () => {
     ]);
   });
 
+  it("parallel steps", async () => {
+    // Parallel steps don't have any special logic. They'll just get passed to
+    // `onStepsFound` as a single array
+
+    const driver = new ExecutionDriver(new StateDriver());
+    const client = new StepKitClient({ driver });
+
+    const counters = {
+      top: 0,
+      a: 0,
+      p1: 0,
+      p2: 0,
+      b: 0,
+      bottom: 0,
+    };
+    const outputs: Record<string, unknown> = {
+      a: undefined,
+      b: undefined,
+    };
+    const workflow = client.workflow({ id: "workflow" }, async (ctx, step) => {
+      counters.top++;
+
+      outputs.a = await step.run("a", async () => {
+        counters.a++;
+        return "A";
+      });
+
+      const results = await Promise.all([
+        step.run("p1", async () => {
+          counters.p1++;
+          return "P1";
+        }),
+        step.run("p2", async () => {
+          counters.p2++;
+          return "P2";
+        }),
+      ]);
+      outputs.p1 = results[0];
+      outputs.p2 = results[1];
+
+      outputs.b = await step.run("b", async () => {
+        counters.b++;
+        return "B";
+      });
+
+      counters.bottom++;
+    });
+
+    let allResults: OpResult[][] = [];
+    while (true) {
+      const results = await driver.execute(workflow, ctx);
+      allResults = [...allResults, results];
+      if (results[0].config.code === "workflow") {
+        break;
+      }
+    }
+
+    expect(counters).toEqual({
+      top: 4,
+      a: 1,
+      p1: 1,
+      p2: 1,
+      b: 1,
+      bottom: 1,
+    });
+    expect(outputs).toEqual({
+      a: "A",
+      p1: "P1",
+      p2: "P2",
+      b: "B",
+    });
+    expect(allResults).toEqual([
+      [
+        {
+          config: { code: "step.run" },
+          id: {
+            hashed: "d616db3cc1276a33b72d526499c69671aa7c8ab5",
+            id: "a",
+            index: 0,
+          },
+          result: {
+            output: "A",
+            status: "success",
+          },
+        },
+      ],
+      [
+        {
+          config: { code: "step.run" },
+          id: {
+            hashed: "700134726669965a0c6dfd42804b6074307e0396",
+            id: "p1",
+            index: 0,
+          },
+          result: {
+            output: "P1",
+            status: "success",
+          },
+        },
+        {
+          config: { code: "step.run" },
+          id: {
+            hashed: "c1ffc96bef39f32722049847bd2b755c59b9148a",
+            id: "p2",
+            index: 0,
+          },
+          result: {
+            output: "P2",
+            status: "success",
+          },
+        },
+      ],
+      [
+        {
+          config: { code: "step.run" },
+          id: {
+            hashed: "312e91d4b6541e0599765a35fda6d39a5685d98d",
+            id: "b",
+            index: 0,
+          },
+          result: {
+            output: "B",
+            status: "success",
+          },
+        },
+      ],
+      [
+        {
+          config: { code: "workflow" },
+          id: {
+            hashed: "",
+            id: "",
+            index: 0,
+          },
+          result: {
+            output: undefined,
+            status: "success",
+          },
+        },
+      ],
+    ]);
+  });
+
   it("promise cleanup", async () => {
     // Ensure intentionally paused promises are deleted by the garbage
     // collector. This works because they don't have any references to them

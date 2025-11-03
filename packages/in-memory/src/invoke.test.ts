@@ -211,6 +211,68 @@ describe("invoke", () => {
     });
     expect(counter).toEqual(0);
   });
+
+  it("parallel steps", async () => {
+    const client = new StepKitClient({ driver: new InMemoryDriver() });
+
+    const counters = {
+      top: 0,
+      a: 0,
+      p1: 0,
+      p2: 0,
+      b: 0,
+      bottom: 0,
+    };
+    const outputs: Record<string, unknown> = {
+      a: undefined,
+      b: undefined,
+    };
+    const workflow = client.workflow({ id: "workflow" }, async (ctx, step) => {
+      counters.top++;
+
+      outputs.a = await step.run("a", async () => {
+        counters.a++;
+        return "A";
+      });
+
+      const results = await Promise.all([
+        step.run("p1", async () => {
+          counters.p1++;
+          return "P1";
+        }),
+        step.run("p2", async () => {
+          counters.p2++;
+          return "P2";
+        }),
+      ]);
+      outputs.p1 = results[0];
+      outputs.p2 = results[1];
+
+      outputs.b = await step.run("b", async () => {
+        counters.b++;
+        return "B";
+      });
+
+      counters.bottom++;
+    });
+
+    await workflow.invoke({});
+
+    expect(counters).toEqual({
+      top: 4,
+      a: 1,
+      p1: 1,
+      p2: 1,
+      b: 1,
+      bottom: 1,
+    });
+    expect(outputs).toEqual({
+      a: "A",
+      p1: "P1",
+      p2: "P2",
+      b: "B",
+    });
+  });
 });
 
 function expectError(actual: unknown, expected: JsonError) {
