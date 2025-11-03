@@ -4,7 +4,6 @@ import type { ControlledPromise } from "./promises";
 export type StdContext<
   TInput extends Record<string, unknown> = Record<string, unknown>,
 > = {
-  attempt: number;
   input: TInput[];
   runId: string;
 };
@@ -53,7 +52,6 @@ export type OpResult<
     | {
         status: "error";
         error: JsonError;
-        canRetry: boolean;
       };
 };
 

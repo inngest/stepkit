@@ -140,23 +140,20 @@ describe("invoke", () => {
       insideStep: 0,
       bottom: 0,
     };
-    const workflow = client.workflow(
-      { id: "workflow" },
-      async ({ attempt }, step) => {
-        counters.top++;
+    const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
+      counters.top++;
 
-        const output = await step.run("a", async () => {
-          counters.insideStep++;
-          if (attempt === 0) {
-            throw new Error("oh no");
-          }
-          return "hi";
-        });
+      const output = await step.run("a", async () => {
+        counters.insideStep++;
+        if (counters.insideStep === 1) {
+          throw new Error("oh no");
+        }
+        return "hi";
+      });
 
-        counters.bottom++;
-        return output;
-      }
-    );
+      counters.bottom++;
+      return output;
+    });
 
     expect(await workflow.invoke({})).toEqual("hi");
 

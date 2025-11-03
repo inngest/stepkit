@@ -17,22 +17,18 @@ export async function executeUntilDone<
   workflow: Workflow<TInput, TOutput, TContext, TStep>,
   ctx: TContext
 ): Promise<TOutput> {
+  const attempts: Record<string, number> = {};
   const maxIterations = 10_000;
   for (let i = 0; i < maxIterations; i++) {
     const ops = await execute(ctx, workflow);
     const op = ops[0];
+    attempts[op.id.hashed] = attempts[op.id.hashed] ?? 1;
 
     if (op.result.status === "error") {
-      if (op.result.canRetry) {
+      if (attempts[op.id.hashed] < workflow.maxAttempts) {
         // Bump attempt and retry
-        ctx.attempt++;
+        attempts[op.id.hashed]++;
         continue;
-      }
-
-      if (op.config.code !== "workflow") {
-        // Reset attempt because we've exhausted step retries and now need fresh
-        // attempts at the workflow level
-        ctx.attempt = 0;
       }
     }
 

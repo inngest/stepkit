@@ -35,7 +35,6 @@ class ExecutionDriver extends BaseExecutionDriver {
 
 describe("execute once", () => {
   const ctx: StdContext = {
-    attempt: 0,
     input: [],
     runId: "test-run-id",
   };
@@ -92,7 +91,6 @@ describe("execute once", () => {
             index: 0,
           },
           result: {
-            canRetry: true,
             error: {
               cause: undefined,
               name: "Error",
@@ -183,7 +181,6 @@ describe("execute once", () => {
             index: 0,
           },
           result: {
-            canRetry: true,
             error: {
               cause: undefined,
               name: "Error",
@@ -245,7 +242,6 @@ describe("execute once", () => {
 
 describe("execute to completion", () => {
   const ctx: StdContext = {
-    attempt: 0,
     input: [],
     runId: "test-run-id",
   };
@@ -393,7 +389,6 @@ it("custom step", async () => {
   // Define a custom step. Ensure that the step's logic is only called once
 
   const ctx: StdContext = {
-    attempt: 0,
     input: [],
     runId: "test-run-id",
   };

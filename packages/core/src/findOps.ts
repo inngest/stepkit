@@ -112,7 +112,6 @@ export async function findOps<
       result: {
         status: "error",
         error: toJsonError(output),
-        canRetry: true,
       },
     };
   } else {

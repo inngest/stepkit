@@ -99,16 +99,6 @@ export class BaseExecutionDriver<
     ctx: TContext,
     op: OpResult
   ): Promise<OpResult> => {
-    if (op.result.status === "error") {
-      op = {
-        ...op,
-        result: {
-          ...op.result,
-          canRetry: ctx.attempt + 1 < workflow.maxAttempts,
-        },
-      };
-    }
-
     this.state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, op);
     return op;
   };
@@ -190,7 +180,6 @@ export async function createOpResults<
         opResult.result = {
           status: "error",
           error: toJsonError(e),
-          canRetry: ctx.attempt + 1 < workflow.maxAttempts,
         };
       }
     }

@@ -110,7 +110,6 @@ async function execute(
           status: "error",
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           error: stepResult.error,
-          canRetry: false,
         },
       };
     }
@@ -121,7 +120,6 @@ async function execute(
   }
 
   const ctx: StdContext<any> = {
-    attempt: req.ctx.attempt,
     input: [],
     runId: req.ctx.run_id,
   };
