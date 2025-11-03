@@ -12,10 +12,42 @@ import {
 } from "@stepkit/core/implementer";
 
 export class InMemoryStateDriver implements StateDriver {
+  // private maxAttempts: Record<string, number>;
+  // private opAttempts: Record<string, number>;
+  private activeRuns: Map<
+    string,
+    { maxAttempts: number; opAttempts: Record<string, number> }
+  >;
   private ops: Map<string, string>;
 
   constructor() {
+    this.activeRuns = new Map();
     this.ops = new Map();
+  }
+
+  addRun(runId: string, maxAttempts: number): void {
+    this.activeRuns.set(runId, { maxAttempts, opAttempts: {} });
+  }
+
+  removeRun(runId: string): void {
+    this.activeRuns.delete(runId);
+  }
+
+  incrementOpAttempt(runId: string, hashedOpId: string): number {
+    const run = this.activeRuns.get(runId);
+    if (run === undefined) {
+      throw new Error("unreachable: run not found");
+    }
+    run.opAttempts[hashedOpId] = (run.opAttempts[hashedOpId] ?? 0) + 1;
+    return run.opAttempts[hashedOpId];
+  }
+
+  getMaxAttempts(runId: string): number {
+    const run = this.activeRuns.get(runId);
+    if (run === undefined) {
+      throw new Error("unreachable: run not found");
+    }
+    return run.maxAttempts;
   }
 
   private getKey({
@@ -46,7 +78,10 @@ export class InMemoryStateDriver implements StateDriver {
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
     op: OpResult
   ): void {
-    if (op.result.status === "error" && op.result.canRetry) {
+    const opAttempt = this.incrementOpAttempt(runId, hashedOpId);
+    const maxAttempts = this.getMaxAttempts(runId);
+
+    if (op.result.status === "error" && opAttempt < maxAttempts) {
       // Retry by not storing the error
       return;
     }
@@ -73,8 +108,9 @@ export class InMemoryDriver extends BaseExecutionDriver {
   async invoke<TOutput>(
     workflow: Workflow<StdContext, StdStep, TOutput>
   ): Promise<TOutput> {
-    const ctx: StdContext = { attempt: 0, runId: crypto.randomUUID() };
-    this.activeRuns.add(ctx.runId);
+    const ctx: StdContext = { runId: crypto.randomUUID() };
+    stateDriver.addRun(ctx.runId, workflow.maxAttempts);
+    // stateDriver.setMaxAttempts(ctx.runId, workflow.maxAttempts);
 
     try {
       return await executeUntilDone(
@@ -83,7 +119,8 @@ export class InMemoryDriver extends BaseExecutionDriver {
         ctx
       );
     } finally {
-      this.activeRuns.delete(ctx.runId);
+      // this.activeRuns.delete(ctx.runId);
+      stateDriver.removeRun(ctx.runId);
     }
   }
 }
