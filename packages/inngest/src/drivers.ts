@@ -2,6 +2,7 @@ import {
   BaseExecutionDriver,
   createOpFound,
   createStdStep,
+  stdHashId,
   StdOpCode,
   type OpResult,
   type ReportOp,
@@ -62,9 +63,9 @@ export class InngestDriver extends BaseExecutionDriver<StdContext, Step> {
 
   async getSteps(reportOp: ReportOp): Promise<Step> {
     return {
-      ...createStdStep(reportOp),
+      ...createStdStep(stdHashId, reportOp),
       sleepUntil: async (stepId: string, wakeupAt: Date) => {
-        await createOpFound(reportOp, stepId, {
+        await createOpFound(stdHashId, reportOp, stepId, {
           code: StdOpCode.sleep,
           options: { wakeupAt },
         });

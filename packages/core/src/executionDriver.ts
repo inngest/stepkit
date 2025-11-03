@@ -12,7 +12,7 @@ import {
   type StdContext,
   type StdStep,
 } from "./types";
-import { ensureAsync } from "./utils";
+import { ensureAsync, type HashId } from "./utils";
 import type { Workflow } from "./workflow";
 
 export type ExecutionDriver<
@@ -24,16 +24,22 @@ export type ExecutionDriver<
   ) => Promise<TOutput>;
 };
 
-export function createStdStep(reportOp: ReportOp): StdStep {
+export function createStdStep(hash: HashId, reportOp: ReportOp): StdStep {
   return {
     run: async <TStepRunOutput>(
       stepId: string,
       handler: (() => Promise<TStepRunOutput>) | (() => TStepRunOutput)
     ): Promise<TStepRunOutput> => {
-      return createOpFound(reportOp, stepId, { code: StdOpCode.run }, handler);
+      return createOpFound(
+        hash,
+        reportOp,
+        stepId,
+        { code: StdOpCode.run },
+        handler
+      );
     },
     sleep: async (stepId: string, duration: number) => {
-      return createOpFound(reportOp, stepId, {
+      return createOpFound(hash, reportOp, stepId, {
         code: StdOpCode.sleep,
         options: { wakeupAt: new Date(Date.now() + duration) },
       });
@@ -66,11 +72,8 @@ export class BaseExecutionDriver<
     });
   }
 
-  getSteps(reportOp: ReportOp): Promise<TStep> {
-    // @ts-expect-error - This has a type error because child classes can add
-    // more steps. So if more steps exist in TStep then the child class must
-    // extend this method's return type
-    return createStdStep(reportOp);
+  async getSteps(_reportOp: ReportOp): Promise<TStep> {
+    throw new Error("not implemented");
   }
 
   async invoke<TOutput>(
@@ -137,6 +140,7 @@ export function handleExistingOps(
 }
 
 export async function createOpFound<TOutput>(
+  hash: HashId,
   reportOp: ReportOp,
   id: string,
   config: OpConfig,
@@ -146,10 +150,13 @@ export async function createOpFound<TOutput>(
     handler = ensureAsync(handler);
   }
 
+  // TODO: Increment index when op is found multiple times
+  const index = 0;
+
   return await reportOp<TOutput>({
     config,
     handler,
-    id: { hashed: id, id, index: 0 },
+    id: { hashed: hash(id, index), id, index },
     promise: createControlledPromise<TOutput>(),
   });
 }

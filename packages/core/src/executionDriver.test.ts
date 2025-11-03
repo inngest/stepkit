@@ -8,7 +8,7 @@ import {
   createStdStep,
 } from "./implementer";
 import type { OpResult, StdContext, StdStep } from "./types";
-import { executeUntilDone } from "./utils";
+import { executeUntilDone, stdHashId } from "./utils";
 
 class StateDriver {
   private ops: Map<string, OpResult>;
@@ -27,6 +27,12 @@ class StateDriver {
   }
 }
 
+class ExecutionDriver extends BaseExecutionDriver {
+  async getSteps(reportOp: ReportOp): Promise<StdStep> {
+    return createStdStep(stdHashId, reportOp);
+  }
+}
+
 describe("execute once", () => {
   const ctx = { attempt: 0, runId: "test-run-id" };
 
@@ -34,7 +40,7 @@ describe("execute once", () => {
     it("success", async () => {
       // When no steps, interrupt with workflow result
 
-      const driver = new BaseExecutionDriver(new StateDriver());
+      const driver = new ExecutionDriver(new StateDriver());
       const client = new StepKitClient({ driver });
 
       let counter = 0;
@@ -63,7 +69,7 @@ describe("execute once", () => {
     it("error", async () => {
       // When no steps, interrupt with workflow result
 
-      const driver = new BaseExecutionDriver(new StateDriver());
+      const driver = new ExecutionDriver(new StateDriver());
       const client = new StepKitClient({ driver });
 
       let counter = 0;
@@ -100,7 +106,7 @@ describe("execute once", () => {
     it("success", async () => {
       // When successfully running a step, interrupt with step result
 
-      const driver = new BaseExecutionDriver(new StateDriver());
+      const driver = new ExecutionDriver(new StateDriver());
       const client = new StepKitClient({ driver });
 
       const counters = {
@@ -127,7 +133,7 @@ describe("execute once", () => {
         {
           config: { code: "step.run" },
           id: {
-            hashed: "get-name",
+            hashed: "03b5f7de3b5d7975054984c1ae3fa120f622833e",
             id: "get-name",
             index: 0,
           },
@@ -142,7 +148,7 @@ describe("execute once", () => {
     it("error", async () => {
       // When successfully running a step, interrupt with step result
 
-      const driver = new BaseExecutionDriver(new StateDriver());
+      const driver = new ExecutionDriver(new StateDriver());
       const client = new StepKitClient({ driver });
 
       const counters = {
@@ -168,7 +174,7 @@ describe("execute once", () => {
         {
           config: { code: "step.run" },
           id: {
-            hashed: "get-name",
+            hashed: "03b5f7de3b5d7975054984c1ae3fa120f622833e",
             id: "get-name",
             index: 0,
           },
@@ -190,7 +196,7 @@ describe("execute once", () => {
   it("step.sleep", async () => {
     // When successfully running a step, interrupt with step result
 
-    const driver = new BaseExecutionDriver(new StateDriver());
+    const driver = new ExecutionDriver(new StateDriver());
     const client = new StepKitClient({ driver });
 
     const counters = {
@@ -220,7 +226,7 @@ describe("execute once", () => {
           options: { wakeupAt: expect.any(Date) },
         },
         id: {
-          hashed: "zzz",
+          hashed: "4cef13bd645056cd329243fd43c1e09b1dfebb9a",
           id: "zzz",
           index: 0,
         },
@@ -239,7 +245,7 @@ describe("execute to completion", () => {
   it("step.run success", async () => {
     // Keep looping through interrupts until the run completes
 
-    const driver = new BaseExecutionDriver(new StateDriver());
+    const driver = new ExecutionDriver(new StateDriver());
     const client = new StepKitClient({ driver });
 
     const counters = {
@@ -284,7 +290,7 @@ describe("execute to completion", () => {
       {
         config: { code: "step.run" },
         id: {
-          hashed: "get-greeting",
+          hashed: "3c53d28d711a44c677df82223b78a81fc42ff19e",
           id: "get-greeting",
           index: 0,
         },
@@ -296,7 +302,7 @@ describe("execute to completion", () => {
       {
         config: { code: "step.run" },
         id: {
-          hashed: "get-name",
+          hashed: "03b5f7de3b5d7975054984c1ae3fa120f622833e",
           id: "get-name",
           index: 0,
         },
@@ -324,7 +330,7 @@ describe("execute to completion", () => {
     // Ensure intentionally paused promises are deleted by the garbage
     // collector. This works because they don't have any references to them
 
-    const driver = new BaseExecutionDriver(new StateDriver());
+    const driver = new ExecutionDriver(new StateDriver());
     const client = new StepKitClient({ driver });
 
     const heldValues = {
@@ -398,13 +404,14 @@ it("custom step", async () => {
   class ExecutionDriver extends BaseExecutionDriver<StdContext, Step> {
     async getSteps(reportOp: ReportOp): Promise<Step> {
       return {
-        ...createStdStep(reportOp),
+        ...createStdStep(stdHashId, reportOp),
         multiply: async (
           stepId: string,
           a: number,
           b: number
         ): Promise<number> => {
           return await createOpFound(
+            stdHashId,
             reportOp,
             stepId,
             { code: "step.multiply" },
@@ -435,7 +442,7 @@ it("custom step", async () => {
     {
       config: { code: "step.multiply" },
       id: {
-        hashed: "foo",
+        hashed: "187c5953271798be6a3b9c99a4ddf69f3ac19889",
         id: "foo",
         index: 0,
       },

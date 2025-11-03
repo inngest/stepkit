@@ -12,7 +12,7 @@ import {
   type StdContext,
   type StdStep,
 } from "./types";
-import { executeUntilDone } from "./utils";
+import { executeUntilDone, stdHashId } from "./utils";
 
 export type { JsonError, OpResult, ReportOp, StateDriver, StdContext, StdStep };
 
@@ -22,4 +22,5 @@ export {
   createOpFound,
   createStdStep,
   executeUntilDone,
+  stdHashId,
 };

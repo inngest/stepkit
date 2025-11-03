@@ -1,8 +1,11 @@
 import type { Workflow } from "@stepkit/core";
 import {
   BaseExecutionDriver,
+  createStdStep,
   executeUntilDone,
+  stdHashId,
   type OpResult,
+  type ReportOp,
   type StateDriver,
   type StdContext,
   type StdStep,
@@ -61,6 +64,10 @@ export class InMemoryDriver extends BaseExecutionDriver {
   constructor() {
     super(stateDriver);
     this.activeRuns = new Set();
+  }
+
+  async getSteps(reportOp: ReportOp): Promise<StdStep> {
+    return createStdStep(stdHashId, reportOp);
   }
 
   async invoke<TOutput>(
