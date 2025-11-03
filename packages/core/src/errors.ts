@@ -1,3 +1,14 @@
+import type { StandardSchemaV1 } from "@standard-schema/spec";
+
+export class InvalidInputError extends Error {
+  constructor(issues: readonly StandardSchemaV1.Issue[]) {
+    super("Invalid input", {
+      cause: new Error(JSON.stringify(issues, null, 2)),
+    });
+    this.name = "InvalidInputError";
+  }
+}
+
 // Errors be be serialized/deserialized as JSON. We'll store as much info as
 // possible for reconstructing the error
 export type JsonError = {

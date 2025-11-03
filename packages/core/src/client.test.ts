@@ -14,7 +14,8 @@ describe("input type", () => {
     const client = new StepKitClient({ driver });
 
     client.workflow({ id: "workflow" }, async (ctx) => {
-      expectTypeOf(ctx.input).toEqualTypeOf<Record<string, unknown>[]>();
+      expectTypeOf(ctx.input).toEqualTypeOf<Record<string, unknown>>();
+      expectTypeOf(ctx.inputs).toEqualTypeOf<Record<string, unknown>[]>();
     });
   });
 
@@ -26,7 +27,8 @@ describe("input type", () => {
     client.workflow(
       { id: "workflow", inputSchema: staticSchema<Input>() },
       async (ctx) => {
-        expectTypeOf(ctx.input).toEqualTypeOf<Input[]>();
+        expectTypeOf(ctx.input).toEqualTypeOf<Input>();
+        expectTypeOf(ctx.inputs).toEqualTypeOf<Input[]>();
       }
     );
   });
@@ -37,7 +39,8 @@ describe("input type", () => {
     const inputSchema = z.object({ name: z.string() });
 
     client.workflow({ id: "workflow", inputSchema }, async (ctx) => {
-      expectTypeOf(ctx.input).toEqualTypeOf<{ name: string }[]>();
+      expectTypeOf(ctx.input).toEqualTypeOf<{ name: string }>();
+      expectTypeOf(ctx.inputs).toEqualTypeOf<{ name: string }[]>();
     });
   });
 });
@@ -59,7 +62,8 @@ describe("custom ctx field", () => {
     client.workflow(
       { id: "workflow", inputSchema: staticSchema<{ name: string }>() },
       async (ctx) => {
-        expectTypeOf(ctx.input).toEqualTypeOf<{ name: string }[]>();
+        expectTypeOf(ctx.input).toEqualTypeOf<{ name: string }>();
+        expectTypeOf(ctx.inputs).toEqualTypeOf<{ name: string }[]>();
       }
     );
   });
