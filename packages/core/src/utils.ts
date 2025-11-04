@@ -4,6 +4,8 @@ import { fromJsonError } from "./errors";
 import type { Context, ExtDefault, InputDefault, OpResult } from "./types";
 import type { Workflow } from "./workflow";
 
+const defaultMaxAttempts = 4;
+
 export async function executeUntilDone<
   TInput extends InputDefault,
   TOutput,
@@ -33,7 +35,7 @@ export async function executeUntilDone<
         throw fromJsonError(op.result.error);
       }
 
-      if (attempt < workflow.maxAttempts) {
+      if (attempt < (workflow.maxAttempts ?? defaultMaxAttempts)) {
         // Bump attempt and retry
         attempts[op.id.hashed] = attempt + 1;
         continue;
