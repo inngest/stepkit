@@ -1,33 +1,36 @@
 import hash from "hash.js";
 
 import { fromJsonError } from "./errors";
-import type { InputDefault, OpResult, StdContext, StdStep } from "./types";
+import type { Context, ExtDefault, InputDefault, OpResult } from "./types";
 import type { Workflow } from "./workflow";
 
 export async function executeUntilDone<
   TInput extends InputDefault,
   TOutput,
-  TContext extends StdContext<TInput>,
-  TStep extends StdStep,
+  TCtxExt extends ExtDefault,
+  TStepExt extends ExtDefault,
 >(
   execute: (
-    ctx: TContext,
-    workflow: Workflow<TInput, TOutput, TContext, TStep>
+    ctx: Context<TInput, TCtxExt>,
+    workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>
   ) => Promise<OpResult[]>,
-  workflow: Workflow<TInput, TOutput, TContext, TStep>,
-  ctx: TContext
+  workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
+  ctx: Context<TInput, TCtxExt>
 ): Promise<TOutput> {
   const attempts: Record<string, number> = {};
   const maxIterations = 10_000;
   for (let i = 0; i < maxIterations; i++) {
     const ops = await execute(ctx, workflow);
+    if (ops[0] === undefined) {
+      throw new Error("unreachable: no ops found");
+    }
     const op = ops[0];
-    attempts[op.id.hashed] = attempts[op.id.hashed] ?? 1;
+    const attempt = attempts[op.id.hashed] ?? 1;
 
     if (op.result.status === "error") {
-      if (attempts[op.id.hashed] < workflow.maxAttempts) {
+      if (attempt < workflow.maxAttempts) {
         // Bump attempt and retry
-        attempts[op.id.hashed]++;
+        attempts[op.id.hashed] = attempt + 1;
         continue;
       }
     }

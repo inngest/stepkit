@@ -1,19 +1,14 @@
 import type { ExecutionDriver } from "./executionDriver";
-import type {
-  InputDefault,
-  OverrideContextInput,
-  StdContext,
-  StdStep,
-} from "./types";
+import type { Context, ExtDefault, InputDefault, Step } from "./types";
 import { Workflow } from "./workflow";
 
 export class StepKitClient<
-  TContext extends StdContext<any>,
-  TStep extends StdStep = StdStep,
+  TCtxExt extends ExtDefault = ExtDefault,
+  TStepExt extends ExtDefault = ExtDefault,
 > {
-  private readonly driver: ExecutionDriver<TContext, TStep>;
+  private readonly driver: ExecutionDriver<TCtxExt, TStepExt>;
 
-  constructor({ driver }: { driver: ExecutionDriver<TContext, TStep> }) {
+  constructor({ driver }: { driver: ExecutionDriver<TCtxExt, TStepExt> }) {
     this.driver = driver;
   }
 
@@ -24,16 +19,11 @@ export class StepKitClient<
       inputSchema?: TInput;
     },
     handler: (
-      ctx: OverrideContextInput<TContext, TInput>,
-      step: TStep
+      ctx: Context<TInput, TCtxExt>,
+      step: Step<TStepExt>
     ) => Promise<TOutput>
-  ): Workflow<TInput, TOutput, OverrideContextInput<TContext, TInput>, TStep> {
-    return new Workflow<
-      TInput,
-      TOutput,
-      OverrideContextInput<TContext, TInput>,
-      TStep
-    >({
+  ): Workflow<TInput, TOutput, TCtxExt, TStepExt> {
+    return new Workflow<TInput, TOutput, TCtxExt, TStepExt>({
       ...opts,
       driver: this.driver,
       handler,

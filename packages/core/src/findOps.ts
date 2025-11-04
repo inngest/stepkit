@@ -2,16 +2,19 @@ import { toJsonError } from "./errors";
 import { createControlledPromise } from "./promises";
 import {
   StdOpCode,
+  type Context,
   type ControlFlow,
+  type ExtDefault,
+  type InputDefault,
+  type OpConfig,
   type OpFound,
   type OpResult,
-  type StdContext,
-  type StdStep as StdSteps,
+  type Step,
 } from "./types";
 import { type Workflow } from "./workflow";
 
 export type ReportOp = <TOutput = void>(
-  op: OpFound<any, TOutput>
+  op: OpFound<OpConfig, TOutput>
 ) => Promise<TOutput>;
 
 /**
@@ -19,30 +22,33 @@ export type ReportOp = <TOutput = void>(
  * are found. Also handles control flow.
  */
 export async function findOps<
-  TContext extends StdContext,
-  TSteps extends StdSteps,
+  TInput extends InputDefault,
   TOutput,
+  TCtxExt extends ExtDefault,
+  TStepExt extends ExtDefault,
 >({
   ctx,
-  getSteps,
+  getStep,
   onStepsFound,
   onWorkflowResult,
   workflow,
 }: {
-  ctx: TContext;
-  getSteps: (reportOp: ReportOp) => Promise<TSteps>;
+  ctx: Context<TInput, TCtxExt>;
+  getStep: (reportOp: ReportOp) => Promise<Step<TStepExt>>;
   onStepsFound: (ops: OpFound[]) => Promise<ControlFlow>;
   onWorkflowResult: (op: OpResult) => Promise<OpResult>;
-  workflow: Workflow<any, TOutput, TContext, TSteps>;
+  workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>;
 }): Promise<OpResult[]> {
-  const foundOps: OpFound[] = [];
+  const foundOps: OpFound<OpConfig, any>[] = [];
 
   let pause = createControlledPromise();
 
   /**
    * Reports an op and pauses it until it's allowed to continue.
    */
-  async function reportOp(op: OpFound<any, any>): Promise<any> {
+  async function reportOp<TOutput>(
+    op: OpFound<OpConfig, TOutput>
+  ): Promise<TOutput> {
     foundOps.push(op);
 
     // Only continue when the driver allows it
@@ -51,7 +57,7 @@ export async function findOps<
     return await op.promise.promise;
   }
 
-  const step = await getSteps(reportOp);
+  const step = await getStep(reportOp);
 
   // Run the handler and pause until the next tick to discover ops
   const handlerPromise = workflow.handler(ctx, step).catch((e: unknown) => {

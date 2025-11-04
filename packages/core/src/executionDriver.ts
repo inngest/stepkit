@@ -5,30 +5,32 @@ import type { StateDriver } from "./stateDriver";
 import {
   controlFlow,
   StdOpCode,
+  type Context,
   type ControlFlow,
+  type ExtDefault,
   type InputDefault,
   type OpConfig,
   type OpFound,
   type OpResult,
-  type StdContext,
-  type StdStep,
+  type Step,
   type StripStandardSchema,
 } from "./types";
-import { ensureAsync, type HashId } from "./utils";
+import { ensureAsync, stdHashId, type HashId } from "./utils";
 import type { Workflow } from "./workflow";
 
 export type ExecutionDriver<
-  TContext extends StdContext<any>,
-  TStep extends StdStep,
+  TCtxExt extends ExtDefault,
+  TStepExt extends ExtDefault,
 > = {
   invoke: <TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput, TContext, TStep>,
+    workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
     input: StripStandardSchema<TInput>
   ) => Promise<TOutput>;
 };
 
-export function createStdStep(hash: HashId, reportOp: ReportOp): StdStep {
+export function createStdStep(hash: HashId, reportOp: ReportOp): Step {
   return {
+    ext: {},
     run: async <TStepRunOutput>(
       stepId: string,
       handler: (() => Promise<TStepRunOutput>) | (() => TStepRunOutput)
@@ -53,48 +55,36 @@ export function createStdStep(hash: HashId, reportOp: ReportOp): StdStep {
 /**
  * Concrete execution driver implementation. Can be extended.
  */
-export class BaseExecutionDriver<
-  TContext extends StdContext<any> = StdContext<any>,
-  TStep extends StdStep = StdStep,
-> implements ExecutionDriver<TContext, TStep>
+export abstract class BaseExecutionDriver<
+  TCtxExt extends ExtDefault = ExtDefault,
+  TStepExt extends ExtDefault = ExtDefault,
+> implements ExecutionDriver<TCtxExt, TStepExt>
 {
-  constructor(public state: StateDriver) {
+  constructor(
+    public state: StateDriver,
+    private hash: HashId = stdHashId
+  ) {
+    this.hash = hash;
     this.state = state;
   }
 
   async execute<TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput, TContext, TStep>,
-    ctx: TContext
+    workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
+    ctx: Context<TInput, TCtxExt>
   ): Promise<OpResult[]> {
-    const { inputSchema } = workflow;
-    if (inputSchema !== undefined) {
-      // We need to validate all of the items of the inputs array. But since the
-      // workflow schema is for a _single_ item, we must apply validation to
-      // every item in the array.
-      //
-      // This gets a little more complicated because the Standard Schema
-      // validate method may return a promise. So we need to "promisify" the
-      // validation result if it isn't a promise, allowing us to await
-      // Promise.all
-      const promise = ctx.inputs.map((item) => {
-        const result = inputSchema["~standard"].validate(item);
-        if (result instanceof Promise) {
-          return result;
-        }
-        return Promise.resolve(result);
-      });
+    if (workflow.inputSchema !== undefined) {
+      const result = await workflow.inputSchema["~standard"].validate(
+        ctx.input
+      );
 
-      const results = await Promise.all(promise);
-      const issues = results.flatMap((result) => result.issues ?? []);
-
-      if (issues.length > 0) {
+      if (result.issues !== undefined && result.issues.length > 0) {
         return [
           await this.onWorkflowResult(workflow, ctx, {
             config: { code: StdOpCode.workflow },
             id: { hashed: "", id: "", index: 0 },
             result: {
               status: "error",
-              error: toJsonError(new InvalidInputError(issues)),
+              error: toJsonError(new InvalidInputError(result.issues)),
             },
           }),
         ];
@@ -103,27 +93,25 @@ export class BaseExecutionDriver<
 
     return findOps({
       ctx,
-      getSteps: (reportOp) => this.getSteps(reportOp),
+      getStep: (reportOp) => this.getStep(reportOp),
       onStepsFound: (ops) => this.onStepsFound(workflow, ctx, ops),
       onWorkflowResult: (op) => this.onWorkflowResult(workflow, ctx, op),
       workflow,
     });
   }
 
-  async getSteps(_reportOp: ReportOp): Promise<TStep> {
-    throw new Error("not implemented");
-  }
+  abstract getStep(reportOp: ReportOp): Promise<Step<TStepExt>>;
 
   async invoke<TInput extends InputDefault, TOutput>(
-    _workflow: Workflow<TInput, TOutput, TContext, TStep>,
+    _workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
     _input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
     throw new Error("not implemented");
   }
 
-  onStepsFound = async (
-    workflow: Workflow<any, any, TContext, TStep>,
-    ctx: TContext,
+  onStepsFound = async <TInput extends InputDefault>(
+    workflow: Workflow<TInput, unknown, TCtxExt, TStepExt>,
+    ctx: Context<TInput, TCtxExt>,
     ops: OpFound[]
   ): Promise<ControlFlow> => {
     const newOps = handleExistingOps(this.state, ctx, ops);
@@ -131,9 +119,9 @@ export class BaseExecutionDriver<
     return await createOpResults(this.state, workflow, ctx, newOps);
   };
 
-  onWorkflowResult = async (
-    workflow: Workflow<any, any, TContext, TStep>,
-    ctx: TContext,
+  onWorkflowResult = async <TInput extends InputDefault>(
+    workflow: Workflow<TInput, unknown, TCtxExt, TStepExt>,
+    ctx: Context<TInput, TCtxExt>,
     op: OpResult
   ): Promise<OpResult> => {
     this.state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, op);
@@ -146,7 +134,7 @@ export class BaseExecutionDriver<
  */
 export function handleExistingOps(
   state: StateDriver,
-  ctx: StdContext,
+  ctx: Context,
   ops: OpFound[]
 ): OpFound[] {
   const newOps: OpFound[] = [];
@@ -191,13 +179,14 @@ export async function createOpFound<TOutput>(
 }
 
 export async function createOpResults<
-  TContext extends StdContext,
-  TStep extends StdStep,
+  TInput extends InputDefault,
   TOutput,
+  TCtxExt extends ExtDefault,
+  TStepExt extends ExtDefault,
 >(
   state: StateDriver,
-  workflow: Workflow<any, any, TContext, TStep>,
-  ctx: StdContext,
+  workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
+  ctx: Context<TInput, TCtxExt>,
   ops: OpFound<OpConfig, TOutput>[]
 ): Promise<ControlFlow> {
   const opResults: OpResult[] = [];

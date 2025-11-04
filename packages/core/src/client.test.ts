@@ -2,8 +2,7 @@ import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
 import { StepKitClient } from "./client";
-import type { InputDefault, StdContext } from "./implementer";
-import { staticSchema, type Pretty } from "./types";
+import { staticSchema } from "./types";
 
 describe("input type", () => {
   // Doesn't matter for these tests
@@ -15,7 +14,6 @@ describe("input type", () => {
 
     client.workflow({ id: "workflow" }, async (ctx) => {
       expectTypeOf(ctx.input).toEqualTypeOf<Record<string, unknown>>();
-      expectTypeOf(ctx.inputs).toEqualTypeOf<Record<string, unknown>[]>();
     });
   });
 
@@ -28,7 +26,6 @@ describe("input type", () => {
       { id: "workflow", inputSchema: staticSchema<Input>() },
       async (ctx) => {
         expectTypeOf(ctx.input).toEqualTypeOf<Input>();
-        expectTypeOf(ctx.inputs).toEqualTypeOf<Input[]>();
       }
     );
   });
@@ -40,7 +37,6 @@ describe("input type", () => {
 
     client.workflow({ id: "workflow", inputSchema }, async (ctx) => {
       expectTypeOf(ctx.input).toEqualTypeOf<{ name: string }>();
-      expectTypeOf(ctx.inputs).toEqualTypeOf<{ name: string }[]>();
     });
   });
 });
@@ -51,20 +47,14 @@ describe("custom ctx field", () => {
 
   // eslint-disable-next-line vitest/expect-expect
   it("default type", () => {
-    type Context<TInput extends InputDefault = InputDefault> = Pretty<
-      StdContext<TInput> & {
-        foo: string;
-      }
-    >;
+    type CtxExt = {
+      foo: string;
+    };
 
-    const client = new StepKitClient<Context<any>>({ driver });
+    const client = new StepKitClient<CtxExt>({ driver });
 
-    client.workflow(
-      { id: "workflow", inputSchema: staticSchema<{ name: string }>() },
-      async (ctx) => {
-        expectTypeOf(ctx.input).toEqualTypeOf<{ name: string }>();
-        expectTypeOf(ctx.inputs).toEqualTypeOf<{ name: string }[]>();
-      }
-    );
+    client.workflow({ id: "workflow" }, async (ctx) => {
+      expectTypeOf(ctx.ext.foo).toEqualTypeOf<string>();
+    });
   });
 });

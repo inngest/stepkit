@@ -4,11 +4,12 @@ import { z } from "zod";
 import type { Workflow } from "@stepkit/core";
 import {
   StdOpCode,
+  type Context,
+  type ExtDefault,
   type OpResult,
-  type StdContext,
 } from "@stepkit/core/implementer";
 
-import { InngestDriver, type Step } from "./drivers";
+import { InngestDriver, type StepExt } from "./drivers";
 
 async function sync() {
   const body = {
@@ -75,7 +76,7 @@ type CommResponse = {
 };
 
 async function execute(
-  workflow: Workflow<any, any, StdContext<any>, Step>,
+  workflow: Workflow<any, any, ExtDefault, StepExt>,
   req: z.infer<typeof commRequestBody>
 ): Promise<CommResponse> {
   if (!(workflow.driver instanceof InngestDriver)) {
@@ -119,13 +120,13 @@ async function execute(
     );
   }
 
-  const ctx: StdContext<any> = {
+  const ctx: Context = {
+    ext: {},
     input: {},
-    inputs: [{}],
     runId: req.ctx.run_id,
   };
   const ops = await workflow.driver.execute(workflow, ctx);
-  if (ops.length === 1) {
+  if (ops.length === 1 && ops[0] !== undefined) {
     const op = ops[0];
     if (op.config.code === StdOpCode.workflow) {
       if (op.result.status === "success") {
@@ -177,14 +178,22 @@ async function execute(
 }
 
 export function serve(
-  workflows: Workflow<any, any, StdContext<any>, Step>[]
+  workflows: Workflow<any, any, ExtDefault, StepExt>[]
 ): any {
+  if (workflows.length === 0) {
+    throw new Error("No workflows");
+  }
+
   return async (req: Request, res: Response) => {
     if (req.method === "GET") {
       return res.json({});
     }
 
     if (req.method === "POST") {
+      if (workflows[0] === undefined) {
+        throw new Error("unreachable: no workflows");
+      }
+
       const body = commRequestBody.parse(req.body);
       res.setHeader("content-type", "application/json");
       res.setHeader("x-inngest-sdk", "js:v0.0.0");
