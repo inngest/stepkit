@@ -7,14 +7,15 @@ import type { Workflow } from "./workflow";
 export async function executeUntilDone<
   TInput extends InputDefault,
   TOutput,
+  TWorkflowCfgExt extends ExtDefault,
   TCtxExt extends ExtDefault,
   TStepExt extends ExtDefault,
 >(
   execute: (
     ctx: Context<TInput, TCtxExt>,
-    workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>
+    workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>
   ) => Promise<OpResult[]>,
-  workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
+  workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
   ctx: Context<TInput, TCtxExt>
 ): Promise<TOutput> {
   const attempts: Record<string, number> = {};

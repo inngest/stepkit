@@ -60,7 +60,11 @@ export type StepExt = {
   sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
 };
 
-export class InngestDriver extends BaseExecutionDriver<ExtDefault, StepExt> {
+export class InngestDriver extends BaseExecutionDriver<
+  ExtDefault,
+  ExtDefault,
+  StepExt
+> {
   constructor() {
     super(stateDriver);
   }

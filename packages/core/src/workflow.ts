@@ -10,10 +10,12 @@ import type {
 export class Workflow<
   TInput extends InputDefault = InputDefault,
   TOutput = unknown,
+  TCfgExt extends ExtDefault = ExtDefault,
   TCtxExt extends ExtDefault = ExtDefault,
   TStepExt extends ExtDefault = ExtDefault,
 > {
-  readonly driver: ExecutionDriver<TCtxExt, TStepExt>;
+  readonly driver: ExecutionDriver<TCfgExt, TCtxExt, TStepExt>;
+  readonly ext: TCfgExt | undefined;
   readonly id: string;
   readonly handler: (
     ctx: Context<TInput, TCtxExt>,
@@ -24,12 +26,14 @@ export class Workflow<
 
   constructor({
     driver,
+    ext,
     handler,
     id,
     maxAttempts = 4,
     inputSchema: schema,
   }: {
-    driver: ExecutionDriver<TCtxExt, TStepExt>;
+    driver: ExecutionDriver<TCfgExt, TCtxExt, TStepExt>;
+    ext?: TCfgExt;
     handler: (
       ctx: Context<TInput, TCtxExt>,
       step: Step<TStepExt>
@@ -39,6 +43,7 @@ export class Workflow<
     inputSchema?: TInput;
   }) {
     this.driver = driver;
+    this.ext = ext;
     this.id = id;
     this.handler = handler;
     this.maxAttempts = maxAttempts;
