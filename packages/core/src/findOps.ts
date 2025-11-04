@@ -5,6 +5,8 @@ import {
   type Context,
   type ControlFlow,
   type ExtDefault,
+  type InputDefault,
+  type OpConfig,
   type OpFound,
   type OpResult,
   type Step,
@@ -12,7 +14,7 @@ import {
 import { type Workflow } from "./workflow";
 
 export type ReportOp = <TOutput = void>(
-  op: OpFound<any, TOutput>
+  op: OpFound<OpConfig, TOutput>
 ) => Promise<TOutput>;
 
 /**
@@ -20,9 +22,10 @@ export type ReportOp = <TOutput = void>(
  * are found. Also handles control flow.
  */
 export async function findOps<
+  TInput extends InputDefault,
+  TOutput,
   TCtxExt extends ExtDefault,
   TStepExt extends ExtDefault,
-  TOutput,
 >({
   ctx,
   getStep,
@@ -30,20 +33,22 @@ export async function findOps<
   onWorkflowResult,
   workflow,
 }: {
-  ctx: Context<any, TCtxExt>;
+  ctx: Context<TInput, TCtxExt>;
   getStep: (reportOp: ReportOp) => Promise<Step<TStepExt>>;
   onStepsFound: (ops: OpFound[]) => Promise<ControlFlow>;
   onWorkflowResult: (op: OpResult) => Promise<OpResult>;
-  workflow: Workflow<any, TOutput, TCtxExt, TStepExt>;
+  workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>;
 }): Promise<OpResult[]> {
-  const foundOps: OpFound[] = [];
+  const foundOps: OpFound<OpConfig, any>[] = [];
 
   let pause = createControlledPromise();
 
   /**
    * Reports an op and pauses it until it's allowed to continue.
    */
-  async function reportOp(op: OpFound<any, any>): Promise<any> {
+  async function reportOp<TOutput>(
+    op: OpFound<OpConfig, TOutput>
+  ): Promise<TOutput> {
     foundOps.push(op);
 
     // Only continue when the driver allows it

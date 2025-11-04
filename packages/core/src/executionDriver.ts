@@ -109,9 +109,9 @@ export abstract class BaseExecutionDriver<
     throw new Error("not implemented");
   }
 
-  onStepsFound = async (
-    workflow: Workflow<any, any, TCtxExt, TStepExt>,
-    ctx: Context<any, TCtxExt>,
+  onStepsFound = async <TInput extends InputDefault>(
+    workflow: Workflow<TInput, unknown, TCtxExt, TStepExt>,
+    ctx: Context<TInput, TCtxExt>,
     ops: OpFound[]
   ): Promise<ControlFlow> => {
     const newOps = handleExistingOps(this.state, ctx, ops);
@@ -119,9 +119,9 @@ export abstract class BaseExecutionDriver<
     return await createOpResults(this.state, workflow, ctx, newOps);
   };
 
-  onWorkflowResult = async (
-    workflow: Workflow<any, any, TCtxExt, TStepExt>,
-    ctx: Context<any, TCtxExt>,
+  onWorkflowResult = async <TInput extends InputDefault>(
+    workflow: Workflow<TInput, unknown, TCtxExt, TStepExt>,
+    ctx: Context<TInput, TCtxExt>,
     op: OpResult
   ): Promise<OpResult> => {
     this.state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, op);
@@ -179,13 +179,14 @@ export async function createOpFound<TOutput>(
 }
 
 export async function createOpResults<
+  TInput extends InputDefault,
+  TOutput,
   TCtxExt extends ExtDefault,
   TStepExt extends ExtDefault,
-  TOutput,
 >(
   state: StateDriver,
-  workflow: Workflow<any, any, TCtxExt, TStepExt>,
-  ctx: Context<any, TCtxExt>,
+  workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
+  ctx: Context<TInput, TCtxExt>,
   ops: OpFound<OpConfig, TOutput>[]
 ): Promise<ControlFlow> {
   const opResults: OpResult[] = [];
