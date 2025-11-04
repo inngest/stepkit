@@ -40,7 +40,14 @@ describe("input type", () => {
     const client = new StepKitClient({ driver });
 
     client.workflow({ id: "workflow" }, async (ctx) => {
-      expectTypeOf(ctx.input).toEqualTypeOf<Record<string, unknown>>();
+      expectTypeOf(ctx.input).toEqualTypeOf<{
+        data: Record<string, unknown>;
+        ext: ExtDefault;
+        id: string;
+        name: string;
+        time: Date;
+        type: "cron" | "event" | "invoke";
+      }>();
     });
   });
 
@@ -52,7 +59,14 @@ describe("input type", () => {
     client.workflow(
       { id: "workflow", inputSchema: staticSchema<Input>() },
       async (ctx) => {
-        expectTypeOf(ctx.input).toEqualTypeOf<Input>();
+        expectTypeOf(ctx.input).toEqualTypeOf<{
+          data: Input;
+          ext: ExtDefault;
+          id: string;
+          name: string;
+          time: Date;
+          type: "cron" | "event" | "invoke";
+        }>();
       }
     );
   });
@@ -63,7 +77,14 @@ describe("input type", () => {
     const inputSchema = z.object({ name: z.string() });
 
     client.workflow({ id: "workflow", inputSchema }, async (ctx) => {
-      expectTypeOf(ctx.input).toEqualTypeOf<{ name: string }>();
+      expectTypeOf(ctx.input).toEqualTypeOf<{
+        data: { name: string };
+        ext: ExtDefault;
+        id: string;
+        name: string;
+        time: Date;
+        type: "cron" | "event" | "invoke";
+      }>();
     });
   });
 });

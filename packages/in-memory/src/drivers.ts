@@ -108,11 +108,18 @@ export class InMemoryDriver extends BaseExecutionDriver {
 
   async invoke<TInput extends InputDefault, TOutput>(
     workflow: Workflow<TInput, TOutput>,
-    input: StripStandardSchema<TInput>
+    data: StripStandardSchema<TInput>
   ): Promise<TOutput> {
     const ctx: Context<TInput> = {
       ext: {},
-      input,
+      input: {
+        data,
+        ext: {},
+        id: crypto.randomUUID(),
+        name: "in-memory",
+        time: new Date(),
+        type: "invoke",
+      },
       runId: crypto.randomUUID(),
     };
     stateDriver.addRun(ctx.runId, workflow.maxAttempts ?? defaultMaxAttempts);

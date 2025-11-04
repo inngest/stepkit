@@ -2,7 +2,7 @@ import type { ExecutionDriver } from "./executionDriver";
 import type {
   Context,
   ExtDefault,
-  InputDefault,
+  InputSchemaDefault,
   Step,
   StripStandardSchema,
 } from "./types";
@@ -28,7 +28,7 @@ export function eventTrigger(name: string): EventTrigger {
 export type Trigger = CronTrigger | EventTrigger;
 
 export class Workflow<
-  TInput extends InputDefault = InputDefault,
+  TInput extends InputSchemaDefault = InputSchemaDefault,
   TOutput = unknown,
   TCfgExt extends ExtDefault = ExtDefault,
   TCtxExt extends ExtDefault = ExtDefault,

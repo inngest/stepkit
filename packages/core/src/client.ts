@@ -1,5 +1,5 @@
 import type { ExecutionDriver } from "./executionDriver";
-import type { Context, ExtDefault, InputDefault, Step } from "./types";
+import type { Context, ExtDefault, InputSchemaDefault, Step } from "./types";
 import { Workflow, type Trigger } from "./workflow";
 
 export class StepKitClient<
@@ -17,7 +17,10 @@ export class StepKitClient<
     this.driver = driver;
   }
 
-  workflow<TInput extends InputDefault = InputDefault, TOutput = unknown>(
+  workflow<
+    TInput extends InputSchemaDefault = InputSchemaDefault,
+    TOutput = unknown,
+  >(
     opts: {
       ext?: TWorkflowCfgExt;
       id: string;

@@ -5,34 +5,45 @@ import type { JsonError } from "./errors";
 import type { ControlledPromise } from "./promises";
 
 // Default type for input schema
-export type InputDefault = StandardSchemaV1<Record<string, unknown>>;
+export type InputSchemaDefault = StandardSchemaV1<Record<string, unknown>>;
 
 // Default type for extensions (`ctx.ext` and `step.ext`)
 export type ExtDefault = Record<string, unknown>;
 
-export type StripStandardSchema<TInput extends InputDefault> =
+export type StripStandardSchema<TInput extends InputSchemaDefault> =
   TInput extends StandardSchemaV1<infer U> ? U : never;
 
 // A schema that's static only. No runtime validation.
 export function staticSchema<
-  TInput extends Record<string, unknown>,
->(): StandardSchemaV1<TInput> {
+  TSchema extends Record<string, unknown>,
+>(): StandardSchemaV1<TSchema> {
   return z.any();
 }
 
+type InputType = "cron" | "event" | "invoke";
+
+type Input<TSchema extends InputSchemaDefault> = {
+  data: StandardSchemaV1.InferInput<TSchema>;
+  ext: ExtDefault;
+  id: string;
+  name: string;
+  time: Date;
+  type: InputType;
+};
+
 export type Context<
-  TInput extends InputDefault = InputDefault,
+  TInput extends InputSchemaDefault = InputSchemaDefault,
   TExt extends ExtDefault = ExtDefault,
 > = {
   ext: TExt;
-  input: StandardSchemaV1.InferInput<TInput>;
+  input: Input<TInput>;
   runId: string;
 };
 
 // Replace `TContext["input"]` with `TInput[]`
 export type OverrideContextInput<
   TContext extends Context,
-  TInput extends InputDefault,
+  TInput extends InputSchemaDefault,
 > = Pretty<
   Omit<TContext, "input"> & {
     input: StandardSchemaV1.InferOutput<TInput>;

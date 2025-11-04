@@ -1,13 +1,18 @@
 import hash from "hash.js";
 
 import { fromJsonError } from "./errors";
-import type { Context, ExtDefault, InputDefault, OpResult } from "./types";
+import type {
+  Context,
+  ExtDefault,
+  InputSchemaDefault,
+  OpResult,
+} from "./types";
 import type { Workflow } from "./workflow";
 
 const defaultMaxAttempts = 4;
 
 export async function executeUntilDone<
-  TInput extends InputDefault,
+  TInput extends InputSchemaDefault,
   TOutput,
   TWorkflowCfgExt extends ExtDefault,
   TCtxExt extends ExtDefault,
