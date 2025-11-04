@@ -1,6 +1,6 @@
 import type { ExecutionDriver } from "./executionDriver";
 import type { Context, ExtDefault, InputDefault, Step } from "./types";
-import { Workflow } from "./workflow";
+import { Workflow, type Trigger } from "./workflow";
 
 export class StepKitClient<
   TWorkflowCfgExt extends ExtDefault = ExtDefault,
@@ -19,10 +19,11 @@ export class StepKitClient<
 
   workflow<TInput extends InputDefault = InputDefault, TOutput = unknown>(
     opts: {
-      id: string;
       ext?: TWorkflowCfgExt;
-      maxAttempts?: number;
+      id: string;
       inputSchema?: TInput;
+      maxAttempts?: number;
+      triggers?: Trigger[];
     },
     handler: (
       ctx: Context<TInput, TCtxExt>,

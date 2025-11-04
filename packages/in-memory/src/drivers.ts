@@ -95,6 +95,8 @@ export class InMemoryStateDriver implements StateDriver {
 
 const stateDriver = new InMemoryStateDriver();
 
+const defaultMaxAttempts = 4;
+
 export class InMemoryDriver extends BaseExecutionDriver {
   constructor() {
     super(stateDriver);
@@ -113,7 +115,7 @@ export class InMemoryDriver extends BaseExecutionDriver {
       input,
       runId: crypto.randomUUID(),
     };
-    stateDriver.addRun(ctx.runId, workflow.maxAttempts);
+    stateDriver.addRun(ctx.runId, workflow.maxAttempts ?? defaultMaxAttempts);
 
     try {
       return await executeUntilDone(
