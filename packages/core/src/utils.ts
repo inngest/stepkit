@@ -28,6 +28,10 @@ export async function executeUntilDone<
     const attempt = attempts[op.id.hashed] ?? 1;
 
     if (op.result.status === "error") {
+      if (op.result.error.props?.canRetry === false) {
+        throw fromJsonError(op.result.error);
+      }
+
       if (attempt < workflow.maxAttempts) {
         // Bump attempt and retry
         attempts[op.id.hashed] = attempt + 1;

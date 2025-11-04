@@ -1,4 +1,11 @@
-import { fromJsonError, InvalidInputError, toJsonError } from "./errors";
+import { AsyncLocalStorage } from "async_hooks";
+
+import {
+  fromJsonError,
+  InvalidInputError,
+  NestedStepError,
+  toJsonError,
+} from "./errors";
 import { findOps, type ReportOp } from "./findOps";
 import { createControlledPromise } from "./promises";
 import type { StateDriver } from "./stateDriver";
@@ -15,8 +22,29 @@ import {
   type Step,
   type StripStandardSchema,
 } from "./types";
-import { ensureAsync, stdHashId, type HashId } from "./utils";
+import { ensureAsync, type HashId } from "./utils";
 import type { Workflow } from "./workflow";
+
+// Used to detect nested steps
+export const insideStep = {
+  clear: (): void => {
+    insideStep.storage.disable();
+  },
+  get: (): string | undefined => {
+    const value = insideStep.storage.getStore();
+    if (value === undefined) {
+      return undefined;
+    }
+    if (typeof value !== "string") {
+      throw new Error("unreachable: invalid value in AsyncLocalStorage");
+    }
+    return value;
+  },
+  set: (stepId: string): void => {
+    insideStep.storage.enterWith(stepId);
+  },
+  storage: new AsyncLocalStorage(),
+};
 
 export type ExecutionDriver<
   TCtxExt extends ExtDefault,
@@ -60,11 +88,7 @@ export abstract class BaseExecutionDriver<
   TStepExt extends ExtDefault = ExtDefault,
 > implements ExecutionDriver<TCtxExt, TStepExt>
 {
-  constructor(
-    public state: StateDriver,
-    private hash: HashId = stdHashId
-  ) {
-    this.hash = hash;
+  constructor(public state: StateDriver) {
     this.state = state;
   }
 
@@ -163,6 +187,13 @@ export async function createOpFound<TOutput>(
   config: OpConfig,
   handler?: (() => Promise<TOutput>) | (() => TOutput)
 ): Promise<TOutput> {
+  const parentStepId = insideStep.get();
+  if (parentStepId !== undefined) {
+    throw new NestedStepError({
+      stepId: id,
+      parentStepId,
+    });
+  }
   if (handler !== undefined) {
     handler = ensureAsync(handler);
   }
@@ -200,6 +231,7 @@ export async function createOpResults<
     if (op.handler !== undefined) {
       // Dynamic op
       try {
+        insideStep.set(op.id.id);
         const output = await op.handler();
         opResult.result = { status: "success", output };
       } catch (e) {
@@ -207,6 +239,8 @@ export async function createOpResults<
           status: "error",
           error: toJsonError(e),
         };
+      } finally {
+        insideStep.clear();
       }
     }
 

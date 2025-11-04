@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { StepKitClient } from "@stepkit/core";
+import { NonRetryableError, StepKitClient } from "@stepkit/core";
 import type { JsonError } from "@stepkit/core/implementer";
 
 import { InMemoryDriver } from "./drivers";
@@ -116,6 +116,7 @@ describe("invoke", () => {
       cause: {
         message: "the cause",
         name: "BarError",
+        stack: expect.any(String),
       },
     });
 
@@ -129,6 +130,7 @@ describe("invoke", () => {
       cause: {
         message: "the cause",
         name: "BarError",
+        stack: expect.any(String),
       },
     });
   });
@@ -204,6 +206,7 @@ describe("invoke", () => {
           2
         ),
         name: "Error",
+        stack: expect.any(String),
       },
     });
     expect(counter).toEqual(0);
@@ -270,6 +273,106 @@ describe("invoke", () => {
       b: "B",
     });
   });
+
+  it("nested steps", async () => {
+    const client = new StepKitClient({ driver: new InMemoryDriver() });
+
+    const counters = {
+      top: 0,
+      a: 0,
+      b: 0,
+      bottom: 0,
+    };
+    const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
+      counters.top++;
+
+      await step.run("a", async () => {
+        counters.a++;
+        await step.run("b", async () => {
+          counters.b++;
+        });
+      });
+
+      counters.bottom++;
+    });
+
+    let error: unknown;
+    try {
+      await workflow.invoke({});
+    } catch (e) {
+      error = e;
+    }
+
+    expect(counters).toEqual({
+      top: 1,
+      a: 1,
+      b: 0,
+      bottom: 0,
+    });
+    expectError(error, {
+      message: "Step is nested inside another step: b inside a",
+      name: "NestedStepError",
+    });
+  });
+
+  it("NonRetryableError", async () => {
+    const client = new StepKitClient({ driver: new InMemoryDriver() });
+
+    class MyError extends Error {
+      constructor(message: string, options?: ErrorOptions) {
+        super(message, options);
+        this.name = this.constructor.name;
+      }
+    }
+
+    const counters = {
+      top: 0,
+      insideStep: 0,
+      bottom: 0,
+    };
+    const workflow = client.workflow(
+      { id: "workflow", maxAttempts: 2 },
+      async (_, step) => {
+        counters.top++;
+
+        await step.run("a", async () => {
+          counters.insideStep++;
+          throw new NonRetryableError("oh no", {
+            cause: new MyError("the cause"),
+          });
+        });
+
+        counters.bottom++;
+      }
+    );
+
+    let errorOutsideWorkflow: Error | undefined;
+    try {
+      await workflow.invoke({});
+    } catch (e) {
+      errorOutsideWorkflow = e as Error;
+    }
+
+    expect(counters).toEqual({
+      top: 1,
+      insideStep: 1,
+      bottom: 0,
+    });
+
+    // Actual type is `Error`, regardless of the type when thrown. This is
+    // because of JSON serialization
+    expect(errorOutsideWorkflow).toBeInstanceOf(Error);
+
+    expectError(errorOutsideWorkflow, {
+      message: "oh no",
+      name: "NonRetryableError",
+      cause: {
+        message: "the cause",
+        name: "MyError",
+        stack: expect.any(String),
+      },
+    });
+  });
 });
 
 function expectError(actual: unknown, expected: JsonError) {
@@ -281,11 +384,5 @@ function expectError(actual: unknown, expected: JsonError) {
   expect(actual.message).toEqual(expected.message);
   expect(actual.name).toEqual(expected.name);
   expect(actual.stack).toEqual(expect.any(String));
-
-  if (expected.cause === undefined) {
-    expect(actual.cause).toBeUndefined();
-    return;
-  }
-
-  expectError(actual.cause, expected.cause);
+  expect(actual.cause).toEqual(expected.cause);
 }
