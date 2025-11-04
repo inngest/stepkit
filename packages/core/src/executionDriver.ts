@@ -5,21 +5,21 @@ import type { StateDriver } from "./stateDriver";
 import {
   controlFlow,
   StdOpCode,
+  type Context,
   type ControlFlow,
   type InputDefault,
   type OpConfig,
   type OpFound,
   type OpResult,
-  type StdContext,
-  type StdStep,
+  type Step,
   type StripStandardSchema,
 } from "./types";
 import { ensureAsync, type HashId } from "./utils";
 import type { Workflow } from "./workflow";
 
 export type ExecutionDriver<
-  TContext extends StdContext<any>,
-  TStep extends StdStep,
+  TContext extends Context<any>,
+  TStep extends Step,
 > = {
   invoke: <TInput extends InputDefault, TOutput>(
     workflow: Workflow<TInput, TOutput, TContext, TStep>,
@@ -27,8 +27,9 @@ export type ExecutionDriver<
   ) => Promise<TOutput>;
 };
 
-export function createStdStep(hash: HashId, reportOp: ReportOp): StdStep {
+export function createStdStep(hash: HashId, reportOp: ReportOp): Step {
   return {
+    ext: {},
     run: async <TStepRunOutput>(
       stepId: string,
       handler: (() => Promise<TStepRunOutput>) | (() => TStepRunOutput)
@@ -54,8 +55,8 @@ export function createStdStep(hash: HashId, reportOp: ReportOp): StdStep {
  * Concrete execution driver implementation. Can be extended.
  */
 export class BaseExecutionDriver<
-  TContext extends StdContext<any> = StdContext<any>,
-  TStep extends StdStep = StdStep,
+  TContext extends Context<any> = Context<any>,
+  TStep extends Step<any> = Step<any>,
 > implements ExecutionDriver<TContext, TStep>
 {
   constructor(public state: StateDriver) {
@@ -146,7 +147,7 @@ export class BaseExecutionDriver<
  */
 export function handleExistingOps(
   state: StateDriver,
-  ctx: StdContext,
+  ctx: Context,
   ops: OpFound[]
 ): OpFound[] {
   const newOps: OpFound[] = [];
@@ -191,13 +192,13 @@ export async function createOpFound<TOutput>(
 }
 
 export async function createOpResults<
-  TContext extends StdContext,
-  TStep extends StdStep,
+  TContext extends Context,
+  TStep extends Step,
   TOutput,
 >(
   state: StateDriver,
   workflow: Workflow<any, any, TContext, TStep>,
-  ctx: StdContext,
+  ctx: Context,
   ops: OpFound<OpConfig, TOutput>[]
 ): Promise<ControlFlow> {
   const opResults: OpResult[] = [];

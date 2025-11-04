@@ -1,16 +1,11 @@
 import type { ExecutionDriver } from "./executionDriver";
-import type {
-  InputDefault,
-  StdContext,
-  StdStep,
-  StripStandardSchema,
-} from "./types";
+import type { Context, InputDefault, Step, StripStandardSchema } from "./types";
 
 export class Workflow<
   TInput extends InputDefault = InputDefault,
   TOutput = unknown,
-  TContext extends StdContext<TInput> = StdContext<TInput>,
-  TStep extends StdStep = StdStep,
+  TContext extends Context<TInput, any> = Context<TInput, any>,
+  TStep extends Step = Step,
 > {
   readonly driver: ExecutionDriver<TContext, TStep>;
   readonly id: string;

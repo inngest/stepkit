@@ -4,11 +4,11 @@ import {
   createStdStep,
   stdHashId,
   StdOpCode,
+  type Context,
   type OpResult,
   type ReportOp,
   type StateDriver,
-  type StdContext,
-  type StdStep,
+  type Step,
 } from "@stepkit/core/implementer";
 
 export class InngestStateDriver implements StateDriver {
@@ -52,23 +52,25 @@ export class InngestStateDriver implements StateDriver {
 
 const stateDriver = new InngestStateDriver();
 
-export type Step = StdStep & {
+export type CustomStep = Step<{
   sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
-};
+}>;
 
-export class InngestDriver extends BaseExecutionDriver<StdContext, Step> {
+export class InngestDriver extends BaseExecutionDriver<Context, CustomStep> {
   constructor() {
     super(stateDriver);
   }
 
-  async getSteps(reportOp: ReportOp): Promise<Step> {
+  async getSteps(reportOp: ReportOp): Promise<CustomStep> {
     return {
       ...createStdStep(stdHashId, reportOp),
-      sleepUntil: async (stepId: string, wakeupAt: Date) => {
-        await createOpFound(stdHashId, reportOp, stepId, {
-          code: StdOpCode.sleep,
-          options: { wakeupAt },
-        });
+      ext: {
+        sleepUntil: async (stepId: string, wakeupAt: Date) => {
+          await createOpFound(stdHashId, reportOp, stepId, {
+            code: StdOpCode.sleep,
+            options: { wakeupAt },
+          });
+        },
       },
     };
   }

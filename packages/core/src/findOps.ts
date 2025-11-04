@@ -2,11 +2,11 @@ import { toJsonError } from "./errors";
 import { createControlledPromise } from "./promises";
 import {
   StdOpCode,
+  type Context,
   type ControlFlow,
   type OpFound,
   type OpResult,
-  type StdContext,
-  type StdStep as StdSteps,
+  type Step as StdSteps,
 } from "./types";
 import { type Workflow } from "./workflow";
 
@@ -19,7 +19,7 @@ export type ReportOp = <TOutput = void>(
  * are found. Also handles control flow.
  */
 export async function findOps<
-  TContext extends StdContext,
+  TContext extends Context,
   TSteps extends StdSteps,
   TOutput,
 >({

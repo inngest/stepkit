@@ -15,7 +15,7 @@ export const workflow = client.workflow(
       return "Alice";
     });
 
-    await step.sleepUntil("zzz", new Date(Date.now() + 1000));
+    await step.ext.sleepUntil("zzz", new Date(Date.now() + 1000));
 
     console.log("workflow: bottom");
 

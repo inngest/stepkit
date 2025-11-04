@@ -1,14 +1,14 @@
 import hash from "hash.js";
 
 import { fromJsonError } from "./errors";
-import type { InputDefault, OpResult, StdContext, StdStep } from "./types";
+import type { Context, InputDefault, OpResult, Step } from "./types";
 import type { Workflow } from "./workflow";
 
 export async function executeUntilDone<
   TInput extends InputDefault,
   TOutput,
-  TContext extends StdContext<TInput>,
-  TStep extends StdStep,
+  TContext extends Context<TInput, any>,
+  TStep extends Step,
 >(
   execute: (
     ctx: TContext,

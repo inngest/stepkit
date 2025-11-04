@@ -4,11 +4,11 @@ import { z } from "zod";
 import type { Workflow } from "@stepkit/core";
 import {
   StdOpCode,
+  type Context,
   type OpResult,
-  type StdContext,
 } from "@stepkit/core/implementer";
 
-import { InngestDriver, type Step } from "./drivers";
+import { InngestDriver, type CustomStep } from "./drivers";
 
 async function sync() {
   const body = {
@@ -75,7 +75,7 @@ type CommResponse = {
 };
 
 async function execute(
-  workflow: Workflow<any, any, StdContext<any>, Step>,
+  workflow: Workflow<any, any, Context<any, any>, CustomStep>,
   req: z.infer<typeof commRequestBody>
 ): Promise<CommResponse> {
   if (!(workflow.driver instanceof InngestDriver)) {
@@ -119,7 +119,8 @@ async function execute(
     );
   }
 
-  const ctx: StdContext<any> = {
+  const ctx: Context<any> = {
+    ext: {},
     input: {},
     inputs: [{}],
     runId: req.ctx.run_id,
@@ -177,7 +178,7 @@ async function execute(
 }
 
 export function serve(
-  workflows: Workflow<any, any, StdContext<any>, Step>[]
+  workflows: Workflow<any, any, Context, CustomStep>[]
 ): any {
   return async (req: Request, res: Response) => {
     if (req.method === "GET") {

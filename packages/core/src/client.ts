@@ -1,15 +1,15 @@
 import type { ExecutionDriver } from "./executionDriver";
 import type {
+  Context,
   InputDefault,
   OverrideContextInput,
-  StdContext,
-  StdStep,
+  Step,
 } from "./types";
 import { Workflow } from "./workflow";
 
 export class StepKitClient<
-  TContext extends StdContext<any>,
-  TStep extends StdStep = StdStep,
+  TContext extends Context<any, any>,
+  TStep extends Step = Step,
 > {
   private readonly driver: ExecutionDriver<TContext, TStep>;
 

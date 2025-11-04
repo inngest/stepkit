@@ -8,10 +8,10 @@ import type { ReportOp } from "./findOps";
 import type { StateDriver } from "./stateDriver";
 import {
   StdOpCode,
+  type Context,
   type InputDefault,
   type OpResult,
-  type StdContext,
-  type StdStep,
+  type Step,
   type StripStandardSchema,
 } from "./types";
 import { executeUntilDone, stdHashId } from "./utils";
@@ -21,8 +21,8 @@ export type {
   OpResult,
   ReportOp,
   StateDriver,
-  StdContext,
-  StdStep,
+  Context,
+  Step,
   InputDefault,
   StripStandardSchema,
 };

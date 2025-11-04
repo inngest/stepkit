@@ -7,7 +7,7 @@ import {
   createOpFound,
   createStdStep,
 } from "./implementer";
-import type { OpResult, StdContext, StdStep } from "./types";
+import type { Context, OpResult, Step } from "./types";
 import { executeUntilDone, stdHashId } from "./utils";
 
 class StateDriver {
@@ -28,13 +28,14 @@ class StateDriver {
 }
 
 class ExecutionDriver extends BaseExecutionDriver {
-  async getSteps(reportOp: ReportOp): Promise<StdStep> {
+  async getSteps(reportOp: ReportOp): Promise<Step> {
     return createStdStep(stdHashId, reportOp);
   }
 }
 
 describe("execute once", () => {
-  const ctx: StdContext = {
+  const ctx: Context = {
+    ext: {},
     input: {},
     inputs: [{}],
     runId: "test-run-id",
@@ -242,7 +243,8 @@ describe("execute once", () => {
 });
 
 describe("execute to completion", () => {
-  const ctx: StdContext = {
+  const ctx: Context = {
+    ext: {},
     input: {},
     inputs: [{}],
     runId: "test-run-id",
@@ -533,7 +535,8 @@ describe("execute to completion", () => {
 it("custom step", async () => {
   // Define a custom step. Ensure that the step's logic is only called once
 
-  const ctx: StdContext = {
+  const ctx: Context = {
+    ext: {},
     input: {},
     inputs: [{}],
     runId: "test-run-id",
@@ -550,26 +553,28 @@ it("custom step", async () => {
     return a * b;
   }
 
-  type Step = StdStep & {
+  type CustomStep = Step<{
     multiply: (stepId: string, a: number, b: number) => Promise<number>;
-  };
+  }>;
 
-  class ExecutionDriver extends BaseExecutionDriver<StdContext, Step> {
-    async getSteps(reportOp: ReportOp): Promise<Step> {
+  class ExecutionDriver extends BaseExecutionDriver<Context, CustomStep> {
+    async getSteps(reportOp: ReportOp): Promise<CustomStep> {
       return {
         ...createStdStep(stdHashId, reportOp),
-        multiply: async (
-          stepId: string,
-          a: number,
-          b: number
-        ): Promise<number> => {
-          return await createOpFound(
-            stdHashId,
-            reportOp,
-            stepId,
-            { code: "step.multiply" },
-            () => multiply(a, b)
-          );
+        ext: {
+          multiply: async (
+            stepId: string,
+            a: number,
+            b: number
+          ): Promise<number> => {
+            return await createOpFound(
+              stdHashId,
+              reportOp,
+              stepId,
+              { code: "step.multiply" },
+              () => multiply(a, b)
+            );
+          },
         },
       };
     }
@@ -581,7 +586,7 @@ it("custom step", async () => {
   let result: number;
   const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
     counters.workflowTop++;
-    result = await step.multiply("foo", 2, 3);
+    result = await step.ext.multiply("foo", 2, 3);
     counters.workflowBottom++;
     return result;
   });

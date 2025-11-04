@@ -4,12 +4,12 @@ import {
   createStdStep,
   executeUntilDone,
   stdHashId,
+  type Context,
   type InputDefault,
   type OpResult,
   type ReportOp,
   type StateDriver,
-  type StdContext,
-  type StdStep,
+  type Step,
   type StripStandardSchema,
 } from "@stepkit/core/implementer";
 
@@ -103,16 +103,17 @@ export class InMemoryDriver extends BaseExecutionDriver {
     this.activeRuns = new Set();
   }
 
-  async getSteps(reportOp: ReportOp): Promise<StdStep> {
+  async getSteps(reportOp: ReportOp): Promise<Step> {
     return createStdStep(stdHashId, reportOp);
   }
 
   async invoke<TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput, StdContext<TInput>>,
+    workflow: Workflow<TInput, TOutput, Context<TInput>>,
     input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
-    const ctx: StdContext<TInput> = {
-      input: input,
+    const ctx: Context<TInput> = {
+      ext: {},
+      input,
       inputs: [input],
       runId: crypto.randomUUID(),
     };
