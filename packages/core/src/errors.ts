@@ -9,6 +9,21 @@ export class InvalidInputError extends Error {
   }
 }
 
+export class NestedStepError extends Error {
+  constructor({
+    stepId,
+    parentStepId,
+  }: {
+    stepId: string;
+    parentStepId: string;
+  }) {
+    super(
+      `Step is nested inside another step: ${stepId} inside ${parentStepId}`
+    );
+    this.name = "NestedStepError";
+  }
+}
+
 // Errors be be serialized/deserialized as JSON. We'll store as much info as
 // possible for reconstructing the error
 export type JsonError = {

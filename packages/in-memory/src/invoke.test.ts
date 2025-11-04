@@ -270,6 +270,48 @@ describe("invoke", () => {
       b: "B",
     });
   });
+
+  it("nested steps", async () => {
+    const client = new StepKitClient({ driver: new InMemoryDriver() });
+
+    const counters = {
+      top: 0,
+      a: 0,
+      b: 0,
+      bottom: 0,
+    };
+    const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
+      counters.top++;
+
+      await step.run("a", async () => {
+        counters.a++;
+        await step.run("b", async () => {
+          counters.b++;
+        });
+      });
+
+      counters.bottom++;
+    });
+
+    let error: unknown;
+    try {
+      await workflow.invoke({});
+    } catch (e) {
+      error = e;
+    }
+
+    expect(counters).toEqual({
+      top: 8,
+      a: 4,
+      b: 0,
+      bottom: 0,
+    });
+    expect(error).toBeInstanceOf(Error);
+    expectError(error, {
+      message: "Step is nested inside another step: b inside a",
+      name: "NestedStepError",
+    });
+  });
 });
 
 function expectError(actual: unknown, expected: JsonError) {
