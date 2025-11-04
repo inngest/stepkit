@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { StepKitClient } from "@stepkit/core";
+import { NonRetryableError, StepKitClient } from "@stepkit/core";
 import type { JsonError } from "@stepkit/core/implementer";
 
 import { InMemoryDriver } from "./drivers";
@@ -301,15 +301,72 @@ describe("invoke", () => {
     }
 
     expect(counters).toEqual({
-      top: 8,
-      a: 4,
+      top: 1,
+      a: 1,
       b: 0,
       bottom: 0,
     });
-    expect(error).toBeInstanceOf(Error);
     expectError(error, {
       message: "Step is nested inside another step: b inside a",
       name: "NestedStepError",
+    });
+  });
+
+  it("NonRetryableError", async () => {
+    const client = new StepKitClient({ driver: new InMemoryDriver() });
+
+    class MyError extends Error {
+      constructor(message: string, options?: ErrorOptions) {
+        super(message, options);
+        this.name = this.constructor.name;
+      }
+    }
+
+    const counters = {
+      top: 0,
+      insideStep: 0,
+      bottom: 0,
+    };
+    const workflow = client.workflow(
+      { id: "workflow", maxAttempts: 2 },
+      async (_, step) => {
+        counters.top++;
+
+        await step.run("a", async () => {
+          counters.insideStep++;
+          throw new NonRetryableError("oh no", {
+            cause: new MyError("the cause"),
+          });
+        });
+
+        counters.bottom++;
+      }
+    );
+
+    let errorOutsideWorkflow: Error | undefined;
+    try {
+      await workflow.invoke({});
+    } catch (e) {
+      errorOutsideWorkflow = e as Error;
+    }
+
+    expect(counters).toEqual({
+      top: 1,
+      insideStep: 1,
+      bottom: 0,
+    });
+
+    // Actual type is `Error`, regardless of the type when thrown. This is
+    // because of JSON serialization
+    expect(errorOutsideWorkflow).toBeInstanceOf(Error);
+
+    expectError(errorOutsideWorkflow, {
+      message: "oh no",
+      name: "NonRetryableError",
+      cause: {
+        message: "the cause",
+        name: "MyError",
+      },
     });
   });
 });

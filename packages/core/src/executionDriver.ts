@@ -22,7 +22,7 @@ import {
   type Step,
   type StripStandardSchema,
 } from "./types";
-import { ensureAsync, stdHashId, type HashId } from "./utils";
+import { ensureAsync, type HashId } from "./utils";
 import type { Workflow } from "./workflow";
 
 // Used to detect nested steps
@@ -88,11 +88,7 @@ export abstract class BaseExecutionDriver<
   TStepExt extends ExtDefault = ExtDefault,
 > implements ExecutionDriver<TCtxExt, TStepExt>
 {
-  constructor(
-    public state: StateDriver,
-    private hash: HashId = stdHashId
-  ) {
-    this.hash = hash;
+  constructor(public state: StateDriver) {
     this.state = state;
   }
 
