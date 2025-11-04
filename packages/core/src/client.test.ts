@@ -2,11 +2,38 @@ import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
 import { StepKitClient } from "./client";
-import { staticSchema, type ExtDefault } from "./types";
+import { BaseExecutionDriver, createStdStep } from "./executionDriver";
+import { type ReportOp } from "./findOps";
+import {
+  staticSchema,
+  type ExtDefault,
+  type OpResult,
+  type Step,
+} from "./types";
+import { stdHashId } from "./utils";
+
+class DummyStateDriver {
+  getOp(_id: { runId: string; hashedOpId: string }): OpResult | undefined {
+    throw new Error("not implemented");
+  }
+  setOp(_id: { runId: string; hashedOpId: string }, _op: OpResult): void {
+    throw new Error("not implemented");
+  }
+}
 
 describe("input type", () => {
   // Doesn't matter for these tests
-  const driver = null as any;
+  class ExecutionDriver extends BaseExecutionDriver {
+    constructor() {
+      super(new DummyStateDriver());
+    }
+
+    async getStep(reportOp: ReportOp): Promise<Step> {
+      return createStdStep(stdHashId, reportOp);
+    }
+  }
+
+  const driver = new ExecutionDriver();
 
   // eslint-disable-next-line vitest/expect-expect
   it("default type", () => {
@@ -41,28 +68,7 @@ describe("input type", () => {
   });
 });
 
-describe("custom ctx field", () => {
-  // Doesn't matter for these tests
-  const driver = null as any;
-
-  // eslint-disable-next-line vitest/expect-expect
-  it("default type", () => {
-    type CtxExt = {
-      foo: string;
-    };
-
-    const client = new StepKitClient<ExtDefault, CtxExt>({ driver });
-
-    client.workflow({ id: "workflow" }, async (ctx) => {
-      expectTypeOf(ctx.ext.foo).toEqualTypeOf<string>();
-    });
-  });
-});
-
 describe("custom workflow config field", () => {
-  // Doesn't matter for these tests
-  const driver = null as any;
-
   // eslint-disable-next-line vitest/expect-expect
   it("default type", () => {
     type WorkflowConfigExt = {
@@ -72,7 +78,17 @@ describe("custom workflow config field", () => {
       };
     };
 
-    const client = new StepKitClient<WorkflowConfigExt>({ driver });
+    class ExecutionDriver extends BaseExecutionDriver<WorkflowConfigExt> {
+      constructor() {
+        super(new DummyStateDriver());
+      }
+
+      async getStep(reportOp: ReportOp): Promise<Step> {
+        return createStdStep(stdHashId, reportOp);
+      }
+    }
+
+    const client = new StepKitClient({ driver: new ExecutionDriver() });
 
     // Valid
     client.workflow(
@@ -99,5 +115,66 @@ describe("custom workflow config field", () => {
         return null;
       }
     );
+  });
+});
+
+// eslint-disable-next-line vitest/expect-expect
+it("custom ctx field", () => {
+  type CtxExt = {
+    foo: string;
+  };
+
+  class ExecutionDriver extends BaseExecutionDriver<ExtDefault, CtxExt> {
+    constructor() {
+      super(new DummyStateDriver());
+    }
+
+    async getStep(reportOp: ReportOp): Promise<Step> {
+      return createStdStep(stdHashId, reportOp);
+    }
+  }
+
+  const client = new StepKitClient({ driver: new ExecutionDriver() });
+
+  client.workflow({ id: "workflow" }, async (ctx) => {
+    expectTypeOf(ctx.ext.foo).toEqualTypeOf<string>();
+  });
+});
+
+// eslint-disable-next-line vitest/expect-expect
+it("custom step method", () => {
+  type StepExt = {
+    foo: (stepId: string) => Promise<string>;
+  };
+
+  class ExecutionDriver extends BaseExecutionDriver<
+    ExtDefault,
+    ExtDefault,
+    StepExt
+  > {
+    constructor() {
+      super(new DummyStateDriver());
+    }
+
+    async getStep(reportOp: ReportOp): Promise<Step<StepExt>> {
+      return {
+        ...createStdStep(stdHashId, reportOp),
+        ext: {
+          foo: async () => {
+            return "foo";
+          },
+        },
+      };
+    }
+  }
+
+  const client = new StepKitClient<ExtDefault, ExtDefault, StepExt>({
+    driver: new ExecutionDriver(),
+  });
+
+  client.workflow({ id: "workflow" }, async (_, step) => {
+    expectTypeOf(step.ext.foo).toEqualTypeOf<
+      (stepId: string) => Promise<string>
+    >();
   });
 });
