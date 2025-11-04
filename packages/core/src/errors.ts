@@ -64,7 +64,7 @@ export class NestedStepError extends NonRetryableError {
 // Errors be be serialized/deserialized as JSON. We'll store as much info as
 // possible for reconstructing the error
 export type JsonError = {
-  cause?: JsonError;
+  cause?: unknown;
   name: string;
   message: string;
   props?: StepKitErrorProps;
@@ -77,12 +77,17 @@ export function toJsonError(error: unknown): JsonError {
   if (error instanceof Error) {
     err = error;
   } else {
+    // Coerce to an error
     err = new Error(String(error));
   }
 
-  let cause: JsonError | undefined;
-  if (err.cause !== undefined) {
+  // TODO: Cause may not be an error, so we should not coerce it
+  let cause: unknown;
+  if (err.cause instanceof Error) {
     cause = toJsonError(err.cause);
+  } else if (err.cause !== undefined) {
+    // Coerce to JSON
+    cause = JSON.parse(JSON.stringify(err.cause));
   }
 
   const out: JsonError = {
@@ -102,15 +107,10 @@ export function toJsonError(error: unknown): JsonError {
 
 // Convert JSON to an error
 export function fromJsonError(json: JsonError): Error {
-  let cause: Error | undefined;
-  if (json.cause !== undefined) {
-    cause = fromJsonError(json.cause);
-  }
-
   const error = new Error(json.message);
   error.name = json.name;
   error.stack = json.stack;
-  error.cause = cause;
+  error.cause = json.cause;
 
   if (json.props !== undefined) {
     const props = stepKitErrorPropsSchema.parse(json.props);

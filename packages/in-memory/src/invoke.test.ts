@@ -116,6 +116,7 @@ describe("invoke", () => {
       cause: {
         message: "the cause",
         name: "BarError",
+        stack: expect.any(String),
       },
     });
 
@@ -129,6 +130,7 @@ describe("invoke", () => {
       cause: {
         message: "the cause",
         name: "BarError",
+        stack: expect.any(String),
       },
     });
   });
@@ -204,6 +206,7 @@ describe("invoke", () => {
           2
         ),
         name: "Error",
+        stack: expect.any(String),
       },
     });
     expect(counter).toEqual(0);
@@ -366,6 +369,7 @@ describe("invoke", () => {
       cause: {
         message: "the cause",
         name: "MyError",
+        stack: expect.any(String),
       },
     });
   });
@@ -380,11 +384,5 @@ function expectError(actual: unknown, expected: JsonError) {
   expect(actual.message).toEqual(expected.message);
   expect(actual.name).toEqual(expected.name);
   expect(actual.stack).toEqual(expect.any(String));
-
-  if (expected.cause === undefined) {
-    expect(actual.cause).toBeUndefined();
-    return;
-  }
-
-  expectError(actual.cause, expected.cause);
+  expect(actual.cause).toEqual(expected.cause);
 }
