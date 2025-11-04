@@ -5,7 +5,7 @@ import {
   type Context,
   type ControlFlow,
   type ExtDefault,
-  type InputDefault,
+  type InputSchemaDefault,
   type OpConfig,
   type OpFound,
   type OpResult,
@@ -22,7 +22,7 @@ export type ReportOp = <TOutput = void>(
  * are found. Also handles control flow.
  */
 export async function findOps<
-  TInput extends InputDefault,
+  TInput extends InputSchemaDefault,
   TOutput,
   TWorkflowCfgExt extends ExtDefault,
   TCtxExt extends ExtDefault,

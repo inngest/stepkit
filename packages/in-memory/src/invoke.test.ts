@@ -37,7 +37,7 @@ describe("invoke", () => {
 
     const output = await workflow.invoke({ msg: "hi" });
 
-    expect(input).toEqual({ msg: "hi" });
+    expect(input.data).toEqual({ msg: "hi" });
     expect(counters).toEqual({
       top: 3,
       getGreeting: 1,

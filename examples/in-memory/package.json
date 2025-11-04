@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "@stepkit/core": "*",
-    "@stepkit/in-memory": "*"
+    "@stepkit/in-memory": "*",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "tsx": "^4.20.6",

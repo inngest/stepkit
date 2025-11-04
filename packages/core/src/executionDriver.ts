@@ -15,7 +15,7 @@ import {
   type Context,
   type ControlFlow,
   type ExtDefault,
-  type InputDefault,
+  type InputSchemaDefault,
   type OpConfig,
   type OpFound,
   type OpResult,
@@ -51,7 +51,7 @@ export type ExecutionDriver<
   TCtxExt extends ExtDefault,
   TStepExt extends ExtDefault,
 > = {
-  invoke: <TInput extends InputDefault, TOutput>(
+  invoke: <TInput extends InputSchemaDefault, TOutput>(
     workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
     input: StripStandardSchema<TInput>
   ) => Promise<TOutput>;
@@ -94,13 +94,13 @@ export abstract class BaseExecutionDriver<
     this.state = state;
   }
 
-  async execute<TInput extends InputDefault, TOutput>(
+  async execute<TInput extends InputSchemaDefault, TOutput>(
     workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
     ctx: Context<TInput, TCtxExt>
   ): Promise<OpResult[]> {
     if (workflow.inputSchema !== undefined) {
       const result = await workflow.inputSchema["~standard"].validate(
-        ctx.input
+        ctx.input.data
       );
 
       if (result.issues !== undefined && result.issues.length > 0) {
@@ -128,14 +128,14 @@ export abstract class BaseExecutionDriver<
 
   abstract getStep(reportOp: ReportOp): Promise<Step<TStepExt>>;
 
-  async invoke<TInput extends InputDefault, TOutput>(
+  async invoke<TInput extends InputSchemaDefault, TOutput>(
     _workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
     _input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
     throw new Error("not implemented");
   }
 
-  onStepsFound = async <TInput extends InputDefault>(
+  onStepsFound = async <TInput extends InputSchemaDefault>(
     workflow: Workflow<TInput, unknown, TWorkflowCfgExt, TCtxExt, TStepExt>,
     ctx: Context<TInput, TCtxExt>,
     ops: OpFound[]
@@ -145,7 +145,7 @@ export abstract class BaseExecutionDriver<
     return await createOpResults(this.state, workflow, ctx, newOps);
   };
 
-  onWorkflowResult = async <TInput extends InputDefault>(
+  onWorkflowResult = async <TInput extends InputSchemaDefault>(
     workflow: Workflow<TInput, unknown, TWorkflowCfgExt, TCtxExt, TStepExt>,
     ctx: Context<TInput, TCtxExt>,
     op: OpResult
@@ -212,7 +212,7 @@ export async function createOpFound<TOutput>(
 }
 
 export async function createOpResults<
-  TInput extends InputDefault,
+  TInput extends InputSchemaDefault,
   TOutput,
   TWorkflowCfgExt extends ExtDefault,
   TCtxExt extends ExtDefault,

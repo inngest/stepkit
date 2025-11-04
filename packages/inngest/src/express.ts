@@ -122,7 +122,14 @@ async function execute(
 
   const ctx: Context = {
     ext: {},
-    input: {},
+    input: {
+      data: {},
+      ext: {},
+      id: crypto.randomUUID(),
+      name: "fake",
+      time: new Date(),
+      type: "event",
+    },
     runId: req.ctx.run_id,
   };
   const ops = await workflow.driver.execute(workflow, ctx);

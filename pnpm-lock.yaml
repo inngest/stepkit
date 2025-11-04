@@ -50,6 +50,9 @@ importers:
       '@stepkit/in-memory':
         specifier: '*'
         version: link:../../packages/in-memory
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
     devDependencies:
       tsx:
         specifier: ^4.20.6

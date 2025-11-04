@@ -1,23 +1,19 @@
+import { z } from "zod";
+
 import { client } from "./client";
 
 export const workflow = client.workflow(
-  { id: "my-workflow" },
+  {
+    id: "say-hi",
+
+    // Static and runtime type safety for the input
+    inputSchema: z.object({ name: z.string() }),
+  },
   async (ctx, step) => {
-    console.log(ctx.input);
-    console.log("workflow: top");
-
-    const greeting = await step.run("get-greeting", () => {
-      console.log("get-greeting: executing");
-      return "Hello";
+    const randomNumber = await step.run("random-number", () => {
+      return Math.floor(Math.random() * 100);
     });
 
-    const name = await step.run("get-name", () => {
-      console.log("get-name: executing");
-      return "Alice";
-    });
-
-    console.log("workflow: bottom");
-
-    return `${greeting}, ${name}!`;
+    return `Hello ${ctx.input.name}! Your random number is ${randomNumber.toString()}.`;
   }
 );

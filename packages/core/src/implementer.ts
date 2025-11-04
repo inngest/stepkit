@@ -10,7 +10,7 @@ import {
   StdOpCode,
   type Context,
   type ExtDefault,
-  type InputDefault,
+  type InputSchemaDefault,
   type OpResult,
   type Step,
   type StripStandardSchema,
@@ -25,7 +25,7 @@ export type {
   StateDriver,
   Context,
   Step,
-  InputDefault,
+  InputSchemaDefault as InputDefault,
   StripStandardSchema,
 };
 
