@@ -67,35 +67,19 @@ export class BaseExecutionDriver<
     workflow: Workflow<TInput, TOutput, TContext, TStep>,
     ctx: TContext
   ): Promise<OpResult[]> {
-    const { inputSchema } = workflow;
-    if (inputSchema !== undefined) {
-      // We need to validate all of the items of the inputs array. But since the
-      // workflow schema is for a _single_ item, we must apply validation to
-      // every item in the array.
-      //
-      // This gets a little more complicated because the Standard Schema
-      // validate method may return a promise. So we need to "promisify" the
-      // validation result if it isn't a promise, allowing us to await
-      // Promise.all
-      const promise = ctx.inputs.map((item) => {
-        const result = inputSchema["~standard"].validate(item);
-        if (result instanceof Promise) {
-          return result;
-        }
-        return Promise.resolve(result);
-      });
+    if (workflow.inputSchema !== undefined) {
+      const result = await workflow.inputSchema["~standard"].validate(
+        ctx.input
+      );
 
-      const results = await Promise.all(promise);
-      const issues = results.flatMap((result) => result.issues ?? []);
-
-      if (issues.length > 0) {
+      if (result.issues !== undefined && result.issues.length > 0) {
         return [
           await this.onWorkflowResult(workflow, ctx, {
             config: { code: StdOpCode.workflow },
             id: { hashed: "", id: "", index: 0 },
             result: {
               status: "error",
-              error: toJsonError(new InvalidInputError(issues)),
+              error: toJsonError(new InvalidInputError(result.issues)),
             },
           }),
         ];

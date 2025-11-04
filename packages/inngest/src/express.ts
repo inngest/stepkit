@@ -122,7 +122,6 @@ async function execute(
   const ctx: Context<any> = {
     ext: {},
     input: {},
-    inputs: [{}],
     runId: req.ctx.run_id,
   };
   const ops = await workflow.driver.execute(workflow, ctx);

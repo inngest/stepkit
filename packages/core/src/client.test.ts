@@ -15,7 +15,6 @@ describe("input type", () => {
 
     client.workflow({ id: "workflow" }, async (ctx) => {
       expectTypeOf(ctx.input).toEqualTypeOf<Record<string, unknown>>();
-      expectTypeOf(ctx.inputs).toEqualTypeOf<Record<string, unknown>[]>();
     });
   });
 
@@ -28,7 +27,6 @@ describe("input type", () => {
       { id: "workflow", inputSchema: staticSchema<Input>() },
       async (ctx) => {
         expectTypeOf(ctx.input).toEqualTypeOf<Input>();
-        expectTypeOf(ctx.inputs).toEqualTypeOf<Input[]>();
       }
     );
   });
@@ -40,7 +38,6 @@ describe("input type", () => {
 
     client.workflow({ id: "workflow", inputSchema }, async (ctx) => {
       expectTypeOf(ctx.input).toEqualTypeOf<{ name: string }>();
-      expectTypeOf(ctx.inputs).toEqualTypeOf<{ name: string }[]>();
     });
   });
 });

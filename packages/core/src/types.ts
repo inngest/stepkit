@@ -22,7 +22,6 @@ export type Context<
 > = {
   ext: TExt;
   input: StandardSchemaV1.InferInput<TInput>;
-  inputs: StandardSchemaV1.InferOutput<TInput>[];
   runId: string;
 };
 
@@ -31,9 +30,8 @@ export type OverrideContextInput<
   TContext extends Context,
   TInput extends InputDefault,
 > = Pretty<
-  Omit<TContext, "input" | "inputs"> & {
+  Omit<TContext, "input"> & {
     input: StandardSchemaV1.InferOutput<TInput>;
-    inputs: StandardSchemaV1.InferOutput<TInput>[];
   }
 >;
 

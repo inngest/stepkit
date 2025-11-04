@@ -37,7 +37,6 @@ describe("execute once", () => {
   const ctx: Context = {
     ext: {},
     input: {},
-    inputs: [{}],
     runId: "test-run-id",
   };
 
@@ -246,7 +245,6 @@ describe("execute to completion", () => {
   const ctx: Context = {
     ext: {},
     input: {},
-    inputs: [{}],
     runId: "test-run-id",
   };
 
@@ -538,7 +536,6 @@ it("custom step", async () => {
   const ctx: Context = {
     ext: {},
     input: {},
-    inputs: [{}],
     runId: "test-run-id",
   };
 

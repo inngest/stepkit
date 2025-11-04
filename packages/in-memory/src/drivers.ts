@@ -114,7 +114,6 @@ export class InMemoryDriver extends BaseExecutionDriver {
     const ctx: Context<TInput> = {
       ext: {},
       input,
-      inputs: [input],
       runId: crypto.randomUUID(),
     };
     stateDriver.addRun(ctx.runId, workflow.maxAttempts);
