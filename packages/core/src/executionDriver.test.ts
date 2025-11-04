@@ -281,7 +281,7 @@ describe("execute to completion", () => {
     while (true) {
       const results = await driver.execute(workflow, ctx);
       allResults = [...allResults, ...results];
-      if (results[0].config.code === "workflow") {
+      if (results[0]?.config.code === "workflow") {
         break;
       }
     }
@@ -384,7 +384,7 @@ describe("execute to completion", () => {
     while (true) {
       const results = await driver.execute(workflow, ctx);
       allResults = [...allResults, results];
-      if (results[0].config.code === "workflow") {
+      if (results[0]?.config.code === "workflow") {
         break;
       }
     }
@@ -508,7 +508,7 @@ describe("execute to completion", () => {
 
     while (true) {
       const results = await driver.execute(workflow, ctx);
-      if (results[0].config.code === "workflow") {
+      if (results[0]?.config.code === "workflow") {
         break;
       }
     }

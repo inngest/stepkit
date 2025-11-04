@@ -126,7 +126,7 @@ async function execute(
     runId: req.ctx.run_id,
   };
   const ops = await workflow.driver.execute(workflow, ctx);
-  if (ops.length === 1) {
+  if (ops.length === 1 && ops[0] !== undefined) {
     const op = ops[0];
     if (op.config.code === StdOpCode.workflow) {
       if (op.result.status === "success") {
@@ -180,12 +180,20 @@ async function execute(
 export function serve(
   workflows: Workflow<any, any, ExtDefault, StepExt>[]
 ): any {
+  if (workflows.length === 0) {
+    throw new Error("No workflows");
+  }
+
   return async (req: Request, res: Response) => {
     if (req.method === "GET") {
       return res.json({});
     }
 
     if (req.method === "POST") {
+      if (workflows[0] === undefined) {
+        throw new Error("unreachable: no workflows");
+      }
+
       const body = commRequestBody.parse(req.body);
       res.setHeader("content-type", "application/json");
       res.setHeader("x-inngest-sdk", "js:v0.0.0");

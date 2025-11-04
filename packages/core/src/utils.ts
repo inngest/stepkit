@@ -21,13 +21,16 @@ export async function executeUntilDone<
   const maxIterations = 10_000;
   for (let i = 0; i < maxIterations; i++) {
     const ops = await execute(ctx, workflow);
+    if (ops[0] === undefined) {
+      throw new Error("unreachable: no ops found");
+    }
     const op = ops[0];
-    attempts[op.id.hashed] = attempts[op.id.hashed] ?? 1;
+    const attempt = attempts[op.id.hashed] ?? 1;
 
     if (op.result.status === "error") {
-      if (attempts[op.id.hashed] < workflow.maxAttempts) {
+      if (attempt < workflow.maxAttempts) {
         // Bump attempt and retry
-        attempts[op.id.hashed]++;
+        attempts[op.id.hashed] = attempt + 1;
         continue;
       }
     }
