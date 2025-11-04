@@ -9,6 +9,7 @@ import type { StateDriver } from "./stateDriver";
 import {
   StdOpCode,
   type Context,
+  type ExtDefault,
   type InputDefault,
   type OpResult,
   type Step,
@@ -17,6 +18,7 @@ import {
 import { executeUntilDone, stdHashId } from "./utils";
 
 export type {
+  ExtDefault,
   JsonError,
   OpResult,
   ReportOp,

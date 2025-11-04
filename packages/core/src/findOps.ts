@@ -4,9 +4,10 @@ import {
   StdOpCode,
   type Context,
   type ControlFlow,
+  type ExtDefault,
   type OpFound,
   type OpResult,
-  type Step as StdSteps,
+  type Step,
 } from "./types";
 import { type Workflow } from "./workflow";
 
@@ -19,21 +20,21 @@ export type ReportOp = <TOutput = void>(
  * are found. Also handles control flow.
  */
 export async function findOps<
-  TContext extends Context,
-  TSteps extends StdSteps,
+  TCtxExt extends ExtDefault,
+  TStepExt extends ExtDefault,
   TOutput,
 >({
   ctx,
-  getSteps,
+  getStep,
   onStepsFound,
   onWorkflowResult,
   workflow,
 }: {
-  ctx: TContext;
-  getSteps: (reportOp: ReportOp) => Promise<TSteps>;
+  ctx: Context<any, TCtxExt>;
+  getStep: (reportOp: ReportOp) => Promise<Step<TStepExt>>;
   onStepsFound: (ops: OpFound[]) => Promise<ControlFlow>;
   onWorkflowResult: (op: OpResult) => Promise<OpResult>;
-  workflow: Workflow<any, TOutput, TContext, TSteps>;
+  workflow: Workflow<any, TOutput, TCtxExt, TStepExt>;
 }): Promise<OpResult[]> {
   const foundOps: OpFound[] = [];
 
@@ -51,7 +52,7 @@ export async function findOps<
     return await op.promise.promise;
   }
 
-  const step = await getSteps(reportOp);
+  const step = await getStep(reportOp);
 
   // Run the handler and pause until the next tick to discover ops
   const handlerPromise = workflow.handler(ctx, step).catch((e: unknown) => {

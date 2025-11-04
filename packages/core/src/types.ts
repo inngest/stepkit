@@ -4,7 +4,11 @@ import { z } from "zod";
 import type { JsonError } from "./errors";
 import type { ControlledPromise } from "./promises";
 
+// Default type for input schema
 export type InputDefault = StandardSchemaV1<Record<string, unknown>>;
+
+// Default type for extensions (`ctx.ext` and `step.ext`)
+export type ExtDefault = Record<string, unknown>;
 
 export type StripStandardSchema<TInput extends InputDefault> =
   TInput extends StandardSchemaV1<infer U> ? U : never;
@@ -18,7 +22,7 @@ export function staticSchema<
 
 export type Context<
   TInput extends InputDefault = InputDefault,
-  TExt extends Record<string, unknown> = Record<string, unknown>,
+  TExt extends ExtDefault = ExtDefault,
 > = {
   ext: TExt;
   input: StandardSchemaV1.InferInput<TInput>;
@@ -36,9 +40,7 @@ export type OverrideContextInput<
 >;
 
 // Standard step methods
-export type Step<
-  TExt extends Record<string, unknown> = Record<string, unknown>,
-> = {
+export type Step<TExt extends ExtDefault = ExtDefault> = {
   ext: TExt;
   run: <T>(stepId: string, handler: () => T) => Promise<T>;
   sleep: (stepId: string, duration: number) => Promise<void>;

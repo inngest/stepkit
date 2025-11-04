@@ -1,15 +1,24 @@
 import type { ExecutionDriver } from "./executionDriver";
-import type { Context, InputDefault, Step, StripStandardSchema } from "./types";
+import type {
+  Context,
+  ExtDefault,
+  InputDefault,
+  Step,
+  StripStandardSchema,
+} from "./types";
 
 export class Workflow<
   TInput extends InputDefault = InputDefault,
   TOutput = unknown,
-  TContext extends Context<TInput, any> = Context<TInput, any>,
-  TStep extends Step = Step,
+  TCtxExt extends ExtDefault = ExtDefault,
+  TStepExt extends ExtDefault = ExtDefault,
 > {
-  readonly driver: ExecutionDriver<TContext, TStep>;
+  readonly driver: ExecutionDriver<TCtxExt, TStepExt>;
   readonly id: string;
-  readonly handler: (ctx: TContext, step: TStep) => Promise<TOutput>;
+  readonly handler: (
+    ctx: Context<TInput, TCtxExt>,
+    step: Step<TStepExt>
+  ) => Promise<TOutput>;
   readonly maxAttempts: number;
   readonly inputSchema?: TInput;
 
@@ -20,8 +29,11 @@ export class Workflow<
     maxAttempts = 4,
     inputSchema: schema,
   }: {
-    driver: ExecutionDriver<TContext, TStep>;
-    handler: (ctx: TContext, step: TStep) => Promise<TOutput>;
+    driver: ExecutionDriver<TCtxExt, TStepExt>;
+    handler: (
+      ctx: Context<TInput, TCtxExt>,
+      step: Step<TStepExt>
+    ) => Promise<TOutput>;
     id: string;
     maxAttempts?: number;
     inputSchema?: TInput;

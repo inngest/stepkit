@@ -2,7 +2,6 @@ import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
 import { StepKitClient } from "./client";
-import type { Context } from "./implementer";
 import { staticSchema } from "./types";
 
 describe("input type", () => {
@@ -48,14 +47,11 @@ describe("custom ctx field", () => {
 
   // eslint-disable-next-line vitest/expect-expect
   it("default type", () => {
-    type CustomContext = Context<
-      any,
-      {
-        foo: string;
-      }
-    >;
+    type CtxExt = {
+      foo: string;
+    };
 
-    const client = new StepKitClient<CustomContext>({ driver });
+    const client = new StepKitClient<CtxExt>({ driver });
 
     client.workflow({ id: "workflow" }, async (ctx) => {
       expectTypeOf(ctx.ext.foo).toEqualTypeOf<string>();

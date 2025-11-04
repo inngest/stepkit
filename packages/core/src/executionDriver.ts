@@ -7,6 +7,7 @@ import {
   StdOpCode,
   type Context,
   type ControlFlow,
+  type ExtDefault,
   type InputDefault,
   type OpConfig,
   type OpFound,
@@ -14,15 +15,15 @@ import {
   type Step,
   type StripStandardSchema,
 } from "./types";
-import { ensureAsync, type HashId } from "./utils";
+import { ensureAsync, stdHashId, type HashId } from "./utils";
 import type { Workflow } from "./workflow";
 
 export type ExecutionDriver<
-  TContext extends Context<any>,
-  TStep extends Step,
+  TCtxExt extends ExtDefault,
+  TStepExt extends ExtDefault,
 > = {
   invoke: <TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput, TContext, TStep>,
+    workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
     input: StripStandardSchema<TInput>
   ) => Promise<TOutput>;
 };
@@ -54,18 +55,22 @@ export function createStdStep(hash: HashId, reportOp: ReportOp): Step {
 /**
  * Concrete execution driver implementation. Can be extended.
  */
-export class BaseExecutionDriver<
-  TContext extends Context<any> = Context<any>,
-  TStep extends Step<any> = Step<any>,
-> implements ExecutionDriver<TContext, TStep>
+export abstract class BaseExecutionDriver<
+  TCtxExt extends ExtDefault = ExtDefault,
+  TStepExt extends ExtDefault = ExtDefault,
+> implements ExecutionDriver<TCtxExt, TStepExt>
 {
-  constructor(public state: StateDriver) {
+  constructor(
+    public state: StateDriver,
+    private hash: HashId = stdHashId
+  ) {
+    this.hash = hash;
     this.state = state;
   }
 
   async execute<TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput, TContext, TStep>,
-    ctx: TContext
+    workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
+    ctx: Context<TInput, TCtxExt>
   ): Promise<OpResult[]> {
     if (workflow.inputSchema !== undefined) {
       const result = await workflow.inputSchema["~standard"].validate(
@@ -88,27 +93,25 @@ export class BaseExecutionDriver<
 
     return findOps({
       ctx,
-      getSteps: (reportOp) => this.getSteps(reportOp),
+      getStep: (reportOp) => this.getStep(reportOp),
       onStepsFound: (ops) => this.onStepsFound(workflow, ctx, ops),
       onWorkflowResult: (op) => this.onWorkflowResult(workflow, ctx, op),
       workflow,
     });
   }
 
-  async getSteps(_reportOp: ReportOp): Promise<TStep> {
-    throw new Error("not implemented");
-  }
+  abstract getStep(reportOp: ReportOp): Promise<Step<TStepExt>>;
 
   async invoke<TInput extends InputDefault, TOutput>(
-    _workflow: Workflow<TInput, TOutput, TContext, TStep>,
+    _workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
     _input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
     throw new Error("not implemented");
   }
 
   onStepsFound = async (
-    workflow: Workflow<any, any, TContext, TStep>,
-    ctx: TContext,
+    workflow: Workflow<any, any, TCtxExt, TStepExt>,
+    ctx: Context<any, TCtxExt>,
     ops: OpFound[]
   ): Promise<ControlFlow> => {
     const newOps = handleExistingOps(this.state, ctx, ops);
@@ -117,8 +120,8 @@ export class BaseExecutionDriver<
   };
 
   onWorkflowResult = async (
-    workflow: Workflow<any, any, TContext, TStep>,
-    ctx: TContext,
+    workflow: Workflow<any, any, TCtxExt, TStepExt>,
+    ctx: Context<any, TCtxExt>,
     op: OpResult
   ): Promise<OpResult> => {
     this.state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, op);
@@ -176,13 +179,13 @@ export async function createOpFound<TOutput>(
 }
 
 export async function createOpResults<
-  TContext extends Context,
-  TStep extends Step,
+  TCtxExt extends ExtDefault,
+  TStepExt extends ExtDefault,
   TOutput,
 >(
   state: StateDriver,
-  workflow: Workflow<any, any, TContext, TStep>,
-  ctx: Context,
+  workflow: Workflow<any, any, TCtxExt, TStepExt>,
+  ctx: Context<any, TCtxExt>,
   ops: OpFound<OpConfig, TOutput>[]
 ): Promise<ControlFlow> {
   const opResults: OpResult[] = [];

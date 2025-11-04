@@ -4,7 +4,7 @@ import {
   createStdStep,
   stdHashId,
   StdOpCode,
-  type Context,
+  type ExtDefault,
   type OpResult,
   type ReportOp,
   type StateDriver,
@@ -56,12 +56,16 @@ export type CustomStep = Step<{
   sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
 }>;
 
-export class InngestDriver extends BaseExecutionDriver<Context, CustomStep> {
+export type StepExt = {
+  sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
+};
+
+export class InngestDriver extends BaseExecutionDriver<ExtDefault, StepExt> {
   constructor() {
     super(stateDriver);
   }
 
-  async getSteps(reportOp: ReportOp): Promise<CustomStep> {
+  async getStep(reportOp: ReportOp): Promise<Step<StepExt>> {
     return {
       ...createStdStep(stdHashId, reportOp),
       ext: {

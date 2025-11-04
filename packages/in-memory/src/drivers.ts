@@ -96,19 +96,16 @@ export class InMemoryStateDriver implements StateDriver {
 const stateDriver = new InMemoryStateDriver();
 
 export class InMemoryDriver extends BaseExecutionDriver {
-  private activeRuns: Set<string>;
-
   constructor() {
     super(stateDriver);
-    this.activeRuns = new Set();
   }
 
-  async getSteps(reportOp: ReportOp): Promise<Step> {
+  async getStep(reportOp: ReportOp): Promise<Step> {
     return createStdStep(stdHashId, reportOp);
   }
 
   async invoke<TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput, Context<TInput>>,
+    workflow: Workflow<TInput, TOutput>,
     input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
     const ctx: Context<TInput> = {

@@ -28,7 +28,7 @@ class StateDriver {
 }
 
 class ExecutionDriver extends BaseExecutionDriver {
-  async getSteps(reportOp: ReportOp): Promise<Step> {
+  async getStep(reportOp: ReportOp): Promise<Step> {
     return createStdStep(stdHashId, reportOp);
   }
 }
@@ -550,12 +550,15 @@ it("custom step", async () => {
     return a * b;
   }
 
-  type CustomStep = Step<{
+  type StepExt = {
     multiply: (stepId: string, a: number, b: number) => Promise<number>;
-  }>;
+  };
 
-  class ExecutionDriver extends BaseExecutionDriver<Context, CustomStep> {
-    async getSteps(reportOp: ReportOp): Promise<CustomStep> {
+  class ExecutionDriver extends BaseExecutionDriver<
+    Record<string, unknown>,
+    StepExt
+  > {
+    async getStep(reportOp: ReportOp): Promise<Step<StepExt>> {
       return {
         ...createStdStep(stdHashId, reportOp),
         ext: {
