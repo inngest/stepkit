@@ -24,6 +24,7 @@ export type ReportOp = <TOutput = void>(
 export async function findOps<
   TInput extends InputDefault,
   TOutput,
+  TWorkflowCfgExt extends ExtDefault,
   TCtxExt extends ExtDefault,
   TStepExt extends ExtDefault,
 >({
@@ -37,7 +38,7 @@ export async function findOps<
   getStep: (reportOp: ReportOp) => Promise<Step<TStepExt>>;
   onStepsFound: (ops: OpFound[]) => Promise<ControlFlow>;
   onWorkflowResult: (op: OpResult) => Promise<OpResult>;
-  workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>;
+  workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>;
 }): Promise<OpResult[]> {
   const foundOps: OpFound<OpConfig, any>[] = [];
 

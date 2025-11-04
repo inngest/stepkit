@@ -7,7 +7,7 @@ import {
   createOpFound,
   createStdStep,
 } from "./implementer";
-import type { Context, OpResult, Step } from "./types";
+import type { Context, ExtDefault, OpResult, Step } from "./types";
 import { executeUntilDone, stdHashId } from "./utils";
 
 class StateDriver {
@@ -555,7 +555,8 @@ it("custom step", async () => {
   };
 
   class ExecutionDriver extends BaseExecutionDriver<
-    Record<string, unknown>,
+    ExtDefault,
+    ExtDefault,
     StepExt
   > {
     async getStep(reportOp: ReportOp): Promise<Step<StepExt>> {

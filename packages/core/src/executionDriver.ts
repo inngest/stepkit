@@ -47,11 +47,12 @@ export const insideStep = {
 };
 
 export type ExecutionDriver<
+  TWorkflowCfgExt extends ExtDefault,
   TCtxExt extends ExtDefault,
   TStepExt extends ExtDefault,
 > = {
   invoke: <TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
+    workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
     input: StripStandardSchema<TInput>
   ) => Promise<TOutput>;
 };
@@ -84,16 +85,17 @@ export function createStdStep(hash: HashId, reportOp: ReportOp): Step {
  * Concrete execution driver implementation. Can be extended.
  */
 export abstract class BaseExecutionDriver<
+  TWorkflowCfgExt extends ExtDefault = ExtDefault,
   TCtxExt extends ExtDefault = ExtDefault,
   TStepExt extends ExtDefault = ExtDefault,
-> implements ExecutionDriver<TCtxExt, TStepExt>
+> implements ExecutionDriver<TWorkflowCfgExt, TCtxExt, TStepExt>
 {
   constructor(public state: StateDriver) {
     this.state = state;
   }
 
   async execute<TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
+    workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
     ctx: Context<TInput, TCtxExt>
   ): Promise<OpResult[]> {
     if (workflow.inputSchema !== undefined) {
@@ -127,14 +129,14 @@ export abstract class BaseExecutionDriver<
   abstract getStep(reportOp: ReportOp): Promise<Step<TStepExt>>;
 
   async invoke<TInput extends InputDefault, TOutput>(
-    _workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
+    _workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
     _input: StripStandardSchema<TInput>
   ): Promise<TOutput> {
     throw new Error("not implemented");
   }
 
   onStepsFound = async <TInput extends InputDefault>(
-    workflow: Workflow<TInput, unknown, TCtxExt, TStepExt>,
+    workflow: Workflow<TInput, unknown, TWorkflowCfgExt, TCtxExt, TStepExt>,
     ctx: Context<TInput, TCtxExt>,
     ops: OpFound[]
   ): Promise<ControlFlow> => {
@@ -144,7 +146,7 @@ export abstract class BaseExecutionDriver<
   };
 
   onWorkflowResult = async <TInput extends InputDefault>(
-    workflow: Workflow<TInput, unknown, TCtxExt, TStepExt>,
+    workflow: Workflow<TInput, unknown, TWorkflowCfgExt, TCtxExt, TStepExt>,
     ctx: Context<TInput, TCtxExt>,
     op: OpResult
   ): Promise<OpResult> => {
@@ -212,11 +214,12 @@ export async function createOpFound<TOutput>(
 export async function createOpResults<
   TInput extends InputDefault,
   TOutput,
+  TWorkflowCfgExt extends ExtDefault,
   TCtxExt extends ExtDefault,
   TStepExt extends ExtDefault,
 >(
   state: StateDriver,
-  workflow: Workflow<TInput, TOutput, TCtxExt, TStepExt>,
+  workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
   ctx: Context<TInput, TCtxExt>,
   ops: OpFound<OpConfig, TOutput>[]
 ): Promise<ControlFlow> {

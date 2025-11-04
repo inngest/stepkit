@@ -2,7 +2,7 @@ import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
 import { StepKitClient } from "./client";
-import { staticSchema } from "./types";
+import { staticSchema, type ExtDefault } from "./types";
 
 describe("input type", () => {
   // Doesn't matter for these tests
@@ -51,10 +51,53 @@ describe("custom ctx field", () => {
       foo: string;
     };
 
-    const client = new StepKitClient<CtxExt>({ driver });
+    const client = new StepKitClient<ExtDefault, CtxExt>({ driver });
 
     client.workflow({ id: "workflow" }, async (ctx) => {
       expectTypeOf(ctx.ext.foo).toEqualTypeOf<string>();
     });
+  });
+});
+
+describe("custom workflow config field", () => {
+  // Doesn't matter for these tests
+  const driver = null as any;
+
+  // eslint-disable-next-line vitest/expect-expect
+  it("default type", () => {
+    type WorkflowConfigExt = {
+      concurrency: {
+        key?: string;
+        limit: number;
+      };
+    };
+
+    const client = new StepKitClient<WorkflowConfigExt>({ driver });
+
+    // Valid
+    client.workflow(
+      { id: "workflow", ext: { concurrency: { limit: 1 } } },
+      async (_) => {
+        return null;
+      }
+    );
+
+    // Invalid
+    client.workflow(
+      {
+        id: "workflow",
+        ext: {
+          concurrency: {
+            limit: 1,
+
+            // @ts-expect-error - This should be an error
+            key: 2,
+          },
+        },
+      },
+      async (_) => {
+        return null;
+      }
+    );
   });
 });

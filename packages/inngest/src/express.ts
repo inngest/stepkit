@@ -76,7 +76,7 @@ type CommResponse = {
 };
 
 async function execute(
-  workflow: Workflow<any, any, ExtDefault, StepExt>,
+  workflow: Workflow<any, any, ExtDefault, ExtDefault, StepExt>,
   req: z.infer<typeof commRequestBody>
 ): Promise<CommResponse> {
   if (!(workflow.driver instanceof InngestDriver)) {
@@ -178,7 +178,7 @@ async function execute(
 }
 
 export function serve(
-  workflows: Workflow<any, any, ExtDefault, StepExt>[]
+  workflows: Workflow<any, any, ExtDefault, ExtDefault, StepExt>[]
 ): any {
   if (workflows.length === 0) {
     throw new Error("No workflows");
