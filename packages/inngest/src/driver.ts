@@ -1,12 +1,21 @@
 import type { GetStepTools } from "inngest";
 
-import type { Workflow } from "@stepkit/core";
+import { NonRetryableError, type Workflow } from "@stepkit/core";
 import type {
   Context,
   InputDefault,
   Step,
   StripStandardSchema,
 } from "@stepkit/core/implementer";
+
+class InvalidInputError extends NonRetryableError {
+  constructor(issues: readonly any[]) {
+    super("Invalid input", {
+      cause: new Error(JSON.stringify(issues, null, 2)),
+    });
+    this.name = this.constructor.name;
+  }
+}
 
 export class InngestDriver {
   private inngestStep: GetStepTools<any>;
@@ -19,6 +28,14 @@ export class InngestDriver {
     workflow: Workflow<TInput, TOutput>,
     data: StripStandardSchema<TInput>
   ): Promise<TOutput> {
+    if (workflow.inputSchema !== undefined) {
+      const result = await workflow.inputSchema["~standard"].validate(data);
+
+      if (result.issues !== undefined && result.issues.length > 0) {
+        throw new InvalidInputError(result.issues);
+      }
+    }
+
     const ctx: Context<TInput> = {
       ext: {},
       input: {
