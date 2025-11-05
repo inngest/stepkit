@@ -11,7 +11,10 @@ import { StepKitClient, eventTrigger } from "@stepkit/core";
 // Provider-specific package
 import { InMemoryDriver } from "@stepkit/in-memory";
 
-const client = new StepKitClient({ driver: new InMemoryDriver() });
+const client = new StepKitClient({
+  driver: new InMemoryDriver(),
+  id: "my-app",
+});
 
 const workflow = client.workflow(
   {

@@ -8,13 +8,17 @@ export class StepKitClient<
   TStepExt extends ExtDefault = ExtDefault,
 > {
   private readonly driver: ExecutionDriver<TWorkflowCfgExt, TCtxExt, TStepExt>;
+  readonly id: string;
 
   constructor({
     driver,
+    id,
   }: {
     driver: ExecutionDriver<TWorkflowCfgExt, TCtxExt, TStepExt>;
+    id: string;
   }) {
     this.driver = driver;
+    this.id = id;
   }
 
   workflow<
