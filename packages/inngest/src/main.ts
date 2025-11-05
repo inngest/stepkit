@@ -1,4 +1,3 @@
-import { InngestDriver } from "./drivers";
-import { serve } from "./express";
+import { InngestDriver } from "./driver";
 
-export { InngestDriver, serve };
+export { InngestDriver };

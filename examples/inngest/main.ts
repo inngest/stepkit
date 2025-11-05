@@ -1,15 +1,26 @@
 import express from "express";
+import { serve } from "inngest/express";
 
-import { serve } from "@stepkit/inngest/express";
-
-import { workflow } from "./workflows";
+import { inngest } from "./inngest";
+import { workflowFunction } from "./workflows";
 
 const app = express();
+
 app.use(express.json());
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-app.use("/api/inngest", serve([workflow]));
+app.use(
+  "/api/inngest",
+  serve({
+    client: inngest,
+    functions: [workflowFunction],
+  })
+);
 
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+const PORT = process.env.PORT ?? 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(
+    `Inngest endpoint available at http://localhost:${PORT}/api/inngest`
+  );
 });

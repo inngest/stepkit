@@ -1,24 +1,39 @@
-import { client } from "./client";
+import { z } from "zod";
 
-export const workflow = client.workflow(
-  { id: "my-workflow" },
-  async ({ runId }, step) => {
-    console.log("workflow: top", runId);
+import { createClient } from "./client";
+import { inngest } from "./inngest";
 
-    const greeting = await step.run("get-greeting", () => {
-      console.log("get-greeting: executing");
-      return "Hello";
-    });
+export const workflowFunction = inngest.createFunction(
+  { id: "say-hi-workflow" },
+  { event: "workflow/say-hi" },
+  async ({ step, event }) => {
+    const client = createClient(step);
 
-    const name = await step.run("get-name", () => {
-      console.log("get-name: executing");
-      return "Alice";
-    });
+    const workflow = client.workflow(
+      {
+        id: "say-hi",
+        inputSchema: z.object({ name: z.string() }),
+      },
+      async (ctx, step) => {
+        const greeting = await step.run("get-greeting", () => {
+          console.log("get-greeting: executing");
+          return "Hello";
+        });
 
-    await step.ext.sleepUntil("zzz", new Date(Date.now() + 1000));
+        const randomNumber = await step.run("random-number", () => {
+          console.log("random-number: executing");
+          return Math.floor(Math.random() * 100);
+        });
 
-    console.log("workflow: bottom");
+        await step.sleep("short-pause", 1000);
 
-    return `${greeting}, ${name}!`;
+        const message = `${greeting} ${ctx.input.data.name}! Your random number is ${randomNumber.toString()}.`;
+        console.log("workflow result:", message);
+        return message;
+      }
+    );
+
+    const result = await workflow.invoke(event.data);
+    return result;
   }
 );

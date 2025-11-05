@@ -3,22 +3,24 @@
   "version": "0.0.0",
   "main": "./src/main.ts",
   "types": "./src/main.ts",
-  "exports": {
-    ".": "./src/main.ts",
-    "./express": "./src/express.ts"
-  },
   "scripts": {
     "build": "tsc",
-    "test": "echo \"No tests yet\""
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@stepkit/core": "*",
-    "zod": "^4.1.12"
-  },
-  "optionalDependencies": {
-    "express": "^5.1.0"
+    "@stepkit/core": "*"
   },
   "devDependencies": {
-    "@types/express": "^5.0.5"
+    "inngest": "^3.24.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.5",
+    "zod": "^4.1.12"
+  },
+  "peerDependencies": {
+    "inngest": "^3.24.4"
   }
 }
