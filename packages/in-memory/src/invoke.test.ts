@@ -8,7 +8,10 @@ import { InMemoryDriver } from "./drivers";
 
 describe("invoke", () => {
   it("success", async () => {
-    const client = new StepKitClient({ driver: new InMemoryDriver() });
+    const client = new StepKitClient({
+      driver: new InMemoryDriver(),
+      id: "my-app",
+    });
 
     let input: Record<string, unknown> = {};
     const counters = {
@@ -48,7 +51,10 @@ describe("invoke", () => {
   });
 
   it("fail", async () => {
-    const client = new StepKitClient({ driver: new InMemoryDriver() });
+    const client = new StepKitClient({
+      driver: new InMemoryDriver(),
+      id: "my-app",
+    });
 
     class FooError extends Error {
       constructor(message: string, options?: ErrorOptions) {
@@ -136,7 +142,10 @@ describe("invoke", () => {
   });
 
   it("successful retry", async () => {
-    const client = new StepKitClient({ driver: new InMemoryDriver() });
+    const client = new StepKitClient({
+      driver: new InMemoryDriver(),
+      id: "my-app",
+    });
 
     const counters = {
       top: 0,
@@ -168,7 +177,10 @@ describe("invoke", () => {
   });
 
   it("invalid input", async () => {
-    const client = new StepKitClient({ driver: new InMemoryDriver() });
+    const client = new StepKitClient({
+      driver: new InMemoryDriver(),
+      id: "my-app",
+    });
 
     let counter = 0;
     const workflow = client.workflow(
@@ -213,7 +225,10 @@ describe("invoke", () => {
   });
 
   it("parallel steps", async () => {
-    const client = new StepKitClient({ driver: new InMemoryDriver() });
+    const client = new StepKitClient({
+      driver: new InMemoryDriver(),
+      id: "my-app",
+    });
 
     const counters = {
       top: 0,
@@ -275,7 +290,10 @@ describe("invoke", () => {
   });
 
   it("nested steps", async () => {
-    const client = new StepKitClient({ driver: new InMemoryDriver() });
+    const client = new StepKitClient({
+      driver: new InMemoryDriver(),
+      id: "my-app",
+    });
 
     const counters = {
       top: 0,
@@ -316,7 +334,10 @@ describe("invoke", () => {
   });
 
   it("NonRetryableError", async () => {
-    const client = new StepKitClient({ driver: new InMemoryDriver() });
+    const client = new StepKitClient({
+      driver: new InMemoryDriver(),
+      id: "my-app",
+    });
 
     class MyError extends Error {
       constructor(message: string, options?: ErrorOptions) {

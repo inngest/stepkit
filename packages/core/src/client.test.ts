@@ -37,7 +37,7 @@ describe("input type", () => {
 
   // eslint-disable-next-line vitest/expect-expect
   it("default type", () => {
-    const client = new StepKitClient({ driver });
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     client.workflow({ id: "workflow" }, async (ctx) => {
       expectTypeOf(ctx.input).toEqualTypeOf<{
@@ -53,7 +53,7 @@ describe("input type", () => {
 
   // eslint-disable-next-line vitest/expect-expect
   it("static type only", () => {
-    const client = new StepKitClient({ driver });
+    const client = new StepKitClient({ driver, id: "my-app" });
     type Input = { name: string };
 
     client.workflow(
@@ -73,7 +73,7 @@ describe("input type", () => {
 
   // eslint-disable-next-line vitest/expect-expect
   it("zod type", () => {
-    const client = new StepKitClient({ driver });
+    const client = new StepKitClient({ driver, id: "my-app" });
     const inputSchema = z.object({ name: z.string() });
 
     client.workflow({ id: "workflow", inputSchema }, async (ctx) => {
@@ -109,7 +109,10 @@ describe("custom workflow config field", () => {
       }
     }
 
-    const client = new StepKitClient({ driver: new ExecutionDriver() });
+    const client = new StepKitClient({
+      driver: new ExecutionDriver(),
+      id: "my-app",
+    });
 
     // Valid
     client.workflow(
@@ -155,7 +158,10 @@ it("custom ctx field", () => {
     }
   }
 
-  const client = new StepKitClient({ driver: new ExecutionDriver() });
+  const client = new StepKitClient({
+    driver: new ExecutionDriver(),
+    id: "my-app",
+  });
 
   client.workflow({ id: "workflow" }, async (ctx) => {
     expectTypeOf(ctx.ext.foo).toEqualTypeOf<string>();
@@ -191,6 +197,7 @@ it("custom step method", () => {
 
   const client = new StepKitClient<ExtDefault, ExtDefault, StepExt>({
     driver: new ExecutionDriver(),
+    id: "my-app",
   });
 
   client.workflow({ id: "workflow" }, async (_, step) => {

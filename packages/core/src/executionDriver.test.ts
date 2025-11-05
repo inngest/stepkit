@@ -52,7 +52,7 @@ describe("execute once", () => {
       // When no steps, interrupt with workflow result
 
       const driver = new ExecutionDriver(new StateDriver());
-      const client = new StepKitClient({ driver });
+      const client = new StepKitClient({ driver, id: "my-app" });
 
       let counter = 0;
       const workflow = client.workflow({ id: "workflow" }, async () => {
@@ -81,7 +81,7 @@ describe("execute once", () => {
       // When no steps, interrupt with workflow result
 
       const driver = new ExecutionDriver(new StateDriver());
-      const client = new StepKitClient({ driver });
+      const client = new StepKitClient({ driver, id: "my-app" });
 
       let counter = 0;
       const workflow = client.workflow({ id: "workflow" }, async () => {
@@ -117,7 +117,7 @@ describe("execute once", () => {
       // When successfully running a step, interrupt with step result
 
       const driver = new ExecutionDriver(new StateDriver());
-      const client = new StepKitClient({ driver });
+      const client = new StepKitClient({ driver, id: "my-app" });
 
       const counters = {
         top: 0,
@@ -159,7 +159,7 @@ describe("execute once", () => {
       // When successfully running a step, interrupt with step result
 
       const driver = new ExecutionDriver(new StateDriver());
-      const client = new StepKitClient({ driver });
+      const client = new StepKitClient({ driver, id: "my-app" });
 
       const counters = {
         top: 0,
@@ -206,7 +206,7 @@ describe("execute once", () => {
     // When successfully running a step, interrupt with step result
 
     const driver = new ExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver });
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     const counters = {
       top: 0,
@@ -253,7 +253,7 @@ describe("execute to completion", () => {
     // Keep looping through interrupts until the run completes
 
     const driver = new ExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver });
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     const counters = {
       top: 0,
@@ -338,7 +338,7 @@ describe("execute to completion", () => {
     // `onStepsFound` as a single array
 
     const driver = new ExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver });
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     const counters = {
       top: 0,
@@ -481,7 +481,7 @@ describe("execute to completion", () => {
     // collector. This works because they don't have any references to them
 
     const driver = new ExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver });
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     const heldValues = {
       greetingPromise: 0,
@@ -577,7 +577,7 @@ it("custom step", async () => {
   }
 
   const driver = new ExecutionDriver(new StateDriver());
-  const client = new StepKitClient({ driver });
+  const client = new StepKitClient({ driver, id: "my-app" });
 
   let result: number;
   const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
