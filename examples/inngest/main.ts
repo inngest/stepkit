@@ -28,8 +28,15 @@ const ingestify = (client: StepKitClient, workflow: Workflow) => {
           },
           ext: {},
         },
-        // @ts-expect-error - TODO: fix this
-        { ...ctx.step, ext: {} }
+        {
+          ext: {},
+          run: <T>(stepId: string, handler: () => T) => {
+            return ctx.step.run(stepId, handler) as Promise<T>;
+          },
+          sleep: (stepId: string, duration: number) => {
+            return ctx.step.sleep(stepId, duration) as Promise<void>;
+          },
+        }
       );
     }
   );
