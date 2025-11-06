@@ -1,8 +1,8 @@
-import { driver } from "./client";
+import { client } from "./client";
 import { workflow } from "./workflows";
 
 async function main() {
-  console.log(await driver.invoke(workflow, { name: "Alice" }));
+  console.log(await client.invoke(workflow, { name: "Alice" }));
 }
 
 void main();

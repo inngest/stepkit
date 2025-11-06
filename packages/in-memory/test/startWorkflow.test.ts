@@ -1,18 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { StepKitClient } from "@stepkit/sdk-tools";
-
-import { InMemoryDriver } from "../src/main";
+import { InMemoryClient } from "../src/main";
 
 describe("startWorkflow", () => {
   it("success", async () => {
-    const driver = new InMemoryDriver();
-    driver.start();
+    const client = new InMemoryClient();
+    client.start();
 
     afterEach(() => {
-      driver.stop();
+      client.stop();
     });
-    const client = new StepKitClient({ driver, id: "my-app" });
 
     const counters = {
       top: 0,

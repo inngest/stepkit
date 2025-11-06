@@ -3,28 +3,28 @@ import {
   createStdStep,
   executeUntilDone,
   stdHashId,
-  type Context,
-  type InputDefault,
   type ReportOp,
-  type StartData,
   type Step,
   type Workflow,
 } from "@stepkit/sdk-tools";
 
-import { InMemoryStateDriver } from "./stateDriver";
+import type { InMemoryStateDriver } from "./stateDriver";
 
 const defaultMaxAttempts = 4;
 
 export class InMemoryDriver extends BaseExecutionDriver {
   private processEventsInterval: NodeJS.Timeout | undefined;
   private processRunsInterval: NodeJS.Timeout | undefined;
+  private workflows: Map<string, Workflow<any, any>>;
   private stateDriver: InMemoryStateDriver;
 
-  constructor() {
-    const state = new InMemoryStateDriver();
+  constructor(
+    state: InMemoryStateDriver,
+    workflows: Map<string, Workflow<any, any>>
+  ) {
     super(state);
     this.stateDriver = state;
-    this.workflows = new Map();
+    this.workflows = workflows;
   }
 
   start(): void {
@@ -87,77 +87,12 @@ export class InMemoryDriver extends BaseExecutionDriver {
       }
 
       void executeUntilDone(
-        (ctx, workflow) => this.execute(workflow, ctx),
+        (ctx, workflow: Workflow<any, any>) => this.execute(workflow, ctx),
         workflow,
         run.ctx
       ).finally(() => {
         this.stateDriver.endRun(run.ctx.runId);
       });
     }
-  }
-
-  async invoke<TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput>,
-    data: TInput
-  ): Promise<TOutput> {
-    const ctx: Context<TInput> = {
-      ext: {},
-      input: {
-        data,
-        ext: {},
-        id: crypto.randomUUID(),
-        name: "in-memory",
-        time: new Date(),
-        type: "invoke",
-      },
-      runId: crypto.randomUUID(),
-    };
-    this.stateDriver.addRun({
-      ctx,
-      maxAttempts: workflow.maxAttempts ?? defaultMaxAttempts,
-      opAttempts: {},
-      output: undefined,
-      workflowId: workflow.id,
-    });
-
-    try {
-      return await executeUntilDone(
-        (ctx, workflow) => this.execute(workflow, ctx),
-        workflow,
-        ctx
-      );
-    } finally {
-      this.stateDriver.endRun(ctx.runId);
-    }
-  }
-
-  async startWorkflow<TInput extends InputDefault>(
-    workflow: Workflow<TInput, any>,
-    data: TInput
-  ): Promise<StartData> {
-    const eventId = crypto.randomUUID();
-    const runId = crypto.randomUUID();
-    this.stateDriver.addRun({
-      ctx: {
-        ext: {},
-        input: {
-          data,
-          ext: {},
-          id: eventId,
-          name: workflow.id,
-          time: new Date(),
-          type: "invoke",
-        },
-        runId,
-      },
-      maxAttempts: workflow.maxAttempts ?? defaultMaxAttempts,
-      opAttempts: {},
-      output: undefined,
-      workflowId: workflow.id,
-    });
-    return {
-      eventId,
-      runId,
-    };
   }
 }

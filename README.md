@@ -6,13 +6,11 @@ StepKit is a framework for provider-agnostic workflows.
 
 ```ts
 // Provider-agnostic package
-import { StepKitClient, eventTrigger } from "@stepkit/core";
+import { eventTrigger } from "@stepkit/core";
 
 // Provider-specific package
-import { InMemoryDriver } from "@stepkit/in-memory";
-const driver = new InMemoryDriver();
-
-const client = new StepKitClient({ driver, id: "my-app" });
+import { InMemoryClient } from "@stepkit/in-memory";
+const client = new InMemoryClient();
 
 const workflow = client.workflow(
   {
@@ -31,7 +29,7 @@ const workflow = client.workflow(
 );
 
 async function main() {
-  console.log(await driver.invoke(workflow, { name: "Alice" }));
+  console.log(await client.invoke(workflow, { name: "Alice" }));
 }
 
 void main();

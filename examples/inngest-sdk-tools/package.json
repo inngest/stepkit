@@ -1,0 +1,23 @@
+{
+  "name": "examples/inngest-sdk-tools",
+  "version": "0.0.0",
+  "main": "./src/main.ts",
+  "types": "./src/main.ts",
+  "scripts": {
+    "dev": "tsx --watch main.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "server": "npx inngest-cli@latest dev -u localhost:3000/api/inngest",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@stepkit/core": "*",
+    "@stepkit/inngest-sdk-tools": "*",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

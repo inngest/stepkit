@@ -1,3 +1,3 @@
-import { InMemoryDriver } from "./executionDriver";
+import { InMemoryClient } from "./client";
 
-export { InMemoryDriver };
+export { InMemoryClient };

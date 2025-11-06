@@ -1,26 +1,28 @@
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 
-import type { ExecutionDriver } from "./executionDriver";
-import type { Context, ExtDefault, InputDefault, Step } from "./types";
-import { Workflow, type Trigger } from "./workflow";
+import { Workflow, type Trigger } from "@stepkit/core";
+import type {
+  Client,
+  Context,
+  ExtDefault,
+  InputDefault,
+  StartData,
+  Step,
+} from "@stepkit/core/implementer";
 
-export class StepKitClient<
+export abstract class BaseClient<
   TWorkflowCfgExt extends ExtDefault = ExtDefault,
   TCtxExt extends ExtDefault = ExtDefault,
   TStepExt extends ExtDefault = ExtDefault,
-> {
-  private readonly driver: ExecutionDriver<TWorkflowCfgExt, TCtxExt, TStepExt>;
-  readonly id: string;
+> implements Client<TWorkflowCfgExt, TCtxExt, TStepExt>
+{
+  workflows: Map<
+    string,
+    Workflow<any, any, TWorkflowCfgExt, TCtxExt, TStepExt>
+  >;
 
-  constructor({
-    driver,
-    id,
-  }: {
-    driver: ExecutionDriver<TWorkflowCfgExt, TCtxExt, TStepExt>;
-    id: string;
-  }) {
-    this.driver = driver;
-    this.id = id;
+  constructor() {
+    this.workflows = new Map();
   }
 
   workflow<TInput extends InputDefault = InputDefault, TOutput = unknown>(
@@ -44,10 +46,15 @@ export class StepKitClient<
       TStepExt
     >({
       ...opts,
-      driver: this.driver,
+      client: this,
       handler,
     });
-    this.driver.addWorkflow(workflow);
+    this.workflows.set(workflow.id, workflow);
     return workflow;
   }
+
+  abstract startWorkflow<TInput extends InputDefault, TOutput>(
+    workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
+    input: TInput
+  ): Promise<StartData>;
 }
