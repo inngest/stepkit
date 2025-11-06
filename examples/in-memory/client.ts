@@ -1,7 +1,6 @@
 import { StepKitClient } from "@stepkit/core";
 import { InMemoryDriver } from "@stepkit/in-memory";
 
-export const client = new StepKitClient({
-  driver: new InMemoryDriver(),
-  id: "my-app",
-});
+export const driver = new InMemoryDriver();
+
+export const client = new StepKitClient({ driver, id: "my-app" });

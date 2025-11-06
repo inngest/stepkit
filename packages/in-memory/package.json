@@ -5,6 +5,7 @@
   "types": "./src/main.ts",
   "scripts": {
     "build": "tsc",
+    "dpdm": "dpdm --exit-code circular:1 src/main.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest",
@@ -15,6 +16,7 @@
     "@stepkit/core": "*"
   },
   "devDependencies": {
+    "dpdm": "^3.14.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.5",
     "zod": "^4.1.12"

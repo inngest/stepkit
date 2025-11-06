@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "dpdm": "dpdm --exit-code circular:1 src/main.ts src/implementer.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "NODE_OPTIONS='--expose-gc' vitest",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.9.2",
+    "dpdm": "^3.14.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.5"
   }

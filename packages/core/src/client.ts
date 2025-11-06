@@ -37,10 +37,18 @@ export class StepKitClient<
       step: Step<TStepExt>
     ) => Promise<TOutput>
   ): Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt> {
-    return new Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>({
+    const workflow = new Workflow<
+      TInput,
+      TOutput,
+      TWorkflowCfgExt,
+      TCtxExt,
+      TStepExt
+    >({
       ...opts,
       driver: this.driver,
       handler,
     });
+    this.driver.addWorkflow(workflow);
+    return workflow;
   }
 }

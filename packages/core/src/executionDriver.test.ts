@@ -7,8 +7,16 @@ import {
   createOpFound,
   createStdStep,
 } from "./implementer";
-import type { Context, ExtDefault, OpResult, Step } from "./types";
+import type {
+  Context,
+  ExtDefault,
+  InputSchemaDefault,
+  OpResult,
+  Step,
+  StripStandardSchema,
+} from "./types";
 import { executeUntilDone, stdHashId } from "./utils";
+import { type StartData, type Workflow } from "./workflow";
 
 class StateDriver {
   private ops: Map<string, OpResult>;
@@ -30,6 +38,13 @@ class StateDriver {
 class ExecutionDriver extends BaseExecutionDriver {
   async getStep(reportOp: ReportOp): Promise<Step> {
     return createStdStep(stdHashId, reportOp);
+  }
+
+  startWorkflow<TInput extends InputSchemaDefault>(
+    _workflow: Workflow<TInput, any>,
+    _input: StripStandardSchema<TInput>
+  ): Promise<StartData> {
+    throw new Error("not implemented");
   }
 }
 
@@ -573,6 +588,13 @@ it("custom step", async () => {
           },
         },
       };
+    }
+
+    startWorkflow<TInput extends InputSchemaDefault>(
+      _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>,
+      _input: StripStandardSchema<TInput>
+    ): Promise<StartData> {
+      throw new Error("not implemented");
     }
   }
 

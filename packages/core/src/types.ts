@@ -22,13 +22,16 @@ export function staticSchema<
 
 type InputType = "cron" | "event" | "invoke";
 
-type Input<TSchema extends InputSchemaDefault> = {
-  data: StandardSchemaV1.InferInput<TSchema>;
+export type Input<
+  TData extends Record<string, unknown> = Record<string, unknown>,
+  TType extends InputType = InputType,
+> = {
+  data: TData;
   ext: ExtDefault;
   id: string;
   name: string;
   time: Date;
-  type: InputType;
+  type: TType;
 };
 
 export type Context<
@@ -36,7 +39,7 @@ export type Context<
   TExt extends ExtDefault = ExtDefault,
 > = {
   ext: TExt;
-  input: Input<TInput>;
+  input: Input<StripStandardSchema<TInput>>;
   runId: string;
 };
 
