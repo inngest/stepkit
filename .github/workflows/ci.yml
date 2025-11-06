@@ -37,6 +37,9 @@ jobs:
       - name: "Format check"
         run: "pnpm run format:check"
 
+      - name: "DPDM"
+        run: "pnpm run dpdm"
+
   test:
     name: "Test"
     runs-on: "ubuntu-latest"
