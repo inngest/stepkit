@@ -51,6 +51,52 @@ describe("invoke", () => {
     expect(output).toEqual("Hello, Alice!");
   });
 
+  it("duplicate step ID", async () => {
+    // Duplicate step IDs are treated as different steps
+
+    const driver = new InMemoryDriver();
+    const client = new StepKitClient({ driver, id: "my-app" });
+
+    const counters = {
+      top: 0,
+      first: 0,
+      second: 0,
+      bottom: 0,
+    };
+    const outputs: Record<string, unknown> = {
+      first: undefined,
+      second: undefined,
+    };
+    const workflow = client.workflow({ id: "workflow" }, async (ctx, step) => {
+      counters.top++;
+
+      outputs.first = await step.run("duplicate", async () => {
+        counters.first++;
+        return "first";
+      });
+
+      outputs.second = await step.run("duplicate", async () => {
+        counters.second++;
+        return "second";
+      });
+
+      counters.bottom++;
+    });
+
+    await driver.invoke(workflow, {});
+
+    expect(counters).toEqual({
+      top: 3,
+      first: 1,
+      second: 1,
+      bottom: 1,
+    });
+    expect(outputs).toEqual({
+      first: "first",
+      second: "second",
+    });
+  });
+
   it("fail", async () => {
     const driver = new InMemoryDriver();
     const client = new StepKitClient({ driver, id: "my-app" });

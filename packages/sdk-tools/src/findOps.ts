@@ -15,6 +15,7 @@ import {
   type OpFound,
   type OpResult,
 } from "./types";
+import { type HashId } from "./utils";
 
 export type ReportOp = <TOutput = void>(
   op: OpFound<OpConfig, TOutput>
@@ -33,17 +34,23 @@ export async function findOps<
 >({
   ctx,
   getStep,
+  hashId,
   onStepsFound,
   onWorkflowResult,
   workflow,
 }: {
   ctx: Context<TInput, TCtxExt>;
   getStep: (reportOp: ReportOp) => Promise<Step<TStepExt>>;
+  hashId: HashId;
   onStepsFound: (ops: OpFound[]) => Promise<ControlFlow>;
   onWorkflowResult: (op: OpResult) => Promise<OpResult>;
   workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>;
 }): Promise<OpResult[]> {
   const foundOps: OpFound<OpConfig, any>[] = [];
+
+  // Count the number of times an op ID is found. This is necessary for
+  // generating a unique hash each time a duplicate op is found
+  const idCounter: Record<string, number> = {};
 
   let pause = createControlledPromise();
 
@@ -53,7 +60,17 @@ export async function findOps<
   async function reportOp<TOutput>(
     op: OpFound<OpConfig, TOutput>
   ): Promise<TOutput> {
-    foundOps.push(op);
+    const index = (idCounter[op.id.id] ?? -1) + 1;
+    idCounter[op.id.id] = index;
+
+    foundOps.push({
+      ...op,
+      id: {
+        ...op.id,
+        hashed: hashId(op.id.id, index),
+        index,
+      },
+    });
 
     // Only continue when the driver allows it
     await pause.promise;
