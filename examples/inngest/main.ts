@@ -2,18 +2,21 @@ import express from "express";
 import { Inngest } from "inngest";
 import { serve } from "inngest/express";
 
-import { StepKitClient, type Workflow } from "@stepkit/core";
+import { type StepKitClient, type Workflow } from "@stepkit/core";
 
 import { client } from "./client";
 import { workflow } from "./workflows";
 
-const ingestify = (client: StepKitClient, workflow: Workflow) => {
+const ingestify = (
+  client: StepKitClient,
+  workflow: Workflow
+): { client: Inngest; functions: ReturnType<Inngest["createFunction"]>[] } => {
   const inngest = new Inngest({ id: client.id });
   const functions = inngest.createFunction(
     {
       id: workflow.id,
     },
-    { event: "myEvent" },
+    { event: "workflow/say-hi" },
     async (ctx) => {
       return workflow.handler(
         {
@@ -24,17 +27,21 @@ const ingestify = (client: StepKitClient, workflow: Workflow) => {
             ext: {},
             time: new Date(),
             type: "invoke",
-            data: ctx.event.data ?? {},
+            //
+            // TODO: type data properly
+            data: ctx.event.data as unknown as Record<string, unknown>,
           },
           ext: {},
         },
         {
           ext: {},
           run: <T>(stepId: string, handler: () => T) => {
+            //
+            // TODO: type return properly
             return ctx.step.run(stepId, handler) as Promise<T>;
           },
           sleep: (stepId: string, duration: number) => {
-            return ctx.step.sleep(stepId, duration) as Promise<void>;
+            return ctx.step.sleep(stepId, duration);
           },
         }
       );
@@ -47,16 +54,18 @@ const ingestify = (client: StepKitClient, workflow: Workflow) => {
 };
 
 const app = express();
-
 app.use(express.json());
 
+//
+// TODO: type arg properly
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 app.use("/api/inngest", serve(ingestify(client, workflow)));
 
 const PORT = process.env.PORT ?? 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${String(PORT)}`);
   console.log(
-    `Inngest endpoint available at http://localhost:${PORT}/api/inngest`
+    `Inngest endpoint available at http://localhost:${String(PORT)}/api/inngest`
   );
 });

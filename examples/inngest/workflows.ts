@@ -17,7 +17,9 @@ export const workflow = client.workflow(
 
     await step.sleep("short-pause", 1000);
 
-    const message = `${greeting} ${ctx.input.data.name}! Your random number is ${randomNumber.toString()}.`;
+    const name =
+      typeof ctx.input.data.name === "string" ? ctx.input.data.name : "Unknown";
+    const message = `${greeting} ${name}! Your random number is ${randomNumber.toString()}.`;
     console.log("workflow result:", message);
     return message;
   }
