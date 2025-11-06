@@ -119,6 +119,9 @@ importers:
       '@stepkit/core':
         specifier: '*'
         version: link:../core
+      '@stepkit/sdk-tools':
+        specifier: '*'
+        version: link:../sdk-tools
     devDependencies:
       dpdm:
         specifier: ^3.14.0

@@ -1,5 +1,7 @@
+import type { StandardSchemaV1 } from "@standard-schema/spec";
+
 import type { ExecutionDriver } from "./executionDriver";
-import type { Context, ExtDefault, InputSchemaDefault, Step } from "./types";
+import type { Context, ExtDefault, InputDefault, Step } from "./types";
 import { Workflow, type Trigger } from "./workflow";
 
 export class StepKitClient<
@@ -21,14 +23,11 @@ export class StepKitClient<
     this.id = id;
   }
 
-  workflow<
-    TInput extends InputSchemaDefault = InputSchemaDefault,
-    TOutput = unknown,
-  >(
+  workflow<TInput extends InputDefault = InputDefault, TOutput = unknown>(
     opts: {
       ext?: TWorkflowCfgExt;
       id: string;
-      inputSchema?: TInput;
+      inputSchema?: StandardSchemaV1<TInput>;
       maxAttempts?: number;
       triggers?: Trigger[];
     },

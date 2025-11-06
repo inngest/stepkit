@@ -10,11 +10,9 @@ import { StepKitClient, eventTrigger } from "@stepkit/core";
 
 // Provider-specific package
 import { InMemoryDriver } from "@stepkit/in-memory";
+const driver = new InMemoryDriver();
 
-const client = new StepKitClient({
-  driver: new InMemoryDriver(),
-  id: "my-app",
-});
+const client = new StepKitClient({ driver, id: "my-app" });
 
 const workflow = client.workflow(
   {
@@ -33,8 +31,12 @@ const workflow = client.workflow(
 );
 
 async function main() {
-  console.log(await workflow.invoke({ name: "Alice" }));
+  console.log(await driver.invoke(workflow, { name: "Alice" }));
 }
 
 void main();
 ```
+
+## What's in this repo?
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.

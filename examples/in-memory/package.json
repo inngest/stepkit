@@ -4,9 +4,9 @@
   "main": "./src/main.ts",
   "types": "./src/main.ts",
   "scripts": {
+    "dev": "tsx main.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "start": "tsx main.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

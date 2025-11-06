@@ -1,22 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { StepKitClient } from "./client";
-import type { ReportOp } from "./findOps";
+import { StepKitClient, type Workflow } from "@stepkit/core";
 import {
-  BaseExecutionDriver,
-  createOpFound,
-  createStdStep,
-} from "./implementer";
-import type {
-  Context,
-  ExtDefault,
-  InputSchemaDefault,
-  OpResult,
-  Step,
-  StripStandardSchema,
-} from "./types";
+  type Context,
+  type ExtDefault,
+  type InputDefault,
+  type StartData,
+  type Step,
+} from "@stepkit/core/implementer";
+
+import type { ReportOp } from "./findOps";
+import { BaseExecutionDriver, createOpFound, createStdStep } from "./main";
+import type { OpResult } from "./types";
 import { executeUntilDone, stdHashId } from "./utils";
-import { type StartData, type Workflow } from "./workflow";
 
 class StateDriver {
   private ops: Map<string, OpResult>;
@@ -40,9 +36,9 @@ class ExecutionDriver extends BaseExecutionDriver {
     return createStdStep(stdHashId, reportOp);
   }
 
-  startWorkflow<TInput extends InputSchemaDefault>(
+  startWorkflow<TInput extends InputDefault>(
     _workflow: Workflow<TInput, any>,
-    _input: StripStandardSchema<TInput>
+    _input: TInput
   ): Promise<StartData> {
     throw new Error("not implemented");
   }
@@ -590,9 +586,9 @@ it("custom step", async () => {
       };
     }
 
-    startWorkflow<TInput extends InputSchemaDefault>(
+    startWorkflow<TInput extends InputDefault>(
       _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>,
-      _input: StripStandardSchema<TInput>
+      _input: TInput
     ): Promise<StartData> {
       throw new Error("not implemented");
     }

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { StepKitClient } from "@stepkit/core";
+import { StepKitClient } from "@stepkit/sdk-tools";
 
 import { InMemoryDriver } from "../src/main";
 

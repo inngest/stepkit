@@ -1,14 +1,13 @@
-import type { Workflow } from "@stepkit/core";
 import {
   BaseExecutionDriver,
-  type InputSchemaDefault,
+  type InputDefault,
   type OpResult,
   type ReportOp,
   type StartData,
   type StateDriver,
   type Step,
-  type StripStandardSchema,
-} from "@stepkit/core/implementer";
+  type Workflow,
+} from "@stepkit/sdk-tools";
 
 class NoopStateDriver implements StateDriver {
   getOp(_id: { runId: string; hashedOpId: string }): OpResult | undefined {
@@ -28,9 +27,9 @@ export class InngestDriver extends BaseExecutionDriver {
     throw new Error("not implemented");
   }
 
-  startWorkflow<TInput extends InputSchemaDefault>(
+  startWorkflow<TInput extends InputDefault>(
     _workflow: Workflow<TInput, any>,
-    _input: StripStandardSchema<TInput>
+    _input: TInput
   ): Promise<StartData> {
     throw new Error("not implemented");
   }

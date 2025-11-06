@@ -1,14 +1,14 @@
 {
-  "name": "@stepkit/core",
+  "name": "@stepkit/sdk-tools",
   "version": "0.0.0",
   "main": "./src/main.ts",
   "types": "./src/main.ts",
   "exports": {
-    ".": "./src/main.ts",
-    "./implementer": "./src/implementer.ts"
+    ".": "./src/main.ts"
   },
   "scripts": {
-    "dpdm": "dpdm --exit-code circular:1 src/main.ts src/implementer.ts",
+    "build": "tsc",
+    "dpdm": "dpdm --exit-code circular:1 src/main.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "NODE_OPTIONS='--expose-gc' vitest",
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@standard-schema/spec": "^1.0.0",
+    "@stepkit/core": "*",
     "hash.js": "^1.1.7",
     "zod": "^4.1.12"
   },

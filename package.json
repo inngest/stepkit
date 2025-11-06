@@ -4,16 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dpdm": "pnpm -r dpdm",
+    "dpdm": "pnpm --no-bail -r dpdm",
     "examples:in-memory": "pnpm -C examples/in-memory dev",
     "examples:inngest": "pnpm -C examples/inngest dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "pnpm -r lint",
-    "lint:fix": "pnpm -r lint:fix",
+    "lint": "pnpm --no-bail -r lint",
+    "lint:fix": "pnpm --no-bail -r lint:fix",
     "precommit": "pnpm format:check; pnpm lint; pnpm type-check; pnpm test; pnpm dpdm",
-    "test": "pnpm -r test",
-    "type-check": "pnpm -r type-check"
+    "test": "pnpm --no-bail -r test",
+    "type-check": "pnpm --no-bail -r type-check"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

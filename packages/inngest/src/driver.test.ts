@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { StepKitClient } from "@stepkit/core";
+import { StepKitClient } from "@stepkit/sdk-tools";
 
 import { InngestDriver } from "./driver";
 
