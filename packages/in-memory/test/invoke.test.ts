@@ -4,14 +4,12 @@ import { z } from "zod";
 import { NonRetryableError, StepKitClient } from "@stepkit/core";
 import type { JsonError } from "@stepkit/core/implementer";
 
-import { InMemoryDriver } from "./drivers";
+import { InMemoryDriver } from "../src/main";
 
 describe("invoke", () => {
   it("success", async () => {
-    const client = new StepKitClient({
-      driver: new InMemoryDriver(),
-      id: "my-app",
-    });
+    const driver = new InMemoryDriver();
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     let input: Record<string, unknown> = {};
     const counters = {
@@ -38,7 +36,7 @@ describe("invoke", () => {
       return `${greeting}, ${name}!`;
     });
 
-    const output = await workflow.invoke({ msg: "hi" });
+    const output = await driver.invoke(workflow, { msg: "hi" });
 
     expect(input.data).toEqual({ msg: "hi" });
     expect(counters).toEqual({
@@ -51,10 +49,8 @@ describe("invoke", () => {
   });
 
   it("fail", async () => {
-    const client = new StepKitClient({
-      driver: new InMemoryDriver(),
-      id: "my-app",
-    });
+    const driver = new InMemoryDriver();
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     class FooError extends Error {
       constructor(message: string, options?: ErrorOptions) {
@@ -100,7 +96,7 @@ describe("invoke", () => {
 
     let errorOutsideWorkflow: Error | undefined;
     try {
-      await workflow.invoke({});
+      await driver.invoke(workflow, {});
     } catch (e) {
       errorOutsideWorkflow = e as Error;
     }
@@ -142,10 +138,8 @@ describe("invoke", () => {
   });
 
   it("successful retry", async () => {
-    const client = new StepKitClient({
-      driver: new InMemoryDriver(),
-      id: "my-app",
-    });
+    const driver = new InMemoryDriver();
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     const counters = {
       top: 0,
@@ -167,7 +161,7 @@ describe("invoke", () => {
       return output;
     });
 
-    expect(await workflow.invoke({})).toEqual("hi");
+    expect(await driver.invoke(workflow, {})).toEqual("hi");
 
     expect(counters).toEqual({
       top: 3,
@@ -177,10 +171,8 @@ describe("invoke", () => {
   });
 
   it("invalid input", async () => {
-    const client = new StepKitClient({
-      driver: new InMemoryDriver(),
-      id: "my-app",
-    });
+    const driver = new InMemoryDriver();
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     let counter = 0;
     const workflow = client.workflow(
@@ -196,7 +188,7 @@ describe("invoke", () => {
     let error: unknown;
     try {
       // @ts-expect-error - Intentional invalid input
-      await workflow.invoke({ name: 1 });
+      await driver.invoke(workflow, { name: 1 });
     } catch (e) {
       error = e;
     }
@@ -225,10 +217,8 @@ describe("invoke", () => {
   });
 
   it("parallel steps", async () => {
-    const client = new StepKitClient({
-      driver: new InMemoryDriver(),
-      id: "my-app",
-    });
+    const driver = new InMemoryDriver();
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     const counters = {
       top: 0,
@@ -271,7 +261,7 @@ describe("invoke", () => {
       counters.bottom++;
     });
 
-    await workflow.invoke({});
+    await driver.invoke(workflow, {});
 
     expect(counters).toEqual({
       top: 4,
@@ -290,10 +280,8 @@ describe("invoke", () => {
   });
 
   it("nested steps", async () => {
-    const client = new StepKitClient({
-      driver: new InMemoryDriver(),
-      id: "my-app",
-    });
+    const driver = new InMemoryDriver();
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     const counters = {
       top: 0,
@@ -316,7 +304,7 @@ describe("invoke", () => {
 
     let error: unknown;
     try {
-      await workflow.invoke({});
+      await driver.invoke(workflow, {});
     } catch (e) {
       error = e;
     }
@@ -334,10 +322,8 @@ describe("invoke", () => {
   });
 
   it("NonRetryableError", async () => {
-    const client = new StepKitClient({
-      driver: new InMemoryDriver(),
-      id: "my-app",
-    });
+    const driver = new InMemoryDriver();
+    const client = new StepKitClient({ driver, id: "my-app" });
 
     class MyError extends Error {
       constructor(message: string, options?: ErrorOptions) {
@@ -369,7 +355,7 @@ describe("invoke", () => {
 
     let errorOutsideWorkflow: Error | undefined;
     try {
-      await workflow.invoke({});
+      await driver.invoke(workflow, {});
     } catch (e) {
       errorOutsideWorkflow = e as Error;
     }

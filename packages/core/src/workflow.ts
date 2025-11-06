@@ -1,4 +1,3 @@
-import type { ExecutionDriver } from "./executionDriver";
 import type {
   Context,
   ExtDefault,
@@ -34,7 +33,7 @@ export class Workflow<
   TCtxExt extends ExtDefault = ExtDefault,
   TStepExt extends ExtDefault = ExtDefault,
 > {
-  readonly driver: ExecutionDriver<TCfgExt, TCtxExt, TStepExt>;
+  readonly driver: Driver<TCfgExt, TCtxExt, TStepExt>;
   readonly ext: TCfgExt | undefined;
   readonly id: string;
   readonly inputSchema: TInput | undefined;
@@ -54,7 +53,7 @@ export class Workflow<
     maxAttempts,
     triggers,
   }: {
-    driver: ExecutionDriver<TCfgExt, TCtxExt, TStepExt>;
+    driver: Driver<TCfgExt, TCtxExt, TStepExt>;
     ext?: TCfgExt;
     handler: (
       ctx: Context<TInput, TCtxExt>,
@@ -74,7 +73,24 @@ export class Workflow<
     this.triggers = triggers;
   }
 
-  async invoke(input: StripStandardSchema<TInput>): Promise<TOutput> {
-    return this.driver.invoke(this, input);
+  async start(input: StripStandardSchema<TInput>): Promise<StartData> {
+    return this.driver.startWorkflow(this, input);
   }
 }
+
+export type StartData = {
+  eventId: string;
+  runId: string;
+};
+
+// Define here to avoid circular dependency
+type Driver<
+  TCfgExt extends ExtDefault = ExtDefault,
+  TCtxExt extends ExtDefault = ExtDefault,
+  TStepExt extends ExtDefault = ExtDefault,
+> = {
+  startWorkflow: (
+    workflow: Workflow<any, any, TCfgExt, TCtxExt, TStepExt>,
+    input: StripStandardSchema<any>
+  ) => Promise<StartData>;
+};

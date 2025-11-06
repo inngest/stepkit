@@ -1,3 +1,4 @@
+import { type Workflow } from "@stepkit/core";
 import {
   BaseExecutionDriver,
   createOpFound,
@@ -5,10 +6,13 @@ import {
   stdHashId,
   StdOpCode,
   type ExtDefault,
+  type InputSchemaDefault,
   type OpResult,
   type ReportOp,
+  type StartData,
   type StateDriver,
   type Step,
+  type StripStandardSchema,
 } from "@stepkit/core/implementer";
 
 export class InngestStateDriver implements StateDriver {
@@ -81,5 +85,12 @@ export class InngestDriver extends BaseExecutionDriver<
         },
       },
     };
+  }
+
+  startWorkflow<TInput extends InputSchemaDefault>(
+    _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>,
+    _input: StripStandardSchema<TInput>
+  ): Promise<StartData> {
+    throw new Error("not implemented");
   }
 }

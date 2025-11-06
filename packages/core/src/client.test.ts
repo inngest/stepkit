@@ -7,10 +7,13 @@ import { type ReportOp } from "./findOps";
 import {
   staticSchema,
   type ExtDefault,
+  type InputSchemaDefault,
   type OpResult,
   type Step,
+  type StripStandardSchema,
 } from "./types";
 import { stdHashId } from "./utils";
+import { type StartData, type Workflow } from "./workflow";
 
 class DummyStateDriver {
   getOp(_id: { runId: string; hashedOpId: string }): OpResult | undefined {
@@ -30,6 +33,13 @@ describe("input type", () => {
 
     async getStep(reportOp: ReportOp): Promise<Step> {
       return createStdStep(stdHashId, reportOp);
+    }
+
+    startWorkflow<TInput extends InputSchemaDefault>(
+      _workflow: Workflow<TInput, any>,
+      _input: StripStandardSchema<TInput>
+    ): Promise<StartData> {
+      throw new Error("not implemented");
     }
   }
 
@@ -107,6 +117,13 @@ describe("custom workflow config field", () => {
       async getStep(reportOp: ReportOp): Promise<Step> {
         return createStdStep(stdHashId, reportOp);
       }
+
+      startWorkflow<TInput extends InputSchemaDefault>(
+        _workflow: Workflow<TInput, any>,
+        _input: StripStandardSchema<TInput>
+      ): Promise<StartData> {
+        throw new Error("not implemented");
+      }
     }
 
     const client = new StepKitClient({
@@ -156,6 +173,13 @@ it("custom ctx field", () => {
     async getStep(reportOp: ReportOp): Promise<Step> {
       return createStdStep(stdHashId, reportOp);
     }
+
+    startWorkflow<TInput extends InputSchemaDefault>(
+      _workflow: Workflow<TInput, any, ExtDefault, CtxExt>,
+      _input: StripStandardSchema<TInput>
+    ): Promise<StartData> {
+      throw new Error("not implemented");
+    }
   }
 
   const client = new StepKitClient({
@@ -192,6 +216,13 @@ it("custom step method", () => {
           },
         },
       };
+    }
+
+    startWorkflow<TInput extends InputSchemaDefault>(
+      _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>,
+      _input: StripStandardSchema<TInput>
+    ): Promise<StartData> {
+      throw new Error("not implemented");
     }
   }
 
