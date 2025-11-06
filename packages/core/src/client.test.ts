@@ -2,48 +2,25 @@ import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod";
 
 import { StepKitClient } from "./client";
-import { BaseExecutionDriver, createStdStep } from "./executionDriver";
-import { type ReportOp } from "./findOps";
-import {
-  staticSchema,
-  type ExtDefault,
-  type InputSchemaDefault,
-  type OpResult,
-  type Step,
-  type StripStandardSchema,
-} from "./types";
-import { stdHashId } from "./utils";
+import { type ExecutionDriver } from "./executionDriver";
+import { staticSchema, type ExtDefault, type InputDefault } from "./types";
 import { type StartData, type Workflow } from "./workflow";
-
-class DummyStateDriver {
-  getOp(_id: { runId: string; hashedOpId: string }): OpResult | undefined {
-    throw new Error("not implemented");
-  }
-  setOp(_id: { runId: string; hashedOpId: string }, _op: OpResult): void {
-    throw new Error("not implemented");
-  }
-}
 
 describe("input type", () => {
   // Doesn't matter for these tests
-  class ExecutionDriver extends BaseExecutionDriver {
-    constructor() {
-      super(new DummyStateDriver());
+  class MyExecutionDriver implements ExecutionDriver {
+    addWorkflow(_workflow: Workflow): void {
+      return;
     }
-
-    async getStep(reportOp: ReportOp): Promise<Step> {
-      return createStdStep(stdHashId, reportOp);
-    }
-
-    startWorkflow<TInput extends InputSchemaDefault>(
+    startWorkflow<TInput extends InputDefault>(
       _workflow: Workflow<TInput, any>,
-      _input: StripStandardSchema<TInput>
+      _input: TInput
     ): Promise<StartData> {
       throw new Error("not implemented");
     }
   }
 
-  const driver = new ExecutionDriver();
+  const driver = new MyExecutionDriver();
 
   // eslint-disable-next-line vitest/expect-expect
   it("default type", () => {
@@ -109,25 +86,20 @@ describe("custom workflow config field", () => {
       };
     };
 
-    class ExecutionDriver extends BaseExecutionDriver<WorkflowConfigExt> {
-      constructor() {
-        super(new DummyStateDriver());
+    class MyExecutionDriver implements ExecutionDriver<WorkflowConfigExt> {
+      addWorkflow(_workflow: Workflow<any, any, WorkflowConfigExt>): void {
+        return;
       }
-
-      async getStep(reportOp: ReportOp): Promise<Step> {
-        return createStdStep(stdHashId, reportOp);
-      }
-
-      startWorkflow<TInput extends InputSchemaDefault>(
-        _workflow: Workflow<TInput, any>,
-        _input: StripStandardSchema<TInput>
+      startWorkflow<TInput extends InputDefault>(
+        _workflow: Workflow<TInput, any, WorkflowConfigExt>,
+        _input: TInput
       ): Promise<StartData> {
         throw new Error("not implemented");
       }
     }
 
     const client = new StepKitClient({
-      driver: new ExecutionDriver(),
+      driver: new MyExecutionDriver(),
       id: "my-app",
     });
 
@@ -165,25 +137,20 @@ it("custom ctx field", () => {
     foo: string;
   };
 
-  class ExecutionDriver extends BaseExecutionDriver<ExtDefault, CtxExt> {
-    constructor() {
-      super(new DummyStateDriver());
+  class MyExecutionDriver implements ExecutionDriver<ExtDefault, CtxExt> {
+    addWorkflow(_workflow: Workflow<any, any, ExtDefault, CtxExt>): void {
+      return;
     }
-
-    async getStep(reportOp: ReportOp): Promise<Step> {
-      return createStdStep(stdHashId, reportOp);
-    }
-
-    startWorkflow<TInput extends InputSchemaDefault>(
+    startWorkflow<TInput extends InputDefault>(
       _workflow: Workflow<TInput, any, ExtDefault, CtxExt>,
-      _input: StripStandardSchema<TInput>
+      _input: TInput
     ): Promise<StartData> {
       throw new Error("not implemented");
     }
   }
 
   const client = new StepKitClient({
-    driver: new ExecutionDriver(),
+    driver: new MyExecutionDriver(),
     id: "my-app",
   });
 
@@ -198,36 +165,23 @@ it("custom step method", () => {
     foo: (stepId: string) => Promise<string>;
   };
 
-  class ExecutionDriver extends BaseExecutionDriver<
-    ExtDefault,
-    ExtDefault,
-    StepExt
-  > {
-    constructor() {
-      super(new DummyStateDriver());
+  class MyExecutionDriver
+    implements ExecutionDriver<ExtDefault, ExtDefault, StepExt>
+  {
+    addWorkflow(
+      _workflow: Workflow<any, any, ExtDefault, ExtDefault, StepExt>
+    ): void {
+      return;
     }
-
-    async getStep(reportOp: ReportOp): Promise<Step<StepExt>> {
-      return {
-        ...createStdStep(stdHashId, reportOp),
-        ext: {
-          foo: async () => {
-            return "foo";
-          },
-        },
-      };
-    }
-
-    startWorkflow<TInput extends InputSchemaDefault>(
-      _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>,
-      _input: StripStandardSchema<TInput>
+    startWorkflow<TInput extends InputDefault>(
+      _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>
     ): Promise<StartData> {
       throw new Error("not implemented");
     }
   }
 
   const client = new StepKitClient<ExtDefault, ExtDefault, StepExt>({
-    driver: new ExecutionDriver(),
+    driver: new MyExecutionDriver(),
     id: "my-app",
   });
 

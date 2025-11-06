@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { NonRetryableError, StepKitClient } from "@stepkit/core";
-import type { JsonError } from "@stepkit/core/implementer";
+import {
+  NonRetryableError,
+  StepKitClient,
+  type JsonError,
+} from "@stepkit/sdk-tools";
 
 import { InMemoryDriver } from "../src/main";
 

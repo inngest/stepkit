@@ -1,10 +1,6 @@
-import type {
-  Context,
-  ExtDefault,
-  InputSchemaDefault,
-  Step,
-  StripStandardSchema,
-} from "./types";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
+
+import type { Context, ExtDefault, InputDefault, Step } from "./types";
 
 type CronTrigger = {
   type: "cron";
@@ -27,7 +23,7 @@ export function eventTrigger(name: string): EventTrigger {
 export type Trigger = CronTrigger | EventTrigger;
 
 export class Workflow<
-  TInput extends InputSchemaDefault = InputSchemaDefault,
+  TInput extends InputDefault = InputDefault,
   TOutput = unknown,
   TCfgExt extends ExtDefault = ExtDefault,
   TCtxExt extends ExtDefault = ExtDefault,
@@ -36,7 +32,7 @@ export class Workflow<
   readonly driver: Driver<TCfgExt, TCtxExt, TStepExt>;
   readonly ext: TCfgExt | undefined;
   readonly id: string;
-  readonly inputSchema: TInput | undefined;
+  readonly inputSchema: StandardSchemaV1<TInput> | undefined;
   readonly handler: (
     ctx: Context<TInput, TCtxExt>,
     step: Step<TStepExt>
@@ -60,7 +56,7 @@ export class Workflow<
       step: Step<TStepExt>
     ) => Promise<TOutput>;
     id: string;
-    inputSchema?: TInput;
+    inputSchema?: StandardSchemaV1<TInput>;
     maxAttempts?: number;
     triggers?: Trigger[];
   }) {
@@ -73,7 +69,7 @@ export class Workflow<
     this.triggers = triggers;
   }
 
-  async start(input: StripStandardSchema<TInput>): Promise<StartData> {
+  async start(input: TInput): Promise<StartData> {
     return this.driver.startWorkflow(this, input);
   }
 }
@@ -89,8 +85,8 @@ type Driver<
   TCtxExt extends ExtDefault = ExtDefault,
   TStepExt extends ExtDefault = ExtDefault,
 > = {
-  startWorkflow: (
-    workflow: Workflow<any, any, TCfgExt, TCtxExt, TStepExt>,
-    input: StripStandardSchema<any>
+  startWorkflow: <TInput extends InputDefault>(
+    workflow: Workflow<TInput, any, TCfgExt, TCtxExt, TStepExt>,
+    input: TInput
   ) => Promise<StartData>;
 };

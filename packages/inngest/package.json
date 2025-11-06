@@ -12,7 +12,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@stepkit/core": "*"
+    "@stepkit/core": "*",
+    "@stepkit/sdk-tools": "*"
   },
   "devDependencies": {
     "inngest": "^3.24.4",

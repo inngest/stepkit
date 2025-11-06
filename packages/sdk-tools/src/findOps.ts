@@ -1,17 +1,20 @@
+import { type Workflow } from "@stepkit/core";
+import {
+  type Context,
+  type ExtDefault,
+  type InputDefault,
+  type Step,
+} from "@stepkit/core/implementer";
+
 import { toJsonError } from "./errors";
 import { createControlledPromise } from "./promises";
 import {
   StdOpCode,
-  type Context,
   type ControlFlow,
-  type ExtDefault,
-  type InputSchemaDefault,
   type OpConfig,
   type OpFound,
   type OpResult,
-  type Step,
 } from "./types";
-import { type Workflow } from "./workflow";
 
 export type ReportOp = <TOutput = void>(
   op: OpFound<OpConfig, TOutput>
@@ -22,7 +25,7 @@ export type ReportOp = <TOutput = void>(
  * are found. Also handles control flow.
  */
 export async function findOps<
-  TInput extends InputSchemaDefault,
+  TInput extends InputDefault,
   TOutput,
   TWorkflowCfgExt extends ExtDefault,
   TCtxExt extends ExtDefault,

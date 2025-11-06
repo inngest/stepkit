@@ -10,9 +10,10 @@ StepKit is a framework for building durable, resumable workflow execution system
 
 This is a pnpm workspace monorepo with three packages:
 
-- **@stepkit/core**: Core abstractions and execution logic. Other packages depend on this package.
-- **@stepkit/in-memory**: Simple in-memory driver.
-- **@stepkit/inngest**: Integration with Inngest.
+- **@stepkit/core**: Core schemas and types for StepKit. It's the smallest amount of code for the "client" and "workflow" resources.
+- **@stepkit/sdk-tools**: SDK tools for building a workflow SDK. Not necessary for building a StepKit-compatible SDK.
+- **@stepkit/in-memory**: In-memory backend.
+- **@stepkit/inngest**: Inngest backend.
 
 There are also examples in the `examples` directory.
 
@@ -80,4 +81,4 @@ pnpm -C packages/in-memory test
 
 ## Architecture Concepts
 
-New SDKs are implemented by building on top of `@stepkit/core`. See that package for more details.
+All StepKit-compatible SDKs depend on `@stepkit/core`. SDKs may depend on `@stepkit/sdk-tools` for utilities, which would result in `@stepkit/core` being a transitive dependency.

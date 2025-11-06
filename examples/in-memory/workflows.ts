@@ -14,8 +14,6 @@ export const workflow = client.workflow(
       return Math.floor(Math.random() * 100);
     });
 
-    console.log(
-      `Hello ${ctx.input.name}! Your random number is ${randomNumber.toString()}.`
-    );
+    return `Hello ${ctx.input.name}! Your random number is ${randomNumber.toString()}.`;
   }
 );

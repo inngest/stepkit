@@ -1,6 +1,6 @@
 import { Inngest, type ServeHandlerOptions } from "inngest";
 
-import type { StepKitClient, Workflow } from "@stepkit/core";
+import type { StepKitClient, Workflow } from "@stepkit/sdk-tools";
 
 export function inngestify(
   client: StepKitClient,

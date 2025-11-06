@@ -1,13 +1,23 @@
 import { StepKitClient } from "./client";
-import { NonRetryableError } from "./errors";
+import {
+  InvalidInputError,
+  NestedStepError,
+  NonRetryableError,
+  StepKitError,
+} from "./errors";
 import { staticSchema } from "./types";
-import { cronTrigger, eventTrigger, Workflow } from "./workflow";
+import { cronTrigger, eventTrigger, Workflow, type Trigger } from "./workflow";
 
 export {
-  StepKitClient,
-  Workflow,
-  staticSchema,
+  InvalidInputError,
+  NestedStepError,
   NonRetryableError,
+  StepKitClient,
+  StepKitError,
+  Workflow,
   cronTrigger,
   eventTrigger,
+  staticSchema,
 };
+
+export type { Trigger };

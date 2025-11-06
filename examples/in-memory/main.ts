@@ -2,11 +2,7 @@ import { driver } from "./client";
 import { workflow } from "./workflows";
 
 async function main() {
-  driver.start();
-  void workflow.start({ name: "Alice" });
-
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  driver.stop();
+  console.log(await driver.invoke(workflow, { name: "Alice" }));
 }
 
 void main();

@@ -1,9 +1,4 @@
-import type {
-  Context,
-  Input,
-  OpResult,
-  StateDriver,
-} from "@stepkit/core/implementer";
+import type { Context, Input, OpResult, StateDriver } from "@stepkit/sdk-tools";
 
 type Run = {
   ctx: Context<any, any>;

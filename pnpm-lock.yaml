@@ -119,6 +119,9 @@ importers:
       '@stepkit/core':
         specifier: '*'
         version: link:../core
+      '@stepkit/sdk-tools':
+        specifier: '*'
+        version: link:../sdk-tools
     devDependencies:
       dpdm:
         specifier: ^3.14.0
@@ -138,6 +141,9 @@ importers:
       '@stepkit/core':
         specifier: '*'
         version: link:../core
+      '@stepkit/sdk-tools':
+        specifier: '*'
+        version: link:../sdk-tools
     devDependencies:
       inngest:
         specifier: ^3.24.4
@@ -151,6 +157,34 @@ importers:
       zod:
         specifier: ^4.1.12
         version: 4.1.12
+
+  packages/sdk-tools:
+    dependencies:
+      '@standard-schema/spec':
+        specifier: ^1.0.0
+        version: 1.0.0
+      '@stepkit/core':
+        specifier: '*'
+        version: link:../core
+      hash.js:
+        specifier: ^1.1.7
+        version: 1.1.7
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+    devDependencies:
+      '@types/node':
+        specifier: ^24.9.2
+        version: 24.9.2
+      dpdm:
+        specifier: ^3.14.0
+        version: 3.14.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.5
+        version: 4.0.5(@types/debug@4.1.12)(@types/node@24.9.2)(tsx@4.20.6)
 
 packages:
 

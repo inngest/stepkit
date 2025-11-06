@@ -1,18 +1,19 @@
 import hash from "hash.js";
 
-import { fromJsonError } from "./errors";
+import { type Workflow } from "@stepkit/core";
 import type {
   Context,
   ExtDefault,
-  InputSchemaDefault,
-  OpResult,
-} from "./types";
-import type { Workflow } from "./workflow";
+  InputDefault,
+} from "@stepkit/core/implementer";
+
+import { fromJsonError } from "./errors";
+import type { OpResult } from "./types";
 
 const defaultMaxAttempts = 4;
 
 export async function executeUntilDone<
-  TInput extends InputSchemaDefault,
+  TInput extends InputDefault,
   TOutput,
   TWorkflowCfgExt extends ExtDefault,
   TCtxExt extends ExtDefault,
