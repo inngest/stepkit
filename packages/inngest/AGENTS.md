@@ -1,1 +1,0 @@
-Refer to `CONTRIBUTING.md`

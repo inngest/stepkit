@@ -1,8 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "noEmit": true,
-    "skipLibCheck": true
+    "baseUrl": "../..",
+    "paths": {
+      "@stepkit/core": ["packages/core/src/main.ts"],
+      "@stepkit/in-memory": ["packages/in-memory/src/main.ts"],
+      "@stepkit/inngest": ["packages/inngest/src/main.ts"]
+    }
   },
-  "include": ["./**/*.ts"]
+  "include": ["./**/*"]
 }

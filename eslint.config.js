@@ -98,11 +98,11 @@ export default tseslint.config(
     },
   },
 
-  // Allow console in examples
   {
     files: ["examples/**/*"],
     rules: {
       "no-console": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
     },
   },
 

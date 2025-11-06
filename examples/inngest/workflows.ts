@@ -1,24 +1,26 @@
 import { client } from "./client";
 
 export const workflow = client.workflow(
-  { id: "my-workflow" },
-  async ({ runId }, step) => {
-    console.log("workflow: top", runId);
-
+  {
+    id: "say-hi",
+  },
+  async (ctx, step) => {
     const greeting = await step.run("get-greeting", () => {
       console.log("get-greeting: executing");
       return "Hello";
     });
 
-    const name = await step.run("get-name", () => {
-      console.log("get-name: executing");
-      return "Alice";
+    const randomNumber = await step.run("random-number", () => {
+      console.log("random-number: executing");
+      return Math.floor(Math.random() * 100);
     });
 
-    await step.ext.sleepUntil("zzz", new Date(Date.now() + 1000));
+    await step.sleep("short-pause", 1000);
 
-    console.log("workflow: bottom");
-
-    return `${greeting}, ${name}!`;
+    const name =
+      typeof ctx.input.data.name === "string" ? ctx.input.data.name : "Unknown";
+    const message = `${greeting} ${name}! Your random number is ${randomNumber.toString()}.`;
+    console.log("workflow result:", message);
+    return message;
   }
 );

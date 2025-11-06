@@ -1,4 +1,4 @@
-import { InngestDriver } from "./drivers";
-import { serve } from "./express";
+import { InngestDriver } from "./driver";
+import { inngestify } from "./inngestify";
 
-export { InngestDriver, serve };
+export { InngestDriver, inngestify };
