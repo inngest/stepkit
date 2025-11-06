@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dpdm": "pnpm -r dpdm",
     "examples:in-memory": "pnpm -C examples/in-memory dev",
     "examples:inngest": "pnpm -C examples/inngest dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
-    "precommit": "pnpm format:check && pnpm lint && pnpm type-check && pnpm test",
+    "precommit": "pnpm format:check; pnpm lint; pnpm type-check; pnpm test; pnpm dpdm",
     "test": "pnpm -r test",
     "type-check": "pnpm -r type-check"
   },

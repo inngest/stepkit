@@ -25,7 +25,7 @@ describe("InngestDriver", () => {
       return `${greeting}, ${name}!`;
     });
 
-    await expect(workflow.invoke({ name: "Alice" })).rejects.toThrow(
+    await expect(workflow.start({ name: "Alice" })).rejects.toThrow(
       "not implemented"
     );
   });

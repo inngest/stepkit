@@ -8,5 +8,5 @@
       "@stepkit/inngest": ["packages/inngest/src/index.ts"]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "test/**/*.ts"]
 }

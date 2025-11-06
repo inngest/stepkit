@@ -10,12 +10,14 @@ import {
   StdOpCode,
   type Context,
   type ExtDefault,
+  type Input,
   type InputSchemaDefault,
   type OpResult,
   type Step,
   type StripStandardSchema,
 } from "./types";
 import { executeUntilDone, stdHashId } from "./utils";
+import type { StartData } from "./workflow";
 
 export type {
   ExtDefault,
@@ -25,8 +27,10 @@ export type {
   StateDriver,
   Context,
   Step,
-  InputSchemaDefault as InputDefault,
+  InputSchemaDefault,
   StripStandardSchema,
+  StartData,
+  Input,
 };
 
 export {

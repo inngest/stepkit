@@ -23,7 +23,7 @@ import {
   type StripStandardSchema,
 } from "./types";
 import { ensureAsync, type HashId } from "./utils";
-import type { Workflow } from "./workflow";
+import type { StartData, Workflow } from "./workflow";
 
 // Used to detect nested steps
 export const insideStep = {
@@ -51,10 +51,14 @@ export type ExecutionDriver<
   TCtxExt extends ExtDefault,
   TStepExt extends ExtDefault,
 > = {
-  invoke: <TInput extends InputSchemaDefault, TOutput>(
+  addWorkflow: (
+    workflow: Workflow<any, any, TWorkflowCfgExt, TCtxExt, TStepExt>
+  ) => void;
+
+  startWorkflow: <TInput extends InputSchemaDefault, TOutput>(
     workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
     input: StripStandardSchema<TInput>
-  ) => Promise<TOutput>;
+  ) => Promise<StartData>;
 };
 
 export function createStdStep(hash: HashId, reportOp: ReportOp): Step {
@@ -90,8 +94,20 @@ export abstract class BaseExecutionDriver<
   TStepExt extends ExtDefault = ExtDefault,
 > implements ExecutionDriver<TWorkflowCfgExt, TCtxExt, TStepExt>
 {
+  workflows: Map<
+    string,
+    Workflow<any, any, TWorkflowCfgExt, TCtxExt, TStepExt>
+  >;
+
   constructor(public state: StateDriver) {
+    this.workflows = new Map();
     this.state = state;
+  }
+
+  addWorkflow(
+    workflow: Workflow<any, any, TWorkflowCfgExt, TCtxExt, TStepExt>
+  ): void {
+    this.workflows.set(workflow.id, workflow);
   }
 
   async execute<TInput extends InputSchemaDefault, TOutput>(
@@ -128,13 +144,6 @@ export abstract class BaseExecutionDriver<
 
   abstract getStep(reportOp: ReportOp): Promise<Step<TStepExt>>;
 
-  async invoke<TInput extends InputSchemaDefault, TOutput>(
-    _workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
-    _input: StripStandardSchema<TInput>
-  ): Promise<TOutput> {
-    throw new Error("not implemented");
-  }
-
   onStepsFound = async <TInput extends InputSchemaDefault>(
     workflow: Workflow<TInput, unknown, TWorkflowCfgExt, TCtxExt, TStepExt>,
     ctx: Context<TInput, TCtxExt>,
@@ -153,6 +162,11 @@ export abstract class BaseExecutionDriver<
     this.state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, op);
     return op;
   };
+
+  abstract startWorkflow<TInput extends InputSchemaDefault, TOutput>(
+    workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
+    input: StripStandardSchema<TInput>
+  ): Promise<StartData>;
 }
 
 /**
