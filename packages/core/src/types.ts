@@ -42,6 +42,7 @@ export type Step<TExt extends ExtDefault = ExtDefault> = {
   ext: TExt;
   run: <T>(stepId: string, handler: () => T) => Promise<T>;
   sleep: (stepId: string, duration: number) => Promise<void>;
+  sleepUntil: (stepId: string, wakeAt: Date) => Promise<void>;
 };
 
 export type Pretty<T> = {

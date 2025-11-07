@@ -12,11 +12,11 @@ import { CommRequestStateDriver } from "./stateDriver";
 import type { CommRequest } from "./types";
 
 export type CustomStep = Step<{
-  sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
+  sleepUntil: (stepId: string, wakeAt: Date) => Promise<void>;
 }>;
 
 export type StepExt = {
-  sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
+  sleepUntil: (stepId: string, wakeAt: Date) => Promise<void>;
 };
 
 export class ExecutionDriver extends BaseExecutionDriver<
@@ -32,10 +32,10 @@ export class ExecutionDriver extends BaseExecutionDriver<
     return {
       ...createStdStep(reportOp),
       ext: {
-        sleepUntil: async (stepId: string, wakeupAt: Date) => {
+        sleepUntil: async (stepId: string, wakeAt: Date) => {
           await createOpFound(reportOp, stepId, {
             code: StdOpCode.sleep,
-            options: { wakeupAt },
+            options: { wakeAt },
           });
         },
       },

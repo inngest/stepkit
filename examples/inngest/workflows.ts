@@ -6,21 +6,35 @@ export const workflow = client.workflow(
   },
   async (ctx, step) => {
     const greeting = await step.run("get-greeting", () => {
-      console.log("get-greeting: executing");
       return "Hello";
     });
 
     const randomNumber = await step.run("random-number", () => {
-      console.log("random-number: executing");
       return Math.floor(Math.random() * 100);
     });
 
-    await step.sleep("short-pause", 1000);
+    console.log(ctx.input.data);
 
     const name =
       typeof ctx.input.data.name === "string" ? ctx.input.data.name : "Unknown";
-    const message = `${greeting} ${name}! Your random number is ${randomNumber.toString()}.`;
-    console.log("workflow result:", message);
-    return message;
+    console.log(
+      `${greeting} ${name}! Your random number is ${randomNumber.toString()}`
+    );
+
+    const [event] = await Promise.all([
+      step.ext.waitForEvent("wait-for-event", {
+        event: "yo",
+        timeout: 1000,
+      }),
+      step.ext.sendEvent("send-event", {
+        name: "yo",
+      }),
+    ]);
+    if (event === null) {
+      throw new Error("unreachable: no event");
+    }
+    console.log(`Waited for event: ${event.id}`);
+
+    return "Done";
   }
 );

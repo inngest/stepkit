@@ -246,7 +246,7 @@ describe("execute once", () => {
       {
         config: {
           code: "step.sleep",
-          options: { wakeupAt: expect.any(Date) },
+          options: { wakeAt: expect.any(Date) },
         },
         id: {
           hashed: "4cef13bd645056cd329243fd43c1e09b1dfebb9a",

@@ -12,11 +12,11 @@ import {
 } from "@stepkit/sdk-tools";
 
 export type CustomStep = Step<{
-  sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
+  sleepUntil: (stepId: string, wakeAt: Date) => Promise<void>;
 }>;
 
 export type StepExt = {
-  sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
+  sleepUntil: (stepId: string, wakeAt: Date) => Promise<void>;
 };
 
 export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
@@ -31,10 +31,10 @@ export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
     return {
       ...createStdStep(reportOp),
       ext: {
-        sleepUntil: async (stepId: string, wakeupAt: Date) => {
+        sleepUntil: async (stepId: string, wakeAt: Date) => {
           await createOpFound(reportOp, stepId, {
             code: StdOpCode.sleep,
-            options: { wakeupAt },
+            options: { wakeAt },
           });
         },
       },

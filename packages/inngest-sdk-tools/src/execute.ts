@@ -46,11 +46,11 @@ export async function execute(
       } else if (op.config.code === StdOpCode.sleep) {
         opcode = "Sleep";
 
-        const { wakeupAt } = op.config.options ?? {};
-        if (!(wakeupAt instanceof Date)) {
-          throw new Error("unreachable: wakeupAt is not a Date");
+        const { wakeAt } = op.config.options ?? {};
+        if (!(wakeAt instanceof Date)) {
+          throw new Error("unreachable: wakeAt is not a Date");
         }
-        name = wakeupAt.toISOString();
+        name = wakeAt.toISOString();
       } else {
         throw new Error(`unexpected op code: ${op.config.code}`);
       }
