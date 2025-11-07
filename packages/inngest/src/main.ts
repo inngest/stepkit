@@ -1,4 +1,4 @@
-import { InngestDriver } from "./driver";
+import { InngestClient } from "./client";
 import { inngestify } from "./inngestify";
 
-export { InngestDriver, inngestify };
+export { InngestClient, inngestify };

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { StepKitClient, type Workflow } from "@stepkit/core";
+import { type Workflow } from "@stepkit/core";
 import {
   type Context,
   type ExtDefault,
@@ -9,6 +9,7 @@ import {
   type Step,
 } from "@stepkit/core/implementer";
 
+import { BaseClient } from "./client";
 import type { ReportOp } from "./findOps";
 import { BaseExecutionDriver, createOpFound, createStdStep } from "./main";
 import type { OpResult } from "./types";
@@ -31,16 +32,18 @@ class StateDriver {
   }
 }
 
-class ExecutionDriver extends BaseExecutionDriver {
-  async getStep(reportOp: ReportOp): Promise<Step> {
-    return createStdStep(reportOp);
-  }
-
+class MyClient extends BaseClient {
   startWorkflow<TInput extends InputDefault>(
     _workflow: Workflow<TInput, any>,
     _input: TInput
   ): Promise<StartData> {
     throw new Error("not implemented");
+  }
+}
+
+class ExecutionDriver extends BaseExecutionDriver {
+  async getStep(reportOp: ReportOp): Promise<Step> {
+    return createStdStep(reportOp);
   }
 }
 
@@ -63,7 +66,7 @@ describe("execute once", () => {
       // When no steps, interrupt with workflow result
 
       const driver = new ExecutionDriver(new StateDriver());
-      const client = new StepKitClient({ driver, id: "my-app" });
+      const client = new MyClient();
 
       let counter = 0;
       const workflow = client.workflow({ id: "workflow" }, async () => {
@@ -92,7 +95,7 @@ describe("execute once", () => {
       // When no steps, interrupt with workflow result
 
       const driver = new ExecutionDriver(new StateDriver());
-      const client = new StepKitClient({ driver, id: "my-app" });
+      const client = new MyClient();
 
       let counter = 0;
       const workflow = client.workflow({ id: "workflow" }, async () => {
@@ -128,7 +131,7 @@ describe("execute once", () => {
       // When successfully running a step, interrupt with step result
 
       const driver = new ExecutionDriver(new StateDriver());
-      const client = new StepKitClient({ driver, id: "my-app" });
+      const client = new MyClient();
 
       const counters = {
         top: 0,
@@ -170,7 +173,7 @@ describe("execute once", () => {
       // When successfully running a step, interrupt with step result
 
       const driver = new ExecutionDriver(new StateDriver());
-      const client = new StepKitClient({ driver, id: "my-app" });
+      const client = new MyClient();
 
       const counters = {
         top: 0,
@@ -217,7 +220,7 @@ describe("execute once", () => {
     // When successfully running a step, interrupt with step result
 
     const driver = new ExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver, id: "my-app" });
+    const client = new MyClient();
 
     const counters = {
       top: 0,
@@ -264,7 +267,7 @@ describe("execute to completion", () => {
     // Keep looping through interrupts until the run completes
 
     const driver = new ExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver, id: "my-app" });
+    const client = new MyClient();
 
     const counters = {
       top: 0,
@@ -349,7 +352,7 @@ describe("execute to completion", () => {
     // `onStepsFound` as a single array
 
     const driver = new ExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver, id: "my-app" });
+    const client = new MyClient();
 
     const counters = {
       top: 0,
@@ -492,7 +495,7 @@ describe("execute to completion", () => {
     // collector. This works because they don't have any references to them
 
     const driver = new ExecutionDriver(new StateDriver());
-    const client = new StepKitClient({ driver, id: "my-app" });
+    const client = new MyClient();
 
     const heldValues = {
       greetingPromise: 0,
@@ -560,6 +563,20 @@ it("custom step", async () => {
     multiply: (stepId: string, a: number, b: number) => Promise<number>;
   };
 
+  class MyClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
+    addWorkflow(
+      _workflow: Workflow<any, any, ExtDefault, ExtDefault, StepExt>
+    ): void {
+      return;
+    }
+    startWorkflow<TInput extends InputDefault>(
+      _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>,
+      _input: TInput
+    ): Promise<StartData> {
+      throw new Error("not implemented");
+    }
+  }
+
   class ExecutionDriver extends BaseExecutionDriver<
     ExtDefault,
     ExtDefault,
@@ -584,17 +601,10 @@ it("custom step", async () => {
         },
       };
     }
-
-    startWorkflow<TInput extends InputDefault>(
-      _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>,
-      _input: TInput
-    ): Promise<StartData> {
-      throw new Error("not implemented");
-    }
   }
 
   const driver = new ExecutionDriver(new StateDriver());
-  const client = new StepKitClient({ driver, id: "my-app" });
+  const client = new MyClient();
 
   let result: number;
   const workflow = client.workflow({ id: "workflow" }, async (_, step) => {

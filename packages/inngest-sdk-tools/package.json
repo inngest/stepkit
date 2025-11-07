@@ -1,0 +1,24 @@
+{
+  "name": "@stepkit/inngest-sdk-tools",
+  "version": "0.0.0",
+  "main": "./src/main.ts",
+  "types": "./src/main.ts",
+  "exports": {
+    ".": "./src/main.ts",
+    "./express": "./src/express.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@stepkit/sdk-tools": "*",
+    "zod": "^4.1.12"
+  },
+  "optionalDependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5"
+  }
+}

@@ -1,3 +1,4 @@
+import { BaseClient } from "./client";
 import type { JsonError } from "./errors";
 import {
   BaseExecutionDriver,
@@ -15,6 +16,7 @@ export type * from "@stepkit/core/implementer";
 export type { JsonError, OpResult, ReportOp, StateDriver };
 
 export {
+  BaseClient,
   BaseExecutionDriver,
   StdOpCode,
   createOpFound,

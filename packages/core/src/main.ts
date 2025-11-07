@@ -1,4 +1,3 @@
-import { StepKitClient } from "./client";
 import {
   InvalidInputError,
   NestedStepError,
@@ -12,7 +11,6 @@ export {
   InvalidInputError,
   NestedStepError,
   NonRetryableError,
-  StepKitClient,
   StepKitError,
   Workflow,
   cronTrigger,

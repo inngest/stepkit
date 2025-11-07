@@ -1,0 +1,56 @@
+import { type OpResult, type StateDriver } from "@stepkit/sdk-tools";
+
+import type { CommRequest } from "./types";
+
+export class CommRequestStateDriver implements StateDriver {
+  private commRequest: CommRequest;
+  ops: OpResult[];
+
+  constructor(commRequest: CommRequest) {
+    this.commRequest = commRequest;
+    this.ops = [];
+  }
+
+  getOp({
+    hashedOpId,
+  }: {
+    runId: string;
+    hashedOpId: string;
+  }): OpResult | undefined {
+    const stepResult = this.commRequest.steps[hashedOpId];
+    if (stepResult === undefined) {
+      return undefined;
+    }
+
+    let result: OpResult["result"];
+    if (stepResult === null) {
+      result = {
+        status: "success",
+        output: null,
+      };
+    } else if ("data" in stepResult) {
+      result = {
+        status: "success",
+        output: stepResult.data,
+      };
+    } else {
+      throw new Error("not implemented");
+    }
+
+    return {
+      config: { code: "unknown" },
+      id: { hashed: hashedOpId, id: "unknown", index: 0 },
+      result,
+    };
+  }
+  setOp(
+    { hashedOpId }: { runId: string; hashedOpId: string },
+    _op: OpResult
+  ): void {
+    if (hashedOpId in this.commRequest.steps) {
+      return;
+    }
+
+    this.ops.push(_op);
+  }
+}

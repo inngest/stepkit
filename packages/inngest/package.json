@@ -7,8 +7,7 @@
     "build": "tsc",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
+    "test": "echo \"No tests yet\"",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

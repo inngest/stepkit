@@ -1,7 +1,5 @@
-import { StepKitClient } from "@stepkit/core";
-import { InngestDriver } from "@stepkit/inngest";
+import { InngestClient } from "@stepkit/inngest";
 
-export const client = new StepKitClient({
-  driver: new InngestDriver(),
+export const client = new InngestClient({
   id: "stepkit-inngest-example",
 });

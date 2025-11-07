@@ -29,7 +29,7 @@ export class Workflow<
   TCtxExt extends ExtDefault = ExtDefault,
   TStepExt extends ExtDefault = ExtDefault,
 > {
-  readonly driver: Driver<TCfgExt, TCtxExt, TStepExt>;
+  readonly client: Client<TCfgExt, TCtxExt, TStepExt>;
   readonly ext: TCfgExt | undefined;
   readonly id: string;
   readonly inputSchema: StandardSchemaV1<TInput> | undefined;
@@ -41,7 +41,7 @@ export class Workflow<
   readonly triggers?: Trigger[];
 
   constructor({
-    driver,
+    client,
     ext,
     handler,
     id,
@@ -49,7 +49,7 @@ export class Workflow<
     maxAttempts,
     triggers,
   }: {
-    driver: Driver<TCfgExt, TCtxExt, TStepExt>;
+    client: Client<TCfgExt, TCtxExt, TStepExt>;
     ext?: TCfgExt;
     handler: (
       ctx: Context<TInput, TCtxExt>,
@@ -60,7 +60,7 @@ export class Workflow<
     maxAttempts?: number;
     triggers?: Trigger[];
   }) {
-    this.driver = driver;
+    this.client = client;
     this.ext = ext;
     this.handler = handler;
     this.id = id;
@@ -70,23 +70,36 @@ export class Workflow<
   }
 
   async start(input: TInput): Promise<StartData> {
-    return this.driver.startWorkflow(this, input);
+    return this.client.startWorkflow(this, input);
   }
 }
+
+export type Client<
+  TWorkflowCfgExt extends ExtDefault = ExtDefault,
+  TCtxExt extends ExtDefault = ExtDefault,
+  TStepExt extends ExtDefault = ExtDefault,
+> = {
+  workflow: <TInput extends InputDefault = InputDefault, TOutput = unknown>(
+    opts: {
+      ext?: TWorkflowCfgExt;
+      id: string;
+      inputSchema?: StandardSchemaV1<TInput>;
+      maxAttempts?: number;
+      triggers?: Trigger[];
+    },
+    handler: (
+      ctx: Context<TInput, TCtxExt>,
+      step: Step<TStepExt>
+    ) => Promise<TOutput>
+  ) => Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>;
+
+  startWorkflow: <TInput extends InputDefault, TOutput>(
+    workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
+    input: TInput
+  ) => Promise<StartData>;
+};
 
 export type StartData = {
   eventId: string;
   runId: string;
-};
-
-// Define here to avoid circular dependency
-type Driver<
-  TCfgExt extends ExtDefault = ExtDefault,
-  TCtxExt extends ExtDefault = ExtDefault,
-  TStepExt extends ExtDefault = ExtDefault,
-> = {
-  startWorkflow: <TInput extends InputDefault>(
-    workflow: Workflow<TInput, any, TCfgExt, TCtxExt, TStepExt>,
-    input: TInput
-  ) => Promise<StartData>;
 };

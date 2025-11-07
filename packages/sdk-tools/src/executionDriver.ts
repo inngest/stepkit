@@ -88,26 +88,12 @@ export abstract class BaseExecutionDriver<
   TWorkflowCfgExt extends ExtDefault = ExtDefault,
   TCtxExt extends ExtDefault = ExtDefault,
   TStepExt extends ExtDefault = ExtDefault,
-> implements ExecutionDriver<TWorkflowCfgExt, TCtxExt, TStepExt>
-{
-  workflows: Map<
-    string,
-    Workflow<any, any, TWorkflowCfgExt, TCtxExt, TStepExt>
-  >;
-
+> {
   constructor(
     public state: StateDriver,
     public hashId: HashId = stdHashId
   ) {
-    this.hashId = hashId;
-    this.workflows = new Map();
     this.state = state;
-  }
-
-  addWorkflow(
-    workflow: Workflow<any, any, TWorkflowCfgExt, TCtxExt, TStepExt>
-  ): void {
-    this.workflows.set(workflow.id, workflow);
   }
 
   async execute<TInput extends InputDefault, TOutput>(
@@ -163,11 +149,6 @@ export abstract class BaseExecutionDriver<
     this.state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, op);
     return op;
   };
-
-  abstract startWorkflow<TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
-    input: TInput
-  ): Promise<StartData>;
 }
 
 /**

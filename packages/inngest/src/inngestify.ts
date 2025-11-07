@@ -1,10 +1,12 @@
 import { Inngest, type ServeHandlerOptions } from "inngest";
 
-import type { StepKitClient, Workflow } from "@stepkit/sdk-tools";
+import type { ExtDefault, Workflow } from "@stepkit/sdk-tools";
+
+import { type InngestClient, type StepExt } from "./client";
 
 export function inngestify(
-  client: StepKitClient,
-  workflow: Workflow
+  client: InngestClient,
+  workflow: Workflow<any, any, ExtDefault, ExtDefault, StepExt>
 ): ServeHandlerOptions {
   const inngest = new Inngest({ id: client.id });
   const functions = inngest.createFunction(
@@ -13,6 +15,7 @@ export function inngestify(
     },
     { event: "workflow/say-hi" },
     async (ctx) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return workflow.handler(
         {
           runId: ctx.runId,
@@ -29,7 +32,11 @@ export function inngestify(
           ext: {},
         },
         {
-          ext: {},
+          ext: {
+            sleepUntil: async (stepId: string, wakeupAt: Date) => {
+              await ctx.step.sleep(stepId, wakeupAt.getTime() - Date.now());
+            },
+          },
           run: <T>(stepId: string, handler: () => T) => {
             //
             // TODO: type return properly
