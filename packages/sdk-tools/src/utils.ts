@@ -8,6 +8,7 @@ import type {
 } from "@stepkit/core/implementer";
 
 import { fromJsonError } from "./errors";
+import { isSleepOpResult } from "./ops";
 import type { OpResult } from "./types";
 
 const defaultMaxAttempts = 4;
@@ -48,6 +49,11 @@ export async function executeUntilDone<
       }
     }
 
+    if (isSleepOpResult(op)) {
+      // TODO: This probably doesn't work with parallel steps
+      await sleepUntil(op.config.options.wakeAt);
+      continue;
+    }
     if (op.config.code !== "workflow") {
       // Not done yet
       continue;
@@ -77,4 +83,14 @@ export type HashId = (id: string, index: number) => string;
 // Standard hash function for op IDs
 export function stdHashId(id: string, index: number): string {
   return hash.sha1().update(`${id}:${index.toString()}`).digest("hex");
+}
+
+async function sleepUntil(wakeAt: Date): Promise<void> {
+  const now = new Date();
+  if (wakeAt < now) {
+    return;
+  }
+  await new Promise((resolve) =>
+    setTimeout(resolve, wakeAt.getTime() - now.getTime())
+  );
 }

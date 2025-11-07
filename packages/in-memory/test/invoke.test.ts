@@ -6,7 +6,7 @@ import { NonRetryableError, type JsonError } from "@stepkit/sdk-tools";
 import { InMemoryClient } from "../src/main";
 
 describe("invoke", () => {
-  it("success", async () => {
+  it("step.run", async () => {
     const client = new InMemoryClient();
 
     let input: Record<string, unknown> = {};
@@ -44,6 +44,31 @@ describe("invoke", () => {
       bottom: 1,
     });
     expect(output).toEqual("Hello, Alice!");
+  });
+
+  it("step.sleep", async () => {
+    const client = new InMemoryClient();
+
+    const counters = {
+      top: 0,
+      bottom: 0,
+    };
+    const workflow = client.workflow({ id: "workflow" }, async (ctx, step) => {
+      counters.top++;
+      await step.sleep("get-greeting", 1000);
+      counters.bottom++;
+    });
+
+    const start = Date.now();
+    await client.invoke(workflow, {});
+    const duration = Date.now() - start;
+    expect(duration).toBeGreaterThan(999);
+    expect(duration).toBeLessThan(1010);
+
+    expect(counters).toEqual({
+      top: 2,
+      bottom: 1,
+    });
   });
 
   it("duplicate step ID", async () => {
