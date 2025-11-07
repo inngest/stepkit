@@ -2,7 +2,6 @@ import {
   BaseClient,
   createStdStep,
   executeUntilDone,
-  stdHashId,
   type Context,
   type InputDefault,
   type ReportOp,
@@ -47,7 +46,7 @@ export class InMemoryClient extends BaseClient {
   }
 
   async getStep(reportOp: ReportOp): Promise<Step> {
-    return createStdStep(stdHashId, reportOp);
+    return createStdStep(reportOp);
   }
 
   private processEvents(): void {

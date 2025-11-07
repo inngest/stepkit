@@ -2,7 +2,6 @@ import {
   BaseClient,
   createOpFound,
   createStdStep,
-  stdHashId,
   StdOpCode,
   type ExtDefault,
   type InputDefault,
@@ -30,10 +29,10 @@ export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
 
   async getStep(reportOp: ReportOp): Promise<Step<StepExt>> {
     return {
-      ...createStdStep(stdHashId, reportOp),
+      ...createStdStep(reportOp),
       ext: {
         sleepUntil: async (stepId: string, wakeupAt: Date) => {
-          await createOpFound(stdHashId, reportOp, stepId, {
+          await createOpFound(reportOp, stepId, {
             code: StdOpCode.sleep,
             options: { wakeupAt },
           });

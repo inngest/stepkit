@@ -2,7 +2,6 @@ import {
   BaseExecutionDriver,
   createOpFound,
   createStdStep,
-  stdHashId,
   StdOpCode,
   type ExtDefault,
   type ReportOp,
@@ -31,10 +30,10 @@ export class ExecutionDriver extends BaseExecutionDriver<
 
   async getStep(reportOp: ReportOp): Promise<Step<StepExt>> {
     return {
-      ...createStdStep(stdHashId, reportOp),
+      ...createStdStep(reportOp),
       ext: {
         sleepUntil: async (stepId: string, wakeupAt: Date) => {
-          await createOpFound(stdHashId, reportOp, stepId, {
+          await createOpFound(reportOp, stepId, {
             code: StdOpCode.sleep,
             options: { wakeupAt },
           });

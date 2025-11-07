@@ -13,7 +13,7 @@ import { BaseClient } from "./client";
 import type { ReportOp } from "./findOps";
 import { BaseExecutionDriver, createOpFound, createStdStep } from "./main";
 import type { OpResult } from "./types";
-import { executeUntilDone, stdHashId } from "./utils";
+import { executeUntilDone } from "./utils";
 
 class StateDriver {
   private ops: Map<string, OpResult>;
@@ -43,7 +43,7 @@ class MyClient extends BaseClient {
 
 class ExecutionDriver extends BaseExecutionDriver {
   async getStep(reportOp: ReportOp): Promise<Step> {
-    return createStdStep(stdHashId, reportOp);
+    return createStdStep(reportOp);
   }
 }
 
@@ -584,7 +584,7 @@ it("custom step", async () => {
   > {
     async getStep(reportOp: ReportOp): Promise<Step<StepExt>> {
       return {
-        ...createStdStep(stdHashId, reportOp),
+        ...createStdStep(reportOp),
         ext: {
           multiply: async (
             stepId: string,
@@ -592,7 +592,6 @@ it("custom step", async () => {
             b: number
           ): Promise<number> => {
             return await createOpFound(
-              stdHashId,
               reportOp,
               stepId,
               { code: "step.multiply" },

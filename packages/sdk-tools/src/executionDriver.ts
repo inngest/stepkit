@@ -9,6 +9,7 @@ import {
   type Context,
   type ExtDefault,
   type InputDefault,
+  type StartData,
   type Step,
 } from "@stepkit/core/implementer";
 
@@ -24,7 +25,7 @@ import {
   type OpFound,
   type OpResult,
 } from "./types";
-import { ensureAsync, type HashId } from "./utils";
+import { ensureAsync, stdHashId, type HashId } from "./utils";
 
 // Used to detect nested steps
 export const insideStep = {
@@ -47,23 +48,32 @@ export const insideStep = {
   storage: new AsyncLocalStorage(),
 };
 
-export function createStdStep(hash: HashId, reportOp: ReportOp): Step {
+export type ExecutionDriver<
+  TWorkflowCfgExt extends ExtDefault,
+  TCtxExt extends ExtDefault,
+  TStepExt extends ExtDefault,
+> = {
+  addWorkflow: (
+    workflow: Workflow<any, any, TWorkflowCfgExt, TCtxExt, TStepExt>
+  ) => void;
+
+  startWorkflow: <TInput extends InputDefault, TOutput>(
+    workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
+    input: TInput
+  ) => Promise<StartData>;
+};
+
+export function createStdStep(reportOp: ReportOp): Step {
   return {
     ext: {},
     run: async <TStepRunOutput>(
       stepId: string,
       handler: (() => Promise<TStepRunOutput>) | (() => TStepRunOutput)
     ): Promise<TStepRunOutput> => {
-      return createOpFound(
-        hash,
-        reportOp,
-        stepId,
-        { code: StdOpCode.run },
-        handler
-      );
+      return createOpFound(reportOp, stepId, { code: StdOpCode.run }, handler);
     },
     sleep: async (stepId: string, duration: number) => {
-      return createOpFound(hash, reportOp, stepId, {
+      return createOpFound(reportOp, stepId, {
         code: StdOpCode.sleep,
         options: { wakeupAt: new Date(Date.now() + duration) },
       });
@@ -79,7 +89,10 @@ export abstract class BaseExecutionDriver<
   TCtxExt extends ExtDefault = ExtDefault,
   TStepExt extends ExtDefault = ExtDefault,
 > {
-  constructor(public state: StateDriver) {
+  constructor(
+    public state: StateDriver,
+    public hashId: HashId = stdHashId
+  ) {
     this.state = state;
   }
 
@@ -109,6 +122,7 @@ export abstract class BaseExecutionDriver<
     return findOps({
       ctx,
       getStep: (reportOp) => this.getStep(reportOp),
+      hashId: this.hashId,
       onStepsFound: (ops) => this.onStepsFound(workflow, ctx, ops),
       onWorkflowResult: (op) => this.onWorkflowResult(workflow, ctx, op),
       workflow,
@@ -165,7 +179,6 @@ export function handleExistingOps(
 }
 
 export async function createOpFound<TOutput>(
-  hash: HashId,
   reportOp: ReportOp,
   id: string,
   config: OpConfig,
@@ -188,7 +201,13 @@ export async function createOpFound<TOutput>(
   return await reportOp<TOutput>({
     config,
     handler,
-    id: { hashed: hash(id, index), id, index },
+    id: {
+      // Will be set within findOps
+      hashed: "PLACEHOLDER",
+
+      id,
+      index,
+    },
     promise: createControlledPromise<TOutput>(),
   });
 }
