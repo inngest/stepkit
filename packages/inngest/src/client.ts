@@ -8,12 +8,29 @@ import {
   type Workflow,
 } from "@stepkit/sdk-tools";
 
-export type CustomStep = Step<{
-  sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
-}>;
+export type ReceivedEvent = {
+  data: Record<string, unknown>;
+  id: string;
+  name: string;
+  ts: number;
+  v: string | undefined;
+};
+
+export type SentEvent = {
+  data?: Record<string, unknown>;
+  id?: string;
+  name: string;
+  ts?: number;
+  v?: string;
+};
 
 export type StepExt = {
-  sleepUntil: (stepId: string, wakeupAt: Date) => Promise<void>;
+  sendEvent: (stepId: string, event: SentEvent) => Promise<{ ids: string[] }>;
+
+  waitForEvent: (
+    stepId: string,
+    opts: { event: string; timeout: number | string | Date }
+  ) => Promise<ReceivedEvent | null>;
 };
 
 export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {

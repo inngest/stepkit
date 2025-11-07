@@ -7,6 +7,7 @@ import type { ControlledPromise } from "./promises";
 export const StdOpCode = {
   run: "step.run",
   sleep: "step.sleep",
+  sleepUntil: "step.sleepUntil",
   workflow: "workflow",
 } as const satisfies Record<keyof Omit<Step, "ext">, string> & {
   workflow: string;

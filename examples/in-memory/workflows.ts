@@ -10,6 +10,7 @@ export const workflow = client.workflow(
     inputSchema: z.object({ name: z.string() }),
   },
   async (ctx, step) => {
+    console.log(ctx.input);
     const randomNumber = await step.run("random-number", () => {
       return Math.floor(Math.random() * 100);
     });

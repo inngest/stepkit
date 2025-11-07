@@ -75,7 +75,13 @@ export function createStdStep(reportOp: ReportOp): Step {
     sleep: async (stepId: string, duration: number) => {
       return createOpFound(reportOp, stepId, {
         code: StdOpCode.sleep,
-        options: { wakeupAt: new Date(Date.now() + duration) },
+        options: { wakeAt: new Date(Date.now() + duration) },
+      });
+    },
+    sleepUntil: async (stepId: string, wakeAt: Date) => {
+      return createOpFound(reportOp, stepId, {
+        code: StdOpCode.sleep,
+        options: { wakeAt },
       });
     },
   };
