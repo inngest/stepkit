@@ -1,6 +1,12 @@
 import { Inngest, type ServeHandlerOptions } from "inngest";
 
-import type { Context, ExtDefault, Step, Workflow } from "@stepkit/sdk-tools";
+import type {
+  Context,
+  ExtDefault,
+  InputType,
+  Step,
+  Workflow,
+} from "@stepkit/sdk-tools";
 
 import {
   type InngestClient,
@@ -26,6 +32,13 @@ export function inngestify(
           time = new Date(ctx.event.ts);
         }
 
+        let type: InputType = "event";
+        if (ctx.event.name === "inngest/function.invoked") {
+          type = "invoke";
+        } else if (ctx.event.name === "inngest/scheduled.timer") {
+          type = "cron";
+        }
+
         const workflowCtx: Context = {
           runId: ctx.runId,
           input: {
@@ -33,7 +46,7 @@ export function inngestify(
             id: ctx.event.id ?? "unknown",
             ext: {},
             time,
-            type: "event",
+            type,
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             data: ctx.event.data ?? {},

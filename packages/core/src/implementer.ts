@@ -1,7 +1,14 @@
 // Things that SDK implementers may need
 
 import type { StepKitErrorProps } from "./errors";
-import type { Context, ExtDefault, Input, InputDefault, Step } from "./types";
+import type {
+  Context,
+  ExtDefault,
+  Input,
+  InputDefault,
+  InputType,
+  Step,
+} from "./types";
 import type { Client, StartData } from "./workflow";
 
 export type {
@@ -10,6 +17,7 @@ export type {
   ExtDefault,
   Input,
   InputDefault,
+  InputType,
   StartData,
   Step,
   StepKitErrorProps,

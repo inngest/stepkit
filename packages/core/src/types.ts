@@ -14,7 +14,7 @@ export function staticSchema<
   return z.any();
 }
 
-type InputType = "cron" | "event" | "invoke";
+export type InputType = "cron" | "event" | "invoke";
 
 export type Input<
   TData extends Record<string, unknown> = Record<string, unknown>,
