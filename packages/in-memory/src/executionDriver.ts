@@ -2,7 +2,6 @@ import {
   BaseExecutionDriver,
   createStdStep,
   executeUntilDone,
-  stdHashId,
   type Context,
   type InputDefault,
   type ReportOp,
@@ -46,7 +45,7 @@ export class InMemoryDriver extends BaseExecutionDriver {
   }
 
   async getStep(reportOp: ReportOp): Promise<Step> {
-    return createStdStep(stdHashId, reportOp);
+    return createStdStep(reportOp);
   }
 
   private processEvents(): void {
