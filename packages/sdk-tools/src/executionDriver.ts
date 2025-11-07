@@ -15,6 +15,7 @@ import {
 
 import { fromJsonError, toJsonError } from "./errors";
 import { findOps, type ReportOp } from "./findOps";
+import type { SleepOpConfig } from "./ops";
 import { createControlledPromise } from "./promises";
 import type { StateDriver } from "./stateDriver";
 import {
@@ -73,10 +74,11 @@ export function createStdStep(reportOp: ReportOp): Step {
       return createOpFound(reportOp, stepId, { code: StdOpCode.run }, handler);
     },
     sleep: async (stepId: string, duration: number) => {
-      return createOpFound(reportOp, stepId, {
+      const config: SleepOpConfig = {
         code: StdOpCode.sleep,
         options: { wakeAt: new Date(Date.now() + duration) },
-      });
+      };
+      return createOpFound(reportOp, stepId, config);
     },
     sleepUntil: async (stepId: string, wakeAt: Date) => {
       return createOpFound(reportOp, stepId, {
