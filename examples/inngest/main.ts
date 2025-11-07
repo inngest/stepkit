@@ -9,7 +9,7 @@ import { workflow } from "./workflows";
 const app = express();
 app.use(express.json());
 
-app.use("/api/inngest", serve(inngestify(client, workflow)));
+app.use("/api/inngest", serve(inngestify(client, [workflow])));
 
 const PORT = process.env.PORT ?? 3000;
 

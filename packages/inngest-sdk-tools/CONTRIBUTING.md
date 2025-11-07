@@ -1,9 +1,3 @@
-# `@stepkit/inngest`
+# `@stepkit/inngest-sdk-tools`
 
-Inngest implementation of StepKit. An Inngest server (Inngest Dev Server or Inngest Cloud) is required to run workflows.
-
-## Testing
-
-```sh
-pnpm type-check
-```
+POC for a reimplementation of the Inngest SDK using `@stepkit/sdk-tools`.
