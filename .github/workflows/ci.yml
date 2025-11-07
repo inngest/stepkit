@@ -8,7 +8,7 @@ on:
 
 jobs:
   static:
-    name: "Type Check"
+    name: "Static checks"
     runs-on: "ubuntu-latest"
     steps:
       - name: "Checkout code"
