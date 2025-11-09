@@ -51,7 +51,7 @@ export async function executeUntilDone<
 
     if (isSleepOpResult(op)) {
       // TODO: This probably doesn't work with parallel steps
-      await sleepUntil(op.config.options.wakeAt);
+      await sleepUntil(new Date(op.config.options.wakeAt));
       continue;
     }
     if (op.config.code !== "workflow") {

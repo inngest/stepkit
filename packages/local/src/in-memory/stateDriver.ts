@@ -1,10 +1,6 @@
-import {
-  StdOpCode,
-  type Context,
-  type OpResult,
-  type StateDriver,
-} from "@stepkit/sdk-tools";
+import { StdOpCode, type Context, type OpResult } from "@stepkit/sdk-tools";
 
+import type { LocalStateDriver } from "../common/stateDriver";
 import { UnreachableError } from "./utils";
 
 export type Run = {
@@ -15,7 +11,7 @@ export type Run = {
   workflowId: string;
 };
 
-export class InMemoryStateDriver implements StateDriver {
+export class InMemoryStateDriver implements LocalStateDriver {
   private ops: Map<string, string>;
   private runs: Map<string, Run>;
 
@@ -24,15 +20,15 @@ export class InMemoryStateDriver implements StateDriver {
     this.runs = new Map();
   }
 
-  addRun(run: Run): void {
+  async addRun(run: Run): Promise<void> {
     this.runs.set(run.ctx.runId, run);
   }
 
-  getRun(runId: string): Run | undefined {
+  async getRun(runId: string): Promise<Run | undefined> {
     return this.runs.get(runId);
   }
 
-  endRun(runId: string, op: OpResult): void {
+  async endRun(runId: string, op: OpResult): Promise<void> {
     const run = this.runs.get(runId);
     if (run === undefined) {
       throw new UnreachableError("run not found");
@@ -40,7 +36,7 @@ export class InMemoryStateDriver implements StateDriver {
     run.result = op.result;
   }
 
-  incrementOpAttempt(runId: string, hashedOpId: string): number {
+  async incrementOpAttempt(runId: string, hashedOpId: string): Promise<number> {
     const run = this.runs.get(runId);
     if (run === undefined) {
       throw new UnreachableError("run not found");
@@ -49,7 +45,7 @@ export class InMemoryStateDriver implements StateDriver {
     return run.opAttempts[hashedOpId];
   }
 
-  getMaxAttempts(runId: string): number {
+  async getMaxAttempts(runId: string): Promise<number> {
     const run = this.runs.get(runId);
     if (run === undefined) {
       throw new UnreachableError("run not found");
@@ -67,31 +63,34 @@ export class InMemoryStateDriver implements StateDriver {
     return `${runId}:${hashedOpId}`;
   }
 
-  getOp({
+  async getOp({
     runId,
     hashedOpId,
   }: {
     runId: string;
     hashedOpId: string;
-  }): OpResult | undefined {
+  }): Promise<OpResult | undefined> {
     const key = this.getKey({ runId, hashedOpId });
     const value = this.ops.get(key);
     if (value !== undefined) {
-      return JSON.parse(value) as OpResult;
+      const result: unknown = JSON.parse(value);
+
+      // @ts-expect-error - Necessary because of generics
+      return result;
     }
     return undefined;
   }
 
-  setOp(
+  async setOp(
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
     op: OpResult
-  ): void {
+  ): Promise<void> {
     if (op.config.code === StdOpCode.sleep) {
       return;
     }
 
-    const opAttempt = this.incrementOpAttempt(runId, hashedOpId);
-    const maxAttempts = this.getMaxAttempts(runId);
+    const opAttempt = await this.incrementOpAttempt(runId, hashedOpId);
+    const maxAttempts = await this.getMaxAttempts(runId);
 
     if (op.result.status === "error" && opAttempt < maxAttempts) {
       // Retry by not storing the error
@@ -102,10 +101,10 @@ export class InMemoryStateDriver implements StateDriver {
     this.ops.set(key, JSON.stringify(op));
   }
 
-  wakeSleepOp(
+  async wakeSleepOp(
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
     op: OpResult
-  ): void {
+  ): Promise<void> {
     if (op.config.code !== StdOpCode.sleep) {
       throw new UnreachableError("op is not a sleep");
     }

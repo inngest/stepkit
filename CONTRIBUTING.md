@@ -12,7 +12,7 @@ This is a pnpm workspace monorepo with three packages:
 
 - **@stepkit/core**: Core schemas and types for StepKit. It's the smallest amount of code for the "client" and "workflow" resources.
 - **@stepkit/sdk-tools**: SDK tools for building a workflow SDK. Not necessary for building a StepKit-compatible SDK.
-- **@stepkit/in-memory**: In-memory backend.
+- **@stepkit/local**: In-memory and file-system backends.
 - **@stepkit/inngest**: Inngest backend.
 
 There are also examples in the `examples` directory.

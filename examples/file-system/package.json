@@ -1,9 +1,10 @@
 {
-  "name": "examples/in-memory",
+  "name": "examples/file-system",
   "version": "0.0.0",
   "main": "./src/main.ts",
   "types": "./src/main.ts",
   "scripts": {
+    "clean": "rm -rf ./.stepkit",
     "dev": "tsx main.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

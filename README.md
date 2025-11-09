@@ -9,7 +9,7 @@ StepKit is a framework for provider-agnostic workflows.
 import { eventTrigger } from "@stepkit/core";
 
 // Provider-specific package
-import { InMemoryClient } from "@stepkit/in-memory";
+import { InMemoryClient } from "@stepkit/local";
 const client = new InMemoryClient();
 
 const workflow = client.workflow(

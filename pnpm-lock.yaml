@@ -42,14 +42,33 @@ importers:
         specifier: ^4.0.5
         version: 4.0.5(@types/debug@4.1.12)(@types/node@24.9.2)(tsx@4.20.6)
 
+  examples/file-system:
+    dependencies:
+      '@stepkit/core':
+        specifier: '*'
+        version: link:../../packages/core
+      '@stepkit/local':
+        specifier: '*'
+        version: link:../../packages/local
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+    devDependencies:
+      tsx:
+        specifier: ^4.20.6
+        version: 4.20.6
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   examples/in-memory:
     dependencies:
       '@stepkit/core':
         specifier: '*'
         version: link:../../packages/core
-      '@stepkit/in-memory':
+      '@stepkit/local':
         specifier: '*'
-        version: link:../../packages/in-memory
+        version: link:../../packages/local
       zod:
         specifier: ^4.1.12
         version: 4.1.12
@@ -136,28 +155,6 @@ importers:
         specifier: ^4.0.5
         version: 4.0.5(@types/debug@4.1.12)(@types/node@24.9.2)(tsx@4.20.6)
 
-  packages/in-memory:
-    dependencies:
-      '@stepkit/core':
-        specifier: '*'
-        version: link:../core
-      '@stepkit/sdk-tools':
-        specifier: '*'
-        version: link:../sdk-tools
-    devDependencies:
-      dpdm:
-        specifier: ^3.14.0
-        version: 3.14.0
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vitest:
-        specifier: ^4.0.5
-        version: 4.0.5(@types/debug@4.1.12)(@types/node@24.9.2)(tsx@4.20.6)
-      zod:
-        specifier: ^4.1.12
-        version: 4.1.12
-
   packages/inngest:
     dependencies:
       '@stepkit/core':
@@ -196,6 +193,28 @@ importers:
       express:
         specifier: ^5.1.0
         version: 5.1.0
+
+  packages/local:
+    dependencies:
+      '@stepkit/core':
+        specifier: '*'
+        version: link:../core
+      '@stepkit/sdk-tools':
+        specifier: '*'
+        version: link:../sdk-tools
+    devDependencies:
+      dpdm:
+        specifier: ^3.14.0
+        version: 3.14.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.5
+        version: 4.0.5(@types/debug@4.1.12)(@types/node@24.9.2)(tsx@4.20.6)
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
 
   packages/sdk-tools:
     dependencies:

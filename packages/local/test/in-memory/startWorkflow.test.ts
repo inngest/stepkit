@@ -1,12 +1,12 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, onTestFinished, vi } from "vitest";
 
-import { InMemoryClient } from "../src/main";
+import { InMemoryClient } from "../../src/main";
 
 describe("startWorkflow", () => {
-  it.concurrent("success", async () => {
+  it("success", async () => {
     const client = new InMemoryClient();
     client.start();
-    afterEach(() => client.stop());
+    onTestFinished(() => client.stop());
 
     const counters = {
       top: 0,

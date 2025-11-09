@@ -8,14 +8,30 @@ import {
   type Workflow,
 } from "@stepkit/sdk-tools";
 
-import { Orchestrator } from "./orchestrator";
+import { Orchestrator } from "../common/orchestrator";
+import type { EventQueueData, ExecQueueData } from "../common/queue";
+import { InMemoryDriver } from "./executionDriver";
+import { InMemorySortedQueue } from "./queue";
+import { InMemoryStateDriver } from "./stateDriver";
 
 export class InMemoryClient extends BaseClient {
   private orc: Orchestrator;
 
   constructor() {
     super();
-    this.orc = new Orchestrator(this.workflows);
+
+    const eventQueue = new InMemorySortedQueue<EventQueueData>();
+    const stateDriver = new InMemoryStateDriver();
+    const execDriver = new InMemoryDriver(stateDriver);
+    const execQueue = new InMemorySortedQueue<ExecQueueData>();
+
+    this.orc = new Orchestrator({
+      eventQueue,
+      stateDriver,
+      execDriver,
+      execQueue,
+      workflows: this.workflows,
+    });
   }
 
   start(): void {

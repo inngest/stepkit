@@ -11,12 +11,12 @@ export class CommRequestStateDriver implements StateDriver {
     this.ops = [];
   }
 
-  getOp({
+  async getOp({
     hashedOpId,
   }: {
     runId: string;
     hashedOpId: string;
-  }): OpResult | undefined {
+  }): Promise<OpResult | undefined> {
     const stepResult = this.commRequest.steps[hashedOpId];
     if (stepResult === undefined) {
       return undefined;
@@ -43,10 +43,11 @@ export class CommRequestStateDriver implements StateDriver {
       result,
     };
   }
-  setOp(
+
+  async setOp(
     { hashedOpId }: { runId: string; hashedOpId: string },
     _op: OpResult
-  ): void {
+  ): Promise<void> {
     if (hashedOpId in this.commRequest.steps) {
       return;
     }

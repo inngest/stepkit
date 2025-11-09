@@ -1,16 +1,17 @@
-export type QueueItem<T> = {
-  data: T;
-  time: Date;
-};
+import { type QueueItem, type SortedQueue } from "../common/queue";
 
-export class SortedQueue<T> {
+export class InMemorySortedQueue<T> implements SortedQueue<T> {
   // Items are sorted by time, so the next item to be processed is the first
   // item. Using an array is inefficient, but it's good enough for an
   // non-production use case. If we want better performance then maybe we can
   // use something like a min-heap
-  private items: QueueItem<T>[] = [];
+  private items: QueueItem<T>[];
 
-  add(item: QueueItem<T>): void {
+  constructor() {
+    this.items = [];
+  }
+
+  async add(item: QueueItem<T>): Promise<void> {
     const index = this.items.findIndex((i) => item.time < i.time);
     if (index === -1) {
       this.items = [...this.items, item];
@@ -23,12 +24,12 @@ export class SortedQueue<T> {
     }
   }
 
-  getNext(): QueueItem<T> | undefined {
+  async getNext(): Promise<QueueItem<T> | undefined> {
     const next = this.items[0];
     if (next === undefined) {
       return undefined;
     }
-    if (next.time > new Date()) {
+    if (next.time > Date.now()) {
       return undefined;
     }
     this.items = this.items.slice(1);
@@ -37,11 +38,15 @@ export class SortedQueue<T> {
 
   handle(callback: (item: QueueItem<T>) => unknown): () => void {
     const interval = setInterval(() => {
-      const item = this.getNext();
-      if (item === undefined) {
-        return;
-      }
-      callback(item);
+      this.getNext()
+        .then((item) => {
+          if (item !== undefined) {
+            callback(item);
+          }
+        })
+        .catch((error: unknown) => {
+          console.error("Error processing queue item:", error);
+        });
     }, 50);
 
     const stop = (): void => {
