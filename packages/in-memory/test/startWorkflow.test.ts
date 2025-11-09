@@ -3,13 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { InMemoryClient } from "../src/main";
 
 describe("startWorkflow", () => {
-  it("success", async () => {
+  it.concurrent("success", async () => {
     const client = new InMemoryClient();
     client.start();
-
-    afterEach(() => {
-      client.stop();
-    });
+    afterEach(() => client.stop());
 
     const counters = {
       top: 0,
@@ -29,7 +26,6 @@ describe("startWorkflow", () => {
         counters.getName++;
         return "Alice";
       });
-
       counters.bottom++;
       return `${greeting}, ${name}!`;
     });

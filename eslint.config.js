@@ -34,10 +34,17 @@ export default tseslint.config(
   // Custom rules
   {
     rules: {
-      // Enforce consistent code style
-      "@typescript-eslint/explicit-function-return-type": "off",
-      "@typescript-eslint/explicit-module-boundary-types": "warn",
+      // Turn off annoying rules
+      "@typescript-eslint/no-confusing-void-expression": "off",
       "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/consistent-type-definitions": "off",
+
+      // Disable because child classes may need to be async, but base classes
+      // don't necessarily have `await` in them
+      "@typescript-eslint/require-await": "off",
+
+      // Enforce consistent code style
+      "@typescript-eslint/explicit-module-boundary-types": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -47,12 +54,8 @@ export default tseslint.config(
       ],
 
       // Prevent common bugs
-      "@typescript-eslint/no-floating-promises": "error",
-      "@typescript-eslint/no-misused-promises": "error",
-      "@typescript-eslint/await-thenable": "error",
-      "@typescript-eslint/no-unnecessary-condition": "warn",
       "@typescript-eslint/strict-boolean-expressions": [
-        "warn",
+        "error",
         {
           allowString: false,
           allowNumber: false,
@@ -60,10 +63,7 @@ export default tseslint.config(
         },
       ],
 
-      // Code quality
-      "@typescript-eslint/prefer-nullish-coalescing": "warn",
-      "@typescript-eslint/prefer-optional-chain": "warn",
-      "@typescript-eslint/no-unnecessary-type-assertion": "error",
+      // Style
       "@typescript-eslint/consistent-type-imports": [
         "error",
         {
@@ -78,23 +78,12 @@ export default tseslint.config(
         },
       ],
 
-      // Disable rules with known bugs or too strict for practical use
-      "@typescript-eslint/unified-signatures": "off",
-      "@typescript-eslint/consistent-type-definitions": "off", // Allow both type and interface
-      "@typescript-eslint/no-non-null-assertion": "warn", // Warn instead of error
-
-      // Disable because child classes may need to be async, but base classes
-      // don't necessarily have `await` in them
-      "@typescript-eslint/require-await": "off",
-
       // Best practices
       "no-console": ["error", { allow: ["warn", "error"] }],
       eqeqeq: ["error", "always", { null: "ignore" }],
-      "no-var": "error",
-      "prefer-const": "error",
-      "prefer-arrow-callback": "warn",
-      "object-shorthand": "warn",
-      "prefer-template": "warn",
+      "prefer-arrow-callback": "error",
+      "object-shorthand": "error",
+      "prefer-template": "error",
     },
   },
 
