@@ -1,11 +1,12 @@
 import { BaseClient } from "./client";
-import type { JsonError } from "./errors";
+import { fromJsonError, getStepKitErrorProps, type JsonError } from "./errors";
 import {
   BaseExecutionDriver,
   createOpFound,
   createStdStep,
 } from "./executionDriver";
 import type { ReportOp } from "./findOps";
+import { isSleepOpResult } from "./ops";
 import type { StateDriver } from "./stateDriver";
 import { StdOpCode, type OpResult } from "./types";
 import { executeUntilDone, stdHashId } from "./utils";
@@ -19,8 +20,11 @@ export {
   BaseClient,
   BaseExecutionDriver,
   StdOpCode,
+  fromJsonError,
   createOpFound,
   createStdStep,
   executeUntilDone,
+  getStepKitErrorProps,
+  isSleepOpResult,
   stdHashId,
 };

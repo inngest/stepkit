@@ -1,0 +1,277 @@
+import {
+  fromJsonError,
+  getStepKitErrorProps,
+  isSleepOpResult,
+  StdOpCode,
+  type Input,
+  type InputDefault,
+  type OpResult,
+  type StartData,
+  type Workflow,
+} from "@stepkit/sdk-tools";
+
+import { InMemoryDriver } from "./executionDriver";
+import { SortedQueue } from "./queue";
+import { InMemoryStateDriver, type Run } from "./stateDriver";
+import { sleep, UnreachableError } from "./utils";
+
+const defaultMaxAttempts = 4;
+
+type EventQueueData = Input<any, "event">;
+
+type ExecQueueData = {
+  attempt: number;
+
+  // OpResult that preceeded this queue item. For example, when a `step.run`
+  // completes then we schedule a new queue item for the next execution
+  prevOpResult?: OpResult;
+
+  runId: string;
+  workflowId: string;
+};
+
+/**
+ * High-level orchestrator for events and runs. Manages state and execution
+ */
+export class Orchestrator {
+  private eventQueue: SortedQueue<EventQueueData>;
+  private execDriver: InMemoryDriver;
+  private execQueue: SortedQueue<ExecQueueData>;
+  private stateDriver: InMemoryStateDriver;
+  private stops: (() => void)[];
+  private workflows: Map<string, Workflow<any, any>>;
+
+  constructor(workflows: Map<string, Workflow<any, any>>) {
+    this.eventQueue = new SortedQueue();
+    this.stateDriver = new InMemoryStateDriver();
+    this.execDriver = new InMemoryDriver(this.stateDriver);
+    this.execQueue = new SortedQueue();
+    this.stops = [];
+    this.workflows = workflows;
+  }
+
+  start(): void {
+    this.stops.push(
+      this.eventQueue.handle((event) => this.handleEventQueue(event.data))
+    );
+
+    this.stops.push(
+      this.execQueue.handle((op) => this.handleExecQueue(op.data))
+    );
+  }
+
+  stop(): void {
+    for (const stop of this.stops) {
+      stop();
+    }
+  }
+
+  /**
+   * Process event queue items. Triggers workflow runs if necessary
+   */
+  private async handleEventQueue(event: Input<any, "event">): Promise<void> {
+    for (const workflow of this.workflows.values()) {
+      if (workflow.triggers === undefined) {
+        continue;
+      }
+
+      const isTriggered = workflow.triggers.some((trigger) => {
+        return trigger.type === "event" && trigger.name === event.name;
+      });
+      if (isTriggered) {
+        await this.startWorkflow(workflow, event);
+      }
+    }
+  }
+
+  /**
+   * Process execution queue items. Executes the run and schedules new queue
+   * items if necessary
+   */
+  private async handleExecQueue(exec: ExecQueueData): Promise<void> {
+    const run = this.stateDriver.getRun(exec.runId);
+    if (run === undefined) {
+      throw new UnreachableError("run not found");
+    }
+
+    const workflow = this.workflows.get(run.workflowId);
+    if (workflow === undefined) {
+      throw new UnreachableError("workflow not found");
+    }
+
+    if (exec.prevOpResult !== undefined && isSleepOpResult(exec.prevOpResult)) {
+      this.stateDriver.wakeSleepOp(
+        {
+          runId: exec.runId,
+          hashedOpId: exec.prevOpResult.id.hashed,
+        },
+        exec.prevOpResult
+      );
+    }
+
+    const ops = await this.execDriver.execute(workflow, run.ctx);
+    if (ops.length === 0) {
+      throw new UnreachableError("no ops found");
+    }
+
+    for (const op of ops) {
+      if (shouldEndRun(op, run, exec)) {
+        this.stateDriver.endRun(run.ctx.runId, op);
+        return;
+      }
+
+      let time = new Date();
+      if (isSleepOpResult(op)) {
+        time = op.config.options.wakeAt;
+      }
+
+      this.execQueue.add({
+        data: {
+          attempt: nextAttempt(op, exec, run),
+          prevOpResult: op,
+          runId: run.ctx.runId,
+          workflowId: run.workflowId,
+        },
+        time,
+      });
+    }
+  }
+
+  /**
+   * Start a workflow run and wait for it to end
+   */
+  async invoke<TInput extends InputDefault, TOutput>(
+    workflow: Workflow<TInput, TOutput>,
+    data: TInput
+  ): Promise<TOutput> {
+    const { runId } = await this.startWorkflow(workflow, data);
+
+    const timeout = new Date(Date.now() + 60_000);
+    let i = 0;
+    while (Date.now() < timeout.getTime()) {
+      i++;
+      if (i > 1) {
+        await sleep(100);
+      }
+
+      const run = this.stateDriver.getRun(runId);
+      if (run === undefined) {
+        throw new UnreachableError("run not found");
+      }
+      if (run.result === undefined) {
+        continue;
+      }
+      if (run.result.status === "success") {
+        // @ts-expect-error - Necessary because of generics
+        return run.result.output;
+      }
+      throw fromJsonError(run.result.error);
+    }
+
+    throw new Error("timeout: run did not complete");
+  }
+
+  /**
+   * Start a workflow run but don't wait for it to end
+   */
+  async startWorkflow<TInput extends InputDefault>(
+    workflow: Workflow<TInput, any>,
+    data: TInput
+  ): Promise<StartData> {
+    const eventId = crypto.randomUUID();
+    const runId = crypto.randomUUID();
+
+    this.stateDriver.addRun({
+      ctx: {
+        ext: {},
+        input: {
+          data,
+          ext: {},
+          id: eventId,
+          name: workflow.id,
+          time: new Date(),
+          type: "invoke",
+        },
+        runId,
+      },
+      result: undefined,
+      maxAttempts: workflow.maxAttempts ?? defaultMaxAttempts,
+      opAttempts: {},
+      workflowId: workflow.id,
+    });
+
+    this.execQueue.add({
+      data: {
+        attempt: 1,
+        runId,
+        workflowId: workflow.id,
+      },
+      time: new Date(),
+    });
+
+    return {
+      eventId,
+      runId,
+    };
+  }
+}
+
+/**
+ * Determines if the run should end
+ */
+function shouldEndRun(
+  op: OpResult,
+  run: Run,
+  queueItem: ExecQueueData
+): boolean {
+  if (op.result.status === "success") {
+    if (op.config.code === StdOpCode.workflow) {
+      // Run was successful
+      return true;
+    }
+    // Step was successful
+    return false;
+  }
+
+  const error = fromJsonError(op.result.error);
+  const canRetry = getStepKitErrorProps(error)?.canRetry ?? true;
+  if (!canRetry) {
+    // Non-retryable error
+    return true;
+  }
+
+  const exhaustedAttempts = queueItem.attempt >= run.maxAttempts;
+  if (!exhaustedAttempts) {
+    // Has remaining attempts
+    return false;
+  }
+
+  if (op.config.code === StdOpCode.workflow) {
+    // Workflow-level error with no remaining attempts
+    return true;
+  }
+
+  // Step-level error with no remaining attempts. But the run is not done yet
+  // since the error needs to be thrown at the workflow level
+  return false;
+}
+
+/**
+ * Determines the attempt number for the next execution queue item
+ */
+function nextAttempt(op: OpResult, exec: ExecQueueData, run: Run): number {
+  if (op.result.status !== "error") {
+    // Success, so reset attempt
+    return 1;
+  }
+
+  const exhaustedAttempts = exec.attempt >= run.maxAttempts;
+  if (exhaustedAttempts && op.config.code !== StdOpCode.workflow) {
+    // Step-level error with no remaining attempts. But we need to reset the
+    // attempt since the error needs to be thrown at the workflow level
+    return 1;
+  }
+
+  // Next attempt
+  return exec.attempt + 1;
+}

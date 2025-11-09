@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { z } from "zod";
 
 import { NonRetryableError, type JsonError } from "@stepkit/sdk-tools";
@@ -6,8 +6,10 @@ import { NonRetryableError, type JsonError } from "@stepkit/sdk-tools";
 import { InMemoryClient } from "../src/main";
 
 describe("invoke", () => {
-  it("step.run", async () => {
+  it.concurrent("step.run", async () => {
     const client = new InMemoryClient();
+    client.start();
+    afterEach(() => client.stop());
 
     let input: Record<string, unknown> = {};
     const counters = {
@@ -46,8 +48,10 @@ describe("invoke", () => {
     expect(output).toEqual("Hello, Alice!");
   });
 
-  it("step.sleep", async () => {
+  it.concurrent("step.sleep", async () => {
     const client = new InMemoryClient();
+    client.start();
+    afterEach(() => client.stop());
 
     const counters = {
       top: 0,
@@ -63,7 +67,7 @@ describe("invoke", () => {
     await client.invoke(workflow, {});
     const duration = Date.now() - start;
     expect(duration).toBeGreaterThan(999);
-    expect(duration).toBeLessThan(1010);
+    expect(duration).toBeLessThan(1200);
 
     expect(counters).toEqual({
       top: 2,
@@ -71,10 +75,12 @@ describe("invoke", () => {
     });
   });
 
-  it("duplicate step ID", async () => {
+  it.concurrent("duplicate step ID", async () => {
     // Duplicate step IDs are treated as different steps
 
     const client = new InMemoryClient();
+    client.start();
+    afterEach(() => client.stop());
 
     const counters = {
       top: 0,
@@ -116,8 +122,10 @@ describe("invoke", () => {
     });
   });
 
-  it("fail", async () => {
+  it.concurrent("fail", async () => {
     const client = new InMemoryClient();
+    client.start();
+    afterEach(() => client.stop());
 
     class FooError extends Error {
       constructor(message: string, options?: ErrorOptions) {
@@ -204,8 +212,10 @@ describe("invoke", () => {
     });
   });
 
-  it("successful retry", async () => {
+  it.concurrent("successful retry", async () => {
     const client = new InMemoryClient();
+    client.start();
+    afterEach(() => client.stop());
 
     const counters = {
       top: 0,
@@ -236,8 +246,10 @@ describe("invoke", () => {
     });
   });
 
-  it("invalid input", async () => {
+  it.concurrent("invalid input", async () => {
     const client = new InMemoryClient();
+    client.start();
+    afterEach(() => client.stop());
 
     let counter = 0;
     const workflow = client.workflow(
@@ -281,8 +293,10 @@ describe("invoke", () => {
     expect(counter).toEqual(0);
   });
 
-  it("parallel steps", async () => {
+  it.concurrent("parallel steps", async () => {
     const client = new InMemoryClient();
+    client.start();
+    afterEach(() => client.stop());
 
     const counters = {
       top: 0,
@@ -294,6 +308,7 @@ describe("invoke", () => {
     };
     const outputs: Record<string, unknown> = {
       a: undefined,
+      parallel: undefined,
       b: undefined,
     };
     const workflow = client.workflow({ id: "workflow" }, async (ctx, step) => {
@@ -304,7 +319,7 @@ describe("invoke", () => {
         return "A";
       });
 
-      const results = await Promise.all([
+      outputs.parallel = await Promise.all([
         step.run("p1", async () => {
           counters.p1++;
           return "P1";
@@ -313,9 +328,9 @@ describe("invoke", () => {
           counters.p2++;
           return "P2";
         }),
+        step.sleep("p3", 1000),
+        step.sleep("p4", 2000),
       ]);
-      outputs.p1 = results[0];
-      outputs.p2 = results[1];
 
       outputs.b = await step.run("b", async () => {
         counters.b++;
@@ -325,10 +340,14 @@ describe("invoke", () => {
       counters.bottom++;
     });
 
+    const start = Date.now();
     await client.invoke(workflow, {});
+    const duration = Date.now() - start;
+    expect(duration).toBeGreaterThan(1999);
+    expect(duration).toBeLessThan(2500);
 
     expect(counters).toEqual({
-      top: 4,
+      top: 9,
       a: 1,
       p1: 1,
       p2: 1,
@@ -337,14 +356,15 @@ describe("invoke", () => {
     });
     expect(outputs).toEqual({
       a: "A",
-      p1: "P1",
-      p2: "P2",
+      parallel: ["P1", "P2", undefined, undefined],
       b: "B",
     });
   });
 
-  it("nested steps", async () => {
+  it.concurrent("nested steps", async () => {
     const client = new InMemoryClient();
+    client.start();
+    afterEach(() => client.stop());
 
     const counters = {
       top: 0,
@@ -384,8 +404,10 @@ describe("invoke", () => {
     });
   });
 
-  it("NonRetryableError", async () => {
+  it.concurrent("NonRetryableError", async () => {
     const client = new InMemoryClient();
+    client.start();
+    afterEach(() => client.stop());
 
     class MyError extends Error {
       constructor(message: string, options?: ErrorOptions) {

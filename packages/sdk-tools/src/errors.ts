@@ -8,7 +8,9 @@ const stepKitErrorPropsSchema = z.object({
   canRetry: z.boolean(),
 }) satisfies z.ZodType<StepKitErrorProps>;
 
-function getStepKitProps(error: Error): StepKitErrorProps | undefined {
+export function getStepKitErrorProps(
+  error: Error
+): StepKitErrorProps | undefined {
   if (!("~stepkit" in error)) {
     return undefined;
   }
@@ -52,7 +54,7 @@ export function toJsonError(error: unknown): JsonError {
     stack: err.stack,
   };
 
-  const props = getStepKitProps(err);
+  const props = getStepKitErrorProps(err);
   if (props !== undefined) {
     out.props = props;
   }
