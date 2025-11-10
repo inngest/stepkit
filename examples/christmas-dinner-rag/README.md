@@ -134,13 +134,6 @@ Open the Inngest Dev Server UI at `http://localhost:8288` and navigate to the `c
 }
 ```
 
-
-## Learn More
-
-- [StepKit Documentation](https://github.com/anthropics/stepkit)
-- [Inngest Documentation](https://www.inngest.com/docs)
-- [Original Tutorial](https://weaviate.io/blog/inngest-ai-workflows)
-
 ## License
 
 MIT
