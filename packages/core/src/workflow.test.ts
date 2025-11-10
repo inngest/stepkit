@@ -95,18 +95,20 @@ describe("input type", () => {
   it("zod type", () => {
     class MyClient extends NoopClient<ExtDefault, ExtDefault, ExtDefault> {}
     const client = new MyClient();
-    const inputSchema = z.object({ name: z.string() });
 
-    client.workflow({ id: "workflow", inputSchema }, async (ctx) => {
-      expectTypeOf(ctx.input).toEqualTypeOf<{
-        data: { name: string };
-        ext: ExtDefault;
-        id: string;
-        name: string;
-        time: Date;
-        type: "cron" | "event" | "invoke";
-      }>();
-    });
+    client.workflow(
+      { id: "workflow", inputSchema: z.object({ name: z.string() }) },
+      async (ctx) => {
+        expectTypeOf(ctx.input).toEqualTypeOf<{
+          data: { name: string };
+          ext: ExtDefault;
+          id: string;
+          name: string;
+          time: Date;
+          type: "cron" | "event" | "invoke";
+        }>();
+      }
+    );
   });
 });
 

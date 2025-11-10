@@ -1,8 +1,11 @@
 import { AsyncLocalStorage } from "async_hooks";
 
+import type { StandardSchemaV1 } from "@standard-schema/spec";
+
 import {
   InvalidInputError,
   NestedStepError,
+  type Trigger,
   type Workflow,
 } from "@stepkit/core";
 import {
@@ -108,10 +111,13 @@ export abstract class BaseExecutionDriver<
     workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
     ctx: Context<TInput, TCtxExt>
   ): Promise<OpResult[]> {
-    if (workflow.inputSchema !== undefined) {
-      const result = await workflow.inputSchema["~standard"].validate(
-        ctx.input.data
-      );
+    //
+    // Use explicit inputSchema if provided, otherwise infer from triggers
+    const schema =
+      workflow.inputSchema ?? extractSchemaFromTriggers(workflow.triggers);
+
+    if (schema !== undefined) {
+      const result = await schema["~standard"].validate(ctx.input.data);
 
       if (result.issues !== undefined && result.issues.length > 0) {
         return [
@@ -265,4 +271,51 @@ export async function createOpResults<
   }
 
   return controlFlow.interrupt(opResults);
+}
+
+//
+// Extract and union schemas from triggers at runtime
+function extractSchemaFromTriggers(
+  triggers: Trigger[] | undefined
+): StandardSchemaV1<any> | undefined {
+  if (!triggers || triggers.length === 0) {
+    return undefined;
+  }
+
+  const schemas = triggers
+    .filter((t): t is Extract<Trigger, { type: "event" }> => t.type === "event")
+    .map((t) => t.schema)
+    .filter((s): s is StandardSchemaV1<any> => s !== undefined);
+
+  if (schemas.length === 0) {
+    return undefined;
+  }
+
+  if (schemas.length === 1) {
+    return schemas[0];
+  }
+
+  //
+  // Union multiple schemas
+  return {
+    "~standard": {
+      version: 1,
+      vendor: "stepkit",
+      validate: async (value) => {
+        //
+        // Try each schema until one succeeds
+        const errors: any[] = [];
+        for (const schema of schemas) {
+          const result = await schema["~standard"].validate(value);
+          if (result.issues === undefined || result.issues.length === 0) {
+            return result;
+          }
+          errors.push(...(result.issues ?? []));
+        }
+        //
+        // All schemas failed
+        return { issues: errors };
+      },
+    },
+  };
 }
