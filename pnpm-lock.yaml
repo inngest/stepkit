@@ -164,6 +164,12 @@ importers:
         specifier: '*'
         version: link:../sdk-tools
     devDependencies:
+      '@types/express':
+        specifier: ^5.0.5
+        version: 5.0.5
+      express:
+        specifier: ^5.1.0
+        version: 5.1.0
       inngest:
         specifier: ^3.24.4
         version: 3.44.5(@opentelemetry/core@2.2.0(@opentelemetry/api@1.9.0))(express@5.1.0)(typescript@5.9.3)(zod@4.1.12)

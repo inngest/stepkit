@@ -1,11 +1,12 @@
-import { Inngest, type ServeHandlerOptions } from "inngest";
+import { NonRetriableError, type ServeHandlerOptions } from "inngest";
 
-import type {
-  Context,
-  ExtDefault,
-  InputType,
-  Step,
-  Workflow,
+import {
+  NonRetryableError,
+  type Context,
+  type ExtDefault,
+  type InputType,
+  type Step,
+  type Workflow,
 } from "@stepkit/sdk-tools";
 
 import {
@@ -19,13 +20,20 @@ export function inngestify(
   client: InngestClient,
   workflows: Workflow<any, any, ExtDefault, ExtDefault, StepExt>[]
 ): ServeHandlerOptions {
-  const inngest = new Inngest({ id: client.id });
   const functions = workflows.map((workflow) => {
-    return inngest.createFunction(
-      {
-        id: workflow.id,
-      },
-      { event: "workflow/say-hi" },
+    const triggers = (workflow.triggers ?? []).map((trigger) => {
+      if (trigger.type === "event") {
+        return { event: trigger.name };
+      }
+      return { cron: trigger.schedule };
+    });
+    if (triggers.length === 0) {
+      triggers.push({ event: `invoke/${workflow.id}` });
+    }
+
+    return client.inngest.createFunction(
+      { id: workflow.id },
+      triggers,
       async (ctx) => {
         let time = new Date();
         if (ctx.event.ts !== undefined) {
@@ -82,7 +90,18 @@ export function inngestify(
             },
           },
           run: <T>(stepId: string, handler: () => T) => {
-            return ctx.step.run(stepId, handler) as Promise<T>;
+            return ctx.step.run(stepId, async () => {
+              try {
+                return await handler();
+              } catch (e) {
+                if (e instanceof NonRetryableError) {
+                  // Convert StepKit NonRetryableError to Inngest
+                  // NonRetriableError
+                  throw new NonRetriableError(e.message, { cause: e.cause });
+                }
+                throw e;
+              }
+            }) as Promise<T>;
           },
           sleep: (stepId: string, duration: number) => {
             return ctx.step.sleep(stepId, duration);
@@ -99,7 +118,7 @@ export function inngestify(
   });
 
   return {
-    client: inngest,
+    client: client.inngest,
     functions,
   };
 }

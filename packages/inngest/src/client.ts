@@ -1,3 +1,5 @@
+import { Inngest } from "inngest";
+
 import {
   BaseClient,
   type ExtDefault,
@@ -34,11 +36,11 @@ export type StepExt = {
 };
 
 export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
-  readonly id: string;
+  inngest: Inngest;
 
   constructor({ id }: { id: string }) {
     super();
-    this.id = id;
+    this.inngest = new Inngest({ id });
   }
 
   async getStep(_reportOp: ReportOp): Promise<Step<StepExt>> {
