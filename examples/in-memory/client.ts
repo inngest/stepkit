@@ -1,3 +1,3 @@
-import { InMemoryClient } from "@stepkit/in-memory";
+import { InMemoryClient } from "@stepkit/local";
 
 export const client = new InMemoryClient();

@@ -14,8 +14,8 @@
     "baseUrl": ".",
     "paths": {
       "@stepkit/core": ["packages/core/src/main.ts"],
-      "@stepkit/in-memory": ["packages/in-memory/src/main.ts"],
-      "@stepkit/inngest": ["packages/inngest/src/index.ts"]
+      "@stepkit/inngest": ["packages/inngest/src/index.ts"],
+      "@stepkit/local": ["packages/local/src/main.ts"]
     }
   }
 }

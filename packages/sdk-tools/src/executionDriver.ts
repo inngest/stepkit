@@ -76,7 +76,7 @@ export function createStdStep(reportOp: ReportOp): Step {
     sleep: async (stepId: string, duration: number) => {
       const config: SleepOpConfig = {
         code: StdOpCode.sleep,
-        options: { wakeAt: new Date(Date.now() + duration) },
+        options: { wakeAt: Date.now() + duration },
       };
       return createOpFound(reportOp, stepId, config);
     },
@@ -144,7 +144,7 @@ export abstract class BaseExecutionDriver<
     ctx: Context<TInput, TCtxExt>,
     ops: OpFound[]
   ): Promise<ControlFlow> => {
-    const newOps = handleExistingOps(this.state, ctx, ops);
+    const newOps = await handleExistingOps(this.state, ctx, ops);
 
     return await createOpResults(this.state, workflow, ctx, newOps);
   };
@@ -154,7 +154,7 @@ export abstract class BaseExecutionDriver<
     ctx: Context<TInput, TCtxExt>,
     op: OpResult
   ): Promise<OpResult> => {
-    this.state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, op);
+    await this.state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, op);
     return op;
   };
 }
@@ -162,14 +162,17 @@ export abstract class BaseExecutionDriver<
 /**
  * Handle ops that have already been found. Return the new ops.
  */
-export function handleExistingOps(
+export async function handleExistingOps(
   state: StateDriver,
   ctx: Context,
   ops: OpFound[]
-): OpFound[] {
+): Promise<OpFound[]> {
   const newOps: OpFound[] = [];
   for (const op of ops) {
-    const item = state.getOp({ runId: ctx.runId, hashedOpId: op.id.hashed });
+    const item = await state.getOp({
+      runId: ctx.runId,
+      hashedOpId: op.id.hashed,
+    });
     if (item !== undefined) {
       if (item.result.status === "success") {
         // Op already succeeded, so return its output
@@ -256,7 +259,7 @@ export async function createOpResults<
       }
     }
 
-    state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, opResult);
+    await state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, opResult);
     opResults.push(opResult);
   }
 

@@ -21,13 +21,20 @@ class StateDriver {
     this.ops = new Map();
   }
 
-  getOp(id: { runId: string; hashedOpId: string }): OpResult | undefined {
+  async getOp(id: {
+    runId: string;
+    hashedOpId: string;
+  }): Promise<OpResult | undefined> {
     if (this.ops.has(id.hashedOpId)) {
       return this.ops.get(id.hashedOpId);
     }
     return undefined;
   }
-  setOp(id: { runId: string; hashedOpId: string }, op: OpResult): void {
+
+  async setOp(
+    id: { runId: string; hashedOpId: string },
+    op: OpResult
+  ): Promise<void> {
     this.ops.set(id.hashedOpId, op);
   }
 }
@@ -246,7 +253,7 @@ describe("execute once", () => {
       {
         config: {
           code: "step.sleep",
-          options: { wakeAt: expect.any(Date) },
+          options: { wakeAt: expect.any(Number) },
         },
         id: {
           hashed: "4cef13bd645056cd329243fd43c1e09b1dfebb9a",

@@ -3,6 +3,7 @@ import {
   getStepKitErrorProps,
   isSleepOpResult,
   StdOpCode,
+  type BaseExecutionDriver,
   type Input,
   type InputDefault,
   type OpResult,
@@ -10,10 +11,9 @@ import {
   type Workflow,
 } from "@stepkit/sdk-tools";
 
-import { InMemoryDriver } from "./executionDriver";
-import { SortedQueue } from "./queue";
-import { InMemoryStateDriver, type Run } from "./stateDriver";
-import { sleep, UnreachableError } from "./utils";
+import { UnreachableError } from "./errors";
+import type { SortedQueue } from "./queue";
+import type { LocalStateDriver, Run } from "./stateDriver";
 
 const defaultMaxAttempts = 4;
 
@@ -35,17 +35,29 @@ type ExecQueueData = {
  */
 export class Orchestrator {
   private eventQueue: SortedQueue<EventQueueData>;
-  private execDriver: InMemoryDriver;
+  private execDriver: BaseExecutionDriver;
   private execQueue: SortedQueue<ExecQueueData>;
-  private stateDriver: InMemoryStateDriver;
+  private stateDriver: LocalStateDriver;
   private stops: (() => void)[];
   private workflows: Map<string, Workflow<any, any>>;
 
-  constructor(workflows: Map<string, Workflow<any, any>>) {
-    this.eventQueue = new SortedQueue();
-    this.stateDriver = new InMemoryStateDriver();
-    this.execDriver = new InMemoryDriver(this.stateDriver);
-    this.execQueue = new SortedQueue();
+  constructor({
+    eventQueue,
+    execDriver,
+    stateDriver,
+    execQueue,
+    workflows,
+  }: {
+    eventQueue: SortedQueue<EventQueueData>;
+    execDriver: BaseExecutionDriver;
+    execQueue: SortedQueue<ExecQueueData>;
+    stateDriver: LocalStateDriver;
+    workflows: Map<string, Workflow<any, any>>;
+  }) {
+    this.eventQueue = eventQueue;
+    this.stateDriver = stateDriver;
+    this.execDriver = execDriver;
+    this.execQueue = execQueue;
     this.stops = [];
     this.workflows = workflows;
   }
@@ -89,7 +101,7 @@ export class Orchestrator {
    * items if necessary
    */
   private async handleExecQueue(exec: ExecQueueData): Promise<void> {
-    const run = this.stateDriver.getRun(exec.runId);
+    const run = await this.stateDriver.getRun(exec.runId);
     if (run === undefined) {
       throw new UnreachableError("run not found");
     }
@@ -98,9 +110,8 @@ export class Orchestrator {
     if (workflow === undefined) {
       throw new UnreachableError("workflow not found");
     }
-
     if (exec.prevOpResult !== undefined && isSleepOpResult(exec.prevOpResult)) {
-      this.stateDriver.wakeSleepOp(
+      await this.stateDriver.wakeSleepOp(
         {
           runId: exec.runId,
           hashedOpId: exec.prevOpResult.id.hashed,
@@ -116,16 +127,16 @@ export class Orchestrator {
 
     for (const op of ops) {
       if (shouldEndRun(op, run, exec)) {
-        this.stateDriver.endRun(run.ctx.runId, op);
+        await this.stateDriver.endRun(run.ctx.runId, op);
         return;
       }
 
-      let time = new Date();
+      let time = Date.now();
       if (isSleepOpResult(op)) {
         time = op.config.options.wakeAt;
       }
 
-      this.execQueue.add({
+      await this.execQueue.add({
         data: {
           attempt: nextAttempt(op, exec, run),
           prevOpResult: op,
@@ -145,16 +156,19 @@ export class Orchestrator {
     data: TInput
   ): Promise<TOutput> {
     const { runId } = await this.startWorkflow(workflow, data);
-
-    const timeout = new Date(Date.now() + 60_000);
     let i = 0;
-    while (Date.now() < timeout.getTime()) {
+
+    // TODO: Should we add a timeout? An infinite loop feels dirty
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    while (true) {
+      // console.log("waiting for run to end", i);
       i++;
       if (i > 1) {
         await sleep(100);
       }
 
-      const run = this.stateDriver.getRun(runId);
+      const run = await this.stateDriver.getRun(runId);
+      // console.log("run", run);
       if (run === undefined) {
         throw new UnreachableError("run not found");
       }
@@ -167,8 +181,6 @@ export class Orchestrator {
       }
       throw fromJsonError(run.result.error);
     }
-
-    throw new Error("timeout: run did not complete");
   }
 
   /**
@@ -181,7 +193,7 @@ export class Orchestrator {
     const eventId = crypto.randomUUID();
     const runId = crypto.randomUUID();
 
-    this.stateDriver.addRun({
+    await this.stateDriver.addRun({
       ctx: {
         ext: {},
         input: {
@@ -200,13 +212,13 @@ export class Orchestrator {
       workflowId: workflow.id,
     });
 
-    this.execQueue.add({
+    await this.execQueue.add({
       data: {
         attempt: 1,
         runId,
         workflowId: workflow.id,
       },
-      time: new Date(),
+      time: Date.now(),
     });
 
     return {
@@ -274,4 +286,8 @@ function nextAttempt(op: OpResult, exec: ExecQueueData, run: Run): number {
 
   // Next attempt
   return exec.attempt + 1;
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

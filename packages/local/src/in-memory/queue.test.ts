@@ -1,23 +1,23 @@
 import { afterEach, expect, it, vi } from "vitest";
 
-import { SortedQueue } from "./queue";
+import { InMemorySortedQueue } from "./queue";
 
-it.concurrent("sorted", async () => {
+it("sorted", async () => {
   const items: unknown[] = [];
-  const queue = new SortedQueue<unknown>();
+  const queue = new InMemorySortedQueue<unknown>();
 
   const stop = queue.handle((item) => {
     items.push(item.data);
   });
   afterEach(stop);
 
-  queue.add({
+  await queue.add({
     data: "first-added",
-    time: new Date(Date.now()),
+    time: Date.now(),
   });
-  queue.add({
+  await queue.add({
     data: "second-added",
-    time: new Date(Date.now() - 1000),
+    time: Date.now() - 1000,
   });
 
   await vi.waitFor(() => {
@@ -29,17 +29,17 @@ it.concurrent("sorted", async () => {
   expect(items).toEqual(["second-added", "first-added"]);
 });
 
-it.concurrent("future", async () => {
+it("future", async () => {
   const items: unknown[] = [];
-  const queue = new SortedQueue<unknown>();
+  const queue = new InMemorySortedQueue<unknown>();
   const stop = queue.handle((item) => {
     items.push(item.data);
   });
   afterEach(stop);
 
-  queue.add({
+  await queue.add({
     data: "item",
-    time: new Date(Date.now() + 1000),
+    time: Date.now() + 1000,
   });
 
   expect(items).toHaveLength(0);

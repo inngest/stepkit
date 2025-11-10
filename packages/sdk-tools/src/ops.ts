@@ -5,7 +5,7 @@ import { StdOpCode, type OpResult } from "./types";
 const sleepOpConfigSchema = z.object({
   code: z.literal(StdOpCode.sleep),
   options: z.object({
-    wakeAt: z.date(),
+    wakeAt: z.number(),
   }),
 });
 export type SleepOpConfig = z.infer<typeof sleepOpConfigSchema>;
