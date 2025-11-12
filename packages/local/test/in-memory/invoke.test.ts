@@ -11,7 +11,6 @@ describe("invoke", () => {
 
   beforeEach(() => {
     client = new InMemoryClient();
-    client.start();
   });
 
   afterEach(() => {

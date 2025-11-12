@@ -32,9 +32,6 @@ export class InMemoryClient extends BaseClient {
       execQueue,
       workflows: this.workflows,
     });
-  }
-
-  start(): void {
     this.orc.start();
   }
 

@@ -36,7 +36,6 @@ describe("invoke", () => {
     client = new FileSystemClient({
       baseDir: `${stateDir}/${crypto.randomUUID()}`,
     });
-    client.start();
   });
   afterEach(() => client.stop());
 
