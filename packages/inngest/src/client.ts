@@ -4,9 +4,7 @@ import {
   BaseClient,
   type ExtDefault,
   type InputDefault,
-  type ReportOp,
   type StartData,
-  type Step,
   type Workflow,
 } from "@stepkit/sdk-tools";
 
@@ -41,10 +39,6 @@ export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
   constructor({ id }: { id: string }) {
     super();
     this.inngest = new Inngest({ id });
-  }
-
-  async getStep(_reportOp: ReportOp): Promise<Step<StepExt>> {
-    throw new Error("not implemented");
   }
 
   startWorkflow<TInput extends InputDefault>(

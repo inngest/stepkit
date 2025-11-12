@@ -1,11 +1,7 @@
 import {
   BaseClient,
-  createOpFound,
-  createStdStep,
-  StdOpCode,
   type ExtDefault,
   type InputDefault,
-  type ReportOp,
   type StartData,
   type Step,
   type Workflow,
@@ -26,21 +22,6 @@ export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
     super();
     this.id = id;
   }
-
-  async getStep(reportOp: ReportOp): Promise<Step<StepExt>> {
-    return {
-      ...createStdStep(reportOp),
-      ext: {
-        sleepUntil: async (stepId: string, wakeAt: Date) => {
-          await createOpFound(reportOp, stepId, {
-            code: StdOpCode.sleep,
-            options: { wakeAt },
-          });
-        },
-      },
-    };
-  }
-
   startWorkflow<TInput extends InputDefault>(
     _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>,
     _input: TInput

@@ -1,10 +1,7 @@
 import {
   BaseClient,
-  createStdStep,
   type InputDefault,
-  type ReportOp,
   type StartData,
-  type Step,
   type Workflow,
 } from "@stepkit/sdk-tools";
 
@@ -49,10 +46,6 @@ export class FileSystemClient extends BaseClient {
 
   stop(): void {
     this.orc.stop();
-  }
-
-  async getStep(reportOp: ReportOp): Promise<Step> {
-    return createStdStep(reportOp);
   }
 
   async invoke<TInput extends InputDefault, TOutput>(

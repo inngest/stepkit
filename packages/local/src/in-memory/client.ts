@@ -39,10 +39,6 @@ export class InMemoryClient extends BaseClient {
     this.orc.stop();
   }
 
-  async getStep(reportOp: ReportOp): Promise<Step> {
-    return createStdStep(reportOp);
-  }
-
   async invoke<TInput extends InputDefault, TOutput>(
     workflow: Workflow<TInput, TOutput>,
     data: TInput
