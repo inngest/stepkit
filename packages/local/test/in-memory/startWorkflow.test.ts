@@ -5,7 +5,6 @@ import { InMemoryClient } from "../../src/main";
 describe("startWorkflow", () => {
   it("success", async () => {
     const client = new InMemoryClient();
-    client.start();
     onTestFinished(() => client.stop());
 
     const counters = {

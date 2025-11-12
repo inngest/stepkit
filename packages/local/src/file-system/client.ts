@@ -44,9 +44,6 @@ export class FileSystemClient extends BaseClient {
       execQueue,
       workflows: this.workflows,
     });
-  }
-
-  start(): void {
     this.orc.start();
   }
 
