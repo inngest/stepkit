@@ -5,5 +5,6 @@ export type StateDriver = {
     runId: string;
     hashedOpId: string;
   }): Promise<OpResult | undefined>;
+
   setOp(id: { runId: string; hashedOpId: string }, op: OpResult): Promise<void>;
 };
