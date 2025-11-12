@@ -78,7 +78,6 @@ export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
       if (!this.hasEventKey) {
         throw new Error("INNGEST_EVENT_KEY env var is not set");
       }
-    } else {
       if (!this.hasSigningKey) {
         throw new Error("INNGEST_SIGNING_KEY env var is not set");
       }
