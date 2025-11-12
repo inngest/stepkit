@@ -28,7 +28,9 @@ export function inngestify(
       return { cron: trigger.schedule };
     });
     if (triggers.length === 0) {
-      triggers.push({ event: `invoke/${workflow.id}` });
+      triggers.push({
+        event: defaultEventName(client.inngest.id, workflow.id),
+      });
     }
 
     return client.inngest.createFunction(
@@ -121,4 +123,8 @@ export function inngestify(
     client: client.inngest,
     functions,
   };
+}
+
+export function defaultEventName(appId: string, workflowId: string): string {
+  return `invoke/${appId}/${workflowId}`;
 }
