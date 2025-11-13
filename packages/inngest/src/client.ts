@@ -10,6 +10,7 @@ import {
 
 import { API } from "./api";
 import { defaultEventName } from "./inngestify";
+import { sleep } from "./utils";
 
 export type ReceivedEvent = {
   data: Record<string, unknown>;
@@ -100,6 +101,12 @@ export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
       throw new Error("unreachable: no ids");
     }
     const eventId = ids[0];
+
+    // Wait 5 seconds to increase the chance that the API will return the run ID
+    // on the first attempt. If it doesn't exist on the first attempt, caching
+    // will make it take upwards of 15 seconds to appear
+    await sleep(5000);
+
     const runId = await this.api.getRunId(eventId);
 
     return {

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { sleep } from "./utils";
+
 export class API {
   private readonly apiKey: string | undefined;
   private readonly baseUrl: string;
@@ -21,7 +23,7 @@ export class API {
     while (new Date() < timeout) {
       i++;
       if (i > 1) {
-        await sleep(500);
+        await sleep(5000);
       }
 
       const headers: Record<string, string> = {};
@@ -53,7 +55,3 @@ const eventRunsSchema = z.object({
     })
   ),
 });
-
-async function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
