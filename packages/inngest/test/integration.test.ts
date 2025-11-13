@@ -7,11 +7,12 @@ import { serve } from "inngest/express";
 import { expect, it, onTestFinished, vi } from "vitest";
 
 import { NonRetryableError } from "@stepkit/core";
+import type { Context } from "@stepkit/sdk-tools";
 
 import { InngestClient, inngestify } from "../src/main";
 
-it("success", async () => {
-  const client = new InngestClient({ id: crypto.randomUUID() });
+it("multiple steps", async () => {
+  const client = new InngestClient({ id: crypto.randomUUID(), mode: "dev" });
   const eventName = `event-${crypto.randomUUID()}`;
   const counters = {
     top: 0,
@@ -19,14 +20,12 @@ it("success", async () => {
     getName: 0,
     bottom: 0,
   };
-  let inputData: unknown;
   const workflow = client.workflow(
     {
       id: "workflow",
       triggers: [{ type: "event", name: eventName }],
     },
     async (ctx, step) => {
-      inputData = ctx.input.data;
       counters.top++;
 
       const greeting = await step.run("get-greeting", async () => {
@@ -59,11 +58,10 @@ it("success", async () => {
       bottom: 1,
     });
   });
-  expect(inputData).toEqual({ msg: "hi" });
 });
 
 it("NonRetryableError", async () => {
-  const client = new InngestClient({ id: crypto.randomUUID() });
+  const client = new InngestClient({ id: crypto.randomUUID(), mode: "dev" });
   const eventName = `event-${crypto.randomUUID()}`;
   const counters = {
     top: 0,
@@ -114,6 +112,31 @@ it("NonRetryableError", async () => {
     { timeout: 5_000 }
   );
   expect(caughtError).toBeInstanceOf(Error);
+});
+
+it("startWorkflow", async () => {
+  const client = new InngestClient({ id: crypto.randomUUID(), mode: "dev" });
+  const eventName = `event-${crypto.randomUUID()}`;
+  let receivedCtx: Context | undefined;
+  const workflow = client.workflow(
+    {
+      id: "workflow",
+      triggers: [{ type: "event", name: eventName }],
+    },
+    async (ctx) => {
+      receivedCtx = ctx;
+    }
+  );
+
+  const close = await startServer(client, [workflow]);
+  onTestFinished(close);
+
+  const startData = await workflow.start({ msg: "hi" });
+  await vi.waitFor(() => {
+    expect(receivedCtx?.input.data).toEqual({ msg: "hi" });
+    expect(receivedCtx?.input.id).toBe(startData.eventId);
+    expect(receivedCtx?.runId).toBe(startData.runId);
+  });
 });
 
 async function startServer(
