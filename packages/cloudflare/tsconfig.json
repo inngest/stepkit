@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "@stepkit/core": ["packages/core/src/main.ts"],
+      "@stepkit/inngest": ["packages/inngest/src/main.ts"],
+      "@stepkit/local": ["packages/local/src/main.ts"]
+    },
+    "types": ["@cloudflare/workers-types/experimental"]
+  },
+  "include": ["src/**/*"]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "workflows-starter",
+  "version": "0.0.1",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "server": "wrangler dev",
+    "start": "tsx ./src/main.ts"
+  },
+  "dependencies": {
+    "@stepkit/cloudflare": "*",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250417.0",
+    "typescript": "^5.0.4",
+    "wrangler": "^4.48.0"
+  },
+  "packageManager": "pnpm@10",
+  "engines": {
+    "pnpm": "^10"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.21.4"
+    }
+  }
+}
