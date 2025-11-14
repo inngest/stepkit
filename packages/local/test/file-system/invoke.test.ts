@@ -1,4 +1,4 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import { resolve } from "node:path";
 
 import {
@@ -19,9 +19,9 @@ import { expectError } from "../utils";
 
 const stateDir = resolve("./.stepkit/invoke-test");
 
-async function cleanup() {
+export async function cleanup(): Promise<void> {
   try {
-    await fs.promises.rm(stateDir, { recursive: true, force: true });
+    await fs.rm(stateDir, { recursive: true, force: true });
   } catch {
     // Ignore
   }

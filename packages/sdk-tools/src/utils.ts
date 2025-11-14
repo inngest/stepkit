@@ -8,7 +8,7 @@ import type {
 } from "@stepkit/core/implementer";
 
 import { fromJsonError } from "./errors";
-import { isSleepOpResult } from "./ops";
+import { isOpResult } from "./ops";
 import type { OpResult } from "./types";
 
 const defaultMaxAttempts = 4;
@@ -49,7 +49,7 @@ export async function executeUntilDone<
       }
     }
 
-    if (isSleepOpResult(op)) {
+    if (isOpResult.sleep(op)) {
       // TODO: This probably doesn't work with parallel steps
       await sleepUntil(new Date(op.config.options.wakeAt));
       continue;

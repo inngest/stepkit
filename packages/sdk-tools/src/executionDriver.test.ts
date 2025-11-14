@@ -5,6 +5,7 @@ import {
   type Context,
   type ExtDefault,
   type InputDefault,
+  type SendSignalOpts,
   type StartData,
   type Step,
 } from "@stepkit/core/implementer";
@@ -40,6 +41,10 @@ class StateDriver {
 }
 
 class MyClient extends BaseClient {
+  sendSignal(_opts: SendSignalOpts): Promise<{ runId: string | null }> {
+    throw new Error("not implemented");
+  }
+
   startWorkflow<TInput extends InputDefault>(
     _workflow: Workflow<TInput, any>,
     _input: TInput
@@ -575,6 +580,9 @@ it("custom step", async () => {
       _workflow: Workflow<any, any, ExtDefault, ExtDefault, StepExt>
     ): void {
       return;
+    }
+    sendSignal(_opts: SendSignalOpts): Promise<{ runId: string | null }> {
+      throw new Error("not implemented");
     }
     startWorkflow<TInput extends InputDefault>(
       _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>,

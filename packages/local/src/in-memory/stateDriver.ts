@@ -1,23 +1,22 @@
-import { StdOpCode, type Context, type OpResult } from "@stepkit/sdk-tools";
+import { StdOpCode, type OpResult, type OpResults } from "@stepkit/sdk-tools";
 
-import type { LocalStateDriver } from "../common/stateDriver";
-import { UnreachableError } from "./utils";
-
-export type Run = {
-  ctx: Context<any, any>;
-  maxAttempts: number;
-  opAttempts: Record<string, number>;
-  result: OpResult["result"] | undefined;
-  workflowId: string;
-};
+import type {
+  LocalStateDriver,
+  ResumeWaitForSignalOpOpts,
+  Run,
+  WaitingSignal,
+} from "../common/stateDriver";
+import { UnreachableError } from "../common/utils";
 
 export class InMemoryStateDriver implements LocalStateDriver {
   private ops: Map<string, string>;
   private runs: Map<string, Run>;
+  private waitingSignals: Map<string, WaitingSignal>;
 
   constructor() {
     this.ops = new Map();
     this.runs = new Map();
+    this.waitingSignals = new Map();
   }
 
   async addRun(run: Run): Promise<void> {
@@ -34,6 +33,49 @@ export class InMemoryStateDriver implements LocalStateDriver {
       throw new UnreachableError("run not found");
     }
     run.result = op.result;
+  }
+
+  async addWaitingSignal(signal: WaitingSignal): Promise<void> {
+    if (this.waitingSignals.has(signal.op.config.options.signal)) {
+      throw new Error("waiting signal already exists");
+    }
+    this.waitingSignals.set(signal.op.config.options.signal, signal);
+  }
+
+  async popWaitingSignal(signal: string): Promise<WaitingSignal | null> {
+    const waitingSignal = this.waitingSignals.get(signal);
+    if (waitingSignal === undefined) {
+      return null;
+    }
+    this.waitingSignals.delete(signal);
+    return waitingSignal;
+  }
+
+  async resumeWaitForSignalOp({
+    data,
+    waitingSignal,
+  }: ResumeWaitForSignalOpOpts): Promise<void> {
+    const opResult: OpResults["waitForSignal"] = {
+      config: {
+        code: StdOpCode.waitForSignal,
+        options: waitingSignal.op.config.options,
+      },
+      id: waitingSignal.op.id,
+      result: {
+        status: "success",
+        output: {
+          data,
+          signal: waitingSignal.op.config.options.signal,
+        },
+      },
+    };
+    await this.setOp(
+      {
+        hashedOpId: waitingSignal.op.id.hashed,
+        runId: waitingSignal.runId,
+      },
+      opResult
+    );
   }
 
   async incrementOpAttempt(runId: string, hashedOpId: string): Promise<number> {
@@ -53,7 +95,7 @@ export class InMemoryStateDriver implements LocalStateDriver {
     return run.maxAttempts;
   }
 
-  private getKey({
+  private getOpKey({
     runId,
     hashedOpId,
   }: {
@@ -70,7 +112,7 @@ export class InMemoryStateDriver implements LocalStateDriver {
     runId: string;
     hashedOpId: string;
   }): Promise<OpResult | undefined> {
-    const key = this.getKey({ runId, hashedOpId });
+    const key = this.getOpKey({ runId, hashedOpId });
     const value = this.ops.get(key);
     if (value !== undefined) {
       const result: unknown = JSON.parse(value);
@@ -97,7 +139,7 @@ export class InMemoryStateDriver implements LocalStateDriver {
       return;
     }
 
-    const key = this.getKey({ runId, hashedOpId });
+    const key = this.getOpKey({ runId, hashedOpId });
     this.ops.set(key, JSON.stringify(op));
   }
 
@@ -109,7 +151,7 @@ export class InMemoryStateDriver implements LocalStateDriver {
       throw new UnreachableError("op is not a sleep");
     }
 
-    const key = this.getKey({ runId, hashedOpId });
+    const key = this.getOpKey({ runId, hashedOpId });
     this.ops.set(key, JSON.stringify(op));
   }
 }

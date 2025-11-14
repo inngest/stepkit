@@ -6,8 +6,10 @@ import type { ControlledPromise } from "./promises";
 // Standard op codes
 export const StdOpCode = {
   run: "step.run",
+  sendSignal: "step.sendSignal",
   sleep: "step.sleep",
   sleepUntil: "step.sleepUntil",
+  waitForSignal: "step.waitForSignal",
   workflow: "workflow",
 } as const satisfies Record<keyof Omit<Step, "ext">, string> & {
   workflow: string;

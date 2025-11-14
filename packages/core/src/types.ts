@@ -41,8 +41,30 @@ export type Context<
 export type Step<TExt extends ExtDefault = ExtDefault> = {
   ext: TExt;
   run: <T>(stepId: string, handler: () => T) => Promise<T>;
+
+  sendSignal: (
+    stepId: string,
+    opts: SendSignalOpts
+  ) => Promise<{ runId: string | null }>;
+
   sleep: (stepId: string, duration: number) => Promise<void>;
   sleepUntil: (stepId: string, wakeAt: Date) => Promise<void>;
+
+  waitForSignal: <T>(
+    stepId: string,
+    opts: WaitForSignalOpts<T>
+  ) => Promise<{ data: T; signal: string } | null>;
+};
+
+export type SendSignalOpts = {
+  data?: unknown;
+  signal: string;
+};
+
+export type WaitForSignalOpts<T> = {
+  schema?: StandardSchemaV1<T>;
+  signal: string;
+  timeout: number | Date;
 };
 
 export type Pretty<T> = {

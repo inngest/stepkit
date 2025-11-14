@@ -9,13 +9,15 @@ import {
   type Context,
   type ExtDefault,
   type InputDefault,
+  type SendSignalOpts,
   type StartData,
   type Step,
+  type WaitForSignalOpts,
 } from "@stepkit/core/implementer";
 
 import { fromJsonError, toJsonError } from "./errors";
 import { findOps, type ReportOp } from "./findOps";
-import type { SleepOpConfig } from "./ops";
+import type { OpConfigs } from "./ops";
 import { createControlledPromise } from "./promises";
 import type { StateDriver } from "./stateDriver";
 import {
@@ -73,8 +75,14 @@ export function createStdStep(reportOp: ReportOp): Step {
     ): Promise<TStepRunOutput> => {
       return createOpFound(reportOp, stepId, { code: StdOpCode.run }, handler);
     },
+    sendSignal: async (stepId: string, opts: SendSignalOpts) => {
+      return createOpFound(reportOp, stepId, {
+        code: StdOpCode.sendSignal,
+        options: opts,
+      });
+    },
     sleep: async (stepId: string, duration: number) => {
-      const config: SleepOpConfig = {
+      const config: OpConfigs["sleep"] = {
         code: StdOpCode.sleep,
         options: { wakeAt: Date.now() + duration },
       };
@@ -84,6 +92,15 @@ export function createStdStep(reportOp: ReportOp): Step {
       return createOpFound(reportOp, stepId, {
         code: StdOpCode.sleep,
         options: { wakeAt },
+      });
+    },
+    waitForSignal: async <T>(
+      stepId: string,
+      opts: WaitForSignalOpts<T>
+    ): Promise<{ data: T; signal: string } | null> => {
+      return createOpFound(reportOp, stepId, {
+        code: StdOpCode.waitForSignal,
+        options: opts,
       });
     },
   };

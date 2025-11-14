@@ -69,8 +69,9 @@ export async function deleteFile(path: string): Promise<void> {
     if (!(error instanceof Error)) {
       throw Error(String(error));
     }
-    if ("code" in error && error.code !== "ENOENT") {
-      throw error;
+    if ("code" in error && error.code === "ENOENT") {
+      // File doesn't exist, which is fine
+      return;
     }
     throw error;
   }

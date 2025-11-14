@@ -1,12 +1,13 @@
 import {
   fromJsonError,
   getStepKitErrorProps,
-  isSleepOpResult,
+  isOpResult,
   StdOpCode,
   type BaseExecutionDriver,
   type Input,
   type InputDefault,
   type OpResult,
+  type SendSignalOpts,
   type StartData,
   type Workflow,
 } from "@stepkit/sdk-tools";
@@ -14,6 +15,7 @@ import {
 import { UnreachableError } from "./errors";
 import type { SortedQueue } from "./queue";
 import type { LocalStateDriver, Run } from "./stateDriver";
+import { sleep } from "./utils";
 
 const defaultMaxAttempts = 4;
 
@@ -110,7 +112,10 @@ export class Orchestrator {
     if (workflow === undefined) {
       throw new UnreachableError("workflow not found");
     }
-    if (exec.prevOpResult !== undefined && isSleepOpResult(exec.prevOpResult)) {
+    if (
+      exec.prevOpResult !== undefined &&
+      isOpResult.sleep(exec.prevOpResult)
+    ) {
       await this.stateDriver.wakeSleepOp(
         {
           runId: exec.runId,
@@ -132,8 +137,16 @@ export class Orchestrator {
       }
 
       let time = Date.now();
-      if (isSleepOpResult(op)) {
+      if (isOpResult.sleep(op)) {
         time = op.config.options.wakeAt;
+      }
+      if (isOpResult.waitForSignal(op)) {
+        await this.stateDriver.addWaitingSignal({
+          op,
+          runId: run.ctx.runId,
+          workflowId: run.workflowId,
+        });
+        continue;
       }
 
       await this.execQueue.add({
@@ -181,6 +194,27 @@ export class Orchestrator {
       }
       throw fromJsonError(run.result.error);
     }
+  }
+
+  async processIncomingSignal(opts: SendSignalOpts): Promise<string | null> {
+    const waitingSignal = await this.stateDriver.popWaitingSignal(opts.signal);
+    if (waitingSignal === null) {
+      return null;
+    }
+    await this.stateDriver.resumeWaitForSignalOp({
+      data: opts.data,
+      waitingSignal,
+    });
+
+    await this.execQueue.add({
+      data: {
+        attempt: 1,
+        runId: waitingSignal.runId,
+        workflowId: waitingSignal.workflowId,
+      },
+      time: Date.now(),
+    });
+    return waitingSignal.runId;
   }
 
   /**
@@ -286,8 +320,4 @@ function nextAttempt(op: OpResult, exec: ExecQueueData, run: Run): number {
 
   // Next attempt
   return exec.attempt + 1;
-}
-
-async function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

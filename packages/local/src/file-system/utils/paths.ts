@@ -26,6 +26,10 @@ export class FileSystemPaths {
     return join(this.baseDir, "queues", queueType);
   }
 
+  signalFile(signal: string): string {
+    return join(this.baseDir, "signals", `${signal}.json`);
+  }
+
   getBaseDir(): string {
     return this.baseDir;
   }
