@@ -112,17 +112,20 @@ export class Orchestrator {
     if (workflow === undefined) {
       throw new UnreachableError("workflow not found");
     }
-    if (
-      exec.prevOpResult !== undefined &&
-      isOpResult.sleep(exec.prevOpResult)
-    ) {
-      await this.stateDriver.wakeSleepOp(
-        {
-          runId: exec.runId,
-          hashedOpId: exec.prevOpResult.id.hashed,
-        },
-        exec.prevOpResult
-      );
+    if (exec.prevOpResult !== undefined) {
+      if (isOpResult.sleep(exec.prevOpResult)) {
+        await this.stateDriver.wakeSleepOp(
+          {
+            runId: exec.runId,
+            hashedOpId: exec.prevOpResult.id.hashed,
+          },
+          exec.prevOpResult
+        );
+      } else if (isOpResult.waitForSignal(exec.prevOpResult)) {
+        await this.stateDriver.timeoutWaitForSignalOp(
+          exec.prevOpResult.config.options.signal
+        );
+      }
     }
 
     const ops = await this.execDriver.execute(workflow, run.ctx);
@@ -146,7 +149,7 @@ export class Orchestrator {
           runId: run.ctx.runId,
           workflowId: run.workflowId,
         });
-        continue;
+        time = Date.now() + op.config.options.timeout;
       }
 
       await this.execQueue.add({

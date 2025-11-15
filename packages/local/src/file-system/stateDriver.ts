@@ -85,11 +85,30 @@ export class FileSystemStateDriver implements LocalStateDriver {
         },
       },
     };
-    await this.setOp(
-      {
-        hashedOpId: waitingSignal.op.id.hashed,
-        runId: waitingSignal.runId,
+    await writeJsonFile(
+      this.paths.opFile(waitingSignal.runId, waitingSignal.op.id.hashed),
+      opResult
+    );
+  }
+
+  async timeoutWaitForSignalOp(signal: string): Promise<void> {
+    const waitingSignal = await this.popWaitingSignal(signal);
+    if (waitingSignal === null) {
+      return;
+    }
+    const opResult: OpResults["waitForSignal"] = {
+      config: {
+        code: StdOpCode.waitForSignal,
+        options: waitingSignal.op.config.options,
       },
+      id: waitingSignal.op.id,
+      result: {
+        status: "success",
+        output: null,
+      },
+    };
+    await writeJsonFile(
+      this.paths.opFile(waitingSignal.runId, waitingSignal.op.id.hashed),
       opResult
     );
   }
@@ -127,7 +146,10 @@ export class FileSystemStateDriver implements LocalStateDriver {
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
     op: OpResult
   ): Promise<void> {
-    if (op.config.code === StdOpCode.sleep) {
+    if (
+      op.config.code === StdOpCode.sleep ||
+      op.config.code === StdOpCode.waitForSignal
+    ) {
       return;
     }
 

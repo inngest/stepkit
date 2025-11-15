@@ -25,7 +25,7 @@ type WaitForSignalOpConfig = z.infer<typeof waitForSignalOpConfigSchema>;
 type WaitForSignalOpResultData = {
   data: unknown;
   signal: string;
-};
+} | null;
 type WaitForSignalOpResult = OpResult<
   WaitForSignalOpConfig,
   WaitForSignalOpResultData

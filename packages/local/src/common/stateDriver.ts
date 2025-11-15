@@ -32,6 +32,7 @@ export interface LocalStateDriver extends StateDriver {
   addWaitingSignal(signal: WaitingSignal): Promise<void>;
   popWaitingSignal(signal: string): Promise<WaitingSignal | null>;
   resumeWaitForSignalOp(opts: ResumeWaitForSignalOpOpts): Promise<void>;
+  timeoutWaitForSignalOp(signal: string): Promise<void>;
 
   incrementOpAttempt(runId: string, hashedOpId: string): Promise<number>;
 

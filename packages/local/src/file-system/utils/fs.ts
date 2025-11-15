@@ -53,8 +53,8 @@ export async function ensureDir(path: string): Promise<void> {
  * Generate queue filename with sortable timestamp. Format is
  * "{milliseconds}-{uuid}.json"
  */
-export function generateQueueFilename(): string {
-  const timestamp = Date.now().toString().padStart(13, "0");
+export function generateQueueFilename(time: number): string {
+  const timestamp = time.toString().padStart(13, "0");
   const uuid = crypto.randomUUID();
   return `${timestamp}-${uuid}.json`;
 }

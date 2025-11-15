@@ -69,13 +69,34 @@ export class InMemoryStateDriver implements LocalStateDriver {
         },
       },
     };
-    await this.setOp(
-      {
-        hashedOpId: waitingSignal.op.id.hashed,
-        runId: waitingSignal.runId,
+    const key = this.getOpKey({
+      hashedOpId: waitingSignal.op.id.hashed,
+      runId: waitingSignal.runId,
+    });
+    this.ops.set(key, JSON.stringify(opResult));
+  }
+
+  async timeoutWaitForSignalOp(signal: string): Promise<void> {
+    const waitingSignal = await this.popWaitingSignal(signal);
+    if (waitingSignal === null) {
+      return;
+    }
+    const opResult: OpResults["waitForSignal"] = {
+      config: {
+        code: StdOpCode.waitForSignal,
+        options: waitingSignal.op.config.options,
       },
-      opResult
-    );
+      id: waitingSignal.op.id,
+      result: {
+        status: "success",
+        output: null,
+      },
+    };
+    const key = this.getOpKey({
+      hashedOpId: waitingSignal.op.id.hashed,
+      runId: waitingSignal.runId,
+    });
+    this.ops.set(key, JSON.stringify(opResult));
   }
 
   async incrementOpAttempt(runId: string, hashedOpId: string): Promise<number> {
@@ -127,7 +148,10 @@ export class InMemoryStateDriver implements LocalStateDriver {
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
     op: OpResult
   ): Promise<void> {
-    if (op.config.code === StdOpCode.sleep) {
+    if (
+      op.config.code === StdOpCode.sleep ||
+      op.config.code === StdOpCode.waitForSignal
+    ) {
       return;
     }
 

@@ -1,15 +1,8 @@
 import fs from "node:fs/promises";
-import { resolve } from "node:path";
+import os from "node:os";
+import path from "node:path";
 
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from "vitest";
+import { describe, expect, it, onTestFinished } from "vitest";
 import z from "zod";
 
 import { NonRetryableError } from "@stepkit/core";
@@ -17,29 +10,13 @@ import { NonRetryableError } from "@stepkit/core";
 import { FileSystemClient } from "../../src/main";
 import { expectError } from "../utils";
 
-const stateDir = resolve("./.stepkit/invoke-test");
-
-export async function cleanup(): Promise<void> {
-  try {
-    await fs.rm(stateDir, { recursive: true, force: true });
-  } catch {
-    // Ignore
-  }
-}
-
 describe("invoke", () => {
-  beforeAll(cleanup);
-  afterAll(cleanup);
-
-  let client: FileSystemClient;
-  beforeEach(() => {
-    client = new FileSystemClient({
-      baseDir: `${stateDir}/${crypto.randomUUID()}`,
-    });
-  });
-  afterEach(() => client.stop());
-
   it("step.run", async () => {
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    const client = new FileSystemClient({ baseDir });
+    onTestFinished(() => client.stop());
+
     let input: Record<string, unknown> = {};
     const counters = {
       top: 0,
@@ -78,6 +55,11 @@ describe("invoke", () => {
   });
 
   it("step.sleep", async () => {
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    const client = new FileSystemClient({ baseDir });
+    onTestFinished(() => client.stop());
+
     const counters = {
       top: 0,
       bottom: 0,
@@ -102,6 +84,11 @@ describe("invoke", () => {
 
   it("duplicate step ID", async () => {
     // Duplicate step IDs are treated as different steps
+
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    const client = new FileSystemClient({ baseDir });
+    onTestFinished(() => client.stop());
 
     const counters = {
       top: 0,
@@ -144,6 +131,11 @@ describe("invoke", () => {
   });
 
   it("fail", async () => {
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    const client = new FileSystemClient({ baseDir });
+    onTestFinished(() => client.stop());
+
     class FooError extends Error {
       constructor(message: string, options?: ErrorOptions) {
         super(message, options);
@@ -230,6 +222,11 @@ describe("invoke", () => {
   });
 
   it("successful retry", async () => {
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    const client = new FileSystemClient({ baseDir });
+    onTestFinished(() => client.stop());
+
     const counters = {
       top: 0,
       insideStep: 0,
@@ -260,6 +257,11 @@ describe("invoke", () => {
   });
 
   it("invalid input", async () => {
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    const client = new FileSystemClient({ baseDir });
+    onTestFinished(() => client.stop());
+
     let counter = 0;
     const workflow = client.workflow(
       {
@@ -303,6 +305,11 @@ describe("invoke", () => {
   });
 
   it("parallel steps", async () => {
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    const client = new FileSystemClient({ baseDir });
+    onTestFinished(() => client.stop());
+
     const counters = {
       a: 0,
       p1: 0,
@@ -361,6 +368,11 @@ describe("invoke", () => {
   });
 
   it("nested steps", async () => {
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    const client = new FileSystemClient({ baseDir });
+    onTestFinished(() => client.stop());
+
     const counters = {
       top: 0,
       a: 0,
@@ -400,6 +412,11 @@ describe("invoke", () => {
   });
 
   it("NonRetryableError", async () => {
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    const client = new FileSystemClient({ baseDir });
+    onTestFinished(() => client.stop());
+
     class MyError extends Error {
       constructor(message: string, options?: ErrorOptions) {
         super(message, options);

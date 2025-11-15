@@ -22,7 +22,7 @@ export class FileSystemSortedQueue<T> implements SortedQueue<T> {
   }
 
   async add(item: QueueItem<T>): Promise<void> {
-    const filename = generateQueueFilename();
+    const filename = generateQueueFilename(item.time);
     const filePath = this.paths.queueFile(this.queueType, filename);
 
     // Ensure queue directory exists
