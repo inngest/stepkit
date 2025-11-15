@@ -8,7 +8,15 @@ import { dirname } from "node:path";
 async function writeFileAtomic(path: string, data: string): Promise<void> {
   const tmpPath = `${path}.tmp`;
   await fs.writeFile(tmpPath, data, "utf-8");
-  await fs.rename(tmpPath, path);
+
+  try {
+    await fs.rename(tmpPath, path);
+  } catch (error) {
+    // Don't throw because this can happen when testing parallel steps. With
+    // parallel steps, the end of the workflow is hit multiple times so its
+    // directory may have been deleted by the first hit
+    console.error("error renaming file", error);
+  }
 }
 
 /**
