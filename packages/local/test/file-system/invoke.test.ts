@@ -2,12 +2,12 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { sleep } from "packages/local/src/common/utils";
 import { describe, expect, it, onTestFinished } from "vitest";
 import z from "zod";
 
 import { NonRetryableError } from "@stepkit/core";
 
+import { sleep } from "../../src/common/utils";
 import { FileSystemClient } from "../../src/main";
 import { expectError } from "../utils";
 
