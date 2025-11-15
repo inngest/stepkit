@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import { sleep } from "packages/local/src/common/utils";
 import { describe, expect, it, onTestFinished } from "vitest";
 import z from "zod";
 
@@ -306,7 +307,13 @@ describe("invoke", () => {
 
   it("parallel steps", async () => {
     const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
-    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    onTestFinished(async () => {
+      // Add a delay because parallel steps hit the end of the workflow multiple
+      // times
+      await sleep(1000);
+
+      await fs.rm(baseDir, { recursive: true });
+    });
     const client = new FileSystemClient({ baseDir });
     onTestFinished(() => client.stop());
 
