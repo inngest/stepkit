@@ -17,6 +17,8 @@ export abstract class BaseClient<
   TStepExt extends ExtDefault = ExtDefault,
 > implements Client<TWorkflowCfgExt, TCtxExt, TStepExt>
 {
+  id = "TODO";
+
   workflows: Map<
     string,
     Workflow<any, any, TWorkflowCfgExt, TCtxExt, TStepExt>

@@ -1,21 +1,97 @@
-import { StdOpCode, type OpResult, type OpResults } from "@stepkit/sdk-tools";
+import {
+  disableRetries,
+  InvokeTimeoutError,
+  StdOpCode,
+  toJsonError,
+  type OpResult,
+  type OpResults,
+} from "@stepkit/sdk-tools";
 
 import type {
+  InvokeManager,
   LocalStateDriver,
+  ResumeInvokeWorkflowOpOpts,
   ResumeWaitForSignalOpOpts,
   Run,
+  WaitingInvoke,
   WaitingSignal,
 } from "../common/stateDriver";
 import { UnreachableError } from "../common/utils";
 
+class InMemoryInvokeManager implements InvokeManager {
+  private byChildRun: Map<string, WaitingInvoke>;
+  private byParentOp: Map<string, WaitingInvoke>;
+
+  constructor() {
+    this.byChildRun = new Map();
+    this.byParentOp = new Map();
+  }
+
+  private getParentOpKey({
+    hashedOpId,
+    runId,
+  }: {
+    hashedOpId: string;
+    runId: string;
+  }): string {
+    return `${runId}:${hashedOpId}`;
+  }
+
+  async add(invoke: WaitingInvoke): Promise<void> {
+    const key = this.getParentOpKey({
+      hashedOpId: invoke.op.id.hashed,
+      runId: invoke.parentRun.runId,
+    });
+    if (this.byParentOp.has(key)) {
+      throw new Error("waiting invoke already exists");
+    }
+    this.byParentOp.set(key, invoke);
+    this.byChildRun.set(invoke.childRun.runId, invoke);
+  }
+
+  async popByChildRun(runId: string): Promise<WaitingInvoke | null> {
+    const waitingInvoke = this.byChildRun.get(runId);
+    if (waitingInvoke === undefined) {
+      return null;
+    }
+    this.byChildRun.delete(runId);
+    this.byParentOp.delete(
+      this.getParentOpKey({
+        hashedOpId: waitingInvoke.op.id.hashed,
+        runId: waitingInvoke.parentRun.runId,
+      })
+    );
+    return waitingInvoke;
+  }
+
+  async popByParentOp({
+    hashedOpId,
+    runId,
+  }: {
+    hashedOpId: string;
+    runId: string;
+  }): Promise<WaitingInvoke | null> {
+    const key = this.getParentOpKey({ hashedOpId, runId });
+    const waitingInvoke = this.byParentOp.get(key);
+    if (waitingInvoke === undefined) {
+      return null;
+    }
+    this.byParentOp.delete(key);
+    this.byChildRun.delete(waitingInvoke.childRun.runId);
+    return waitingInvoke;
+  }
+}
+
 export class InMemoryStateDriver implements LocalStateDriver {
   private ops: Map<string, string>;
   private runs: Map<string, Run>;
+  waitingInvokes: InvokeManager;
   private waitingSignals: Map<string, WaitingSignal>;
 
   constructor() {
     this.ops = new Map();
     this.runs = new Map();
+    this.waitingInvokes = new InMemoryInvokeManager();
     this.waitingSignals = new Map();
   }
 
@@ -33,6 +109,66 @@ export class InMemoryStateDriver implements LocalStateDriver {
       throw new UnreachableError("run not found");
     }
     run.result = op.result;
+  }
+
+  async resumeInvokeWorkflowOp({
+    childRunId,
+    op,
+  }: ResumeInvokeWorkflowOpOpts): Promise<WaitingInvoke | null> {
+    const waitingInvoke = await this.waitingInvokes.popByChildRun(childRunId);
+    if (waitingInvoke === null) {
+      return null;
+    }
+
+    if (op.result.status === "error") {
+      op.result.error = disableRetries(op.result.error);
+    }
+
+    const opResult: OpResults["invokeWorkflow"] = {
+      config: waitingInvoke.op.config,
+      id: waitingInvoke.op.id,
+      result: op.result,
+    };
+    const key = this.getOpKey({
+      hashedOpId: waitingInvoke.op.id.hashed,
+      runId: waitingInvoke.parentRun.runId,
+    });
+    this.ops.set(key, JSON.stringify(opResult));
+    return waitingInvoke;
+  }
+
+  async timeoutInvokeWorkflowOp({
+    hashedOpId,
+    runId,
+  }: {
+    hashedOpId: string;
+    runId: string;
+  }): Promise<void> {
+    const waitingInvoke = await this.waitingInvokes.popByParentOp({
+      hashedOpId,
+      runId,
+    });
+    if (waitingInvoke === null) {
+      return;
+    }
+
+    const error = new InvokeTimeoutError({
+      childRunId: waitingInvoke.childRun.runId,
+    });
+
+    const opResult: OpResults["invokeWorkflow"] = {
+      config: waitingInvoke.op.config,
+      id: waitingInvoke.op.id,
+      result: {
+        status: "error",
+        error: toJsonError(error),
+      },
+    };
+    const key = this.getOpKey({
+      hashedOpId: waitingInvoke.op.id.hashed,
+      runId: waitingInvoke.parentRun.runId,
+    });
+    this.ops.set(key, JSON.stringify(opResult));
   }
 
   async addWaitingSignal(signal: WaitingSignal): Promise<void> {
@@ -69,11 +205,14 @@ export class InMemoryStateDriver implements LocalStateDriver {
         },
       },
     };
-    const key = this.getOpKey({
-      hashedOpId: waitingSignal.op.id.hashed,
-      runId: waitingSignal.runId,
-    });
-    this.ops.set(key, JSON.stringify(opResult));
+    await this.setOp(
+      {
+        force: true,
+        hashedOpId: waitingSignal.op.id.hashed,
+        runId: waitingSignal.runId,
+      },
+      opResult
+    );
   }
 
   async timeoutWaitForSignalOp(signal: string): Promise<void> {
@@ -92,11 +231,14 @@ export class InMemoryStateDriver implements LocalStateDriver {
         output: null,
       },
     };
-    const key = this.getOpKey({
-      hashedOpId: waitingSignal.op.id.hashed,
-      runId: waitingSignal.runId,
-    });
-    this.ops.set(key, JSON.stringify(opResult));
+    await this.setOp(
+      {
+        force: true,
+        hashedOpId: waitingSignal.op.id.hashed,
+        runId: waitingSignal.runId,
+      },
+      opResult
+    );
   }
 
   async incrementOpAttempt(runId: string, hashedOpId: string): Promise<number> {
@@ -145,14 +287,21 @@ export class InMemoryStateDriver implements LocalStateDriver {
   }
 
   async setOp(
-    { runId, hashedOpId }: { runId: string; hashedOpId: string },
+    {
+      force = false,
+      hashedOpId,
+      runId,
+    }: { force: boolean; hashedOpId: string; runId: string },
     op: OpResult
   ): Promise<void> {
     if (
+      op.config.code === StdOpCode.invokeWorkflow ||
       op.config.code === StdOpCode.sleep ||
       op.config.code === StdOpCode.waitForSignal
     ) {
-      return;
+      if (!force) {
+        return;
+      }
     }
 
     const opAttempt = await this.incrementOpAttempt(runId, hashedOpId);

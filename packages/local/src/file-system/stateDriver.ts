@@ -1,13 +1,19 @@
 import {
+  disableRetries,
+  InvokeTimeoutError,
   StdOpCode,
+  toJsonError,
   type Context,
   type OpResult,
   type OpResults,
 } from "@stepkit/sdk-tools";
 
 import type {
+  InvokeManager,
   LocalStateDriver,
+  ResumeInvokeWorkflowOpOpts,
   ResumeWaitForSignalOpOpts,
+  WaitingInvoke,
   WaitingSignal,
 } from "../common/stateDriver";
 import { UnreachableError } from "./utils/errors";
@@ -22,11 +28,72 @@ export type Run = {
   workflowId: string;
 };
 
+class FileSystemInvokeManager implements InvokeManager {
+  constructor(private paths: FileSystemPaths) {}
+
+  async add(invoke: WaitingInvoke): Promise<void> {
+    const byChildPath = this.paths.invokeByChildRunFile(invoke.childRun.runId);
+    const byParentPath = this.paths.invokeByParentOpFile(
+      invoke.parentRun.runId,
+      invoke.op.id.hashed
+    );
+
+    const existingByParent = await readJsonFile<WaitingInvoke>(byParentPath);
+    if (existingByParent !== undefined) {
+      throw new Error("waiting invoke already exists");
+    }
+
+    await writeJsonFile(byChildPath, invoke);
+    await writeJsonFile(byParentPath, invoke);
+  }
+
+  async popByChildRun(runId: string): Promise<WaitingInvoke | null> {
+    const byChildPath = this.paths.invokeByChildRunFile(runId);
+    const waitingInvoke = await readJsonFile<WaitingInvoke>(byChildPath);
+    if (waitingInvoke === undefined) {
+      return null;
+    }
+
+    await deleteFile(byChildPath);
+    await deleteFile(
+      this.paths.invokeByParentOpFile(
+        waitingInvoke.parentRun.runId,
+        waitingInvoke.op.id.hashed
+      )
+    );
+
+    return waitingInvoke;
+  }
+
+  async popByParentOp({
+    hashedOpId,
+    runId,
+  }: {
+    hashedOpId: string;
+    runId: string;
+  }): Promise<WaitingInvoke | null> {
+    const byParentPath = this.paths.invokeByParentOpFile(runId, hashedOpId);
+    const waitingInvoke = await readJsonFile<WaitingInvoke>(byParentPath);
+    if (waitingInvoke === undefined) {
+      return null;
+    }
+
+    await deleteFile(byParentPath);
+    await deleteFile(
+      this.paths.invokeByChildRunFile(waitingInvoke.childRun.runId)
+    );
+
+    return waitingInvoke;
+  }
+}
+
 export class FileSystemStateDriver implements LocalStateDriver {
   private paths: FileSystemPaths;
+  waitingInvokes: FileSystemInvokeManager;
 
   constructor(baseDir: string) {
     this.paths = new FileSystemPaths(baseDir);
+    this.waitingInvokes = new FileSystemInvokeManager(this.paths);
   }
 
   async addRun(run: Run): Promise<void> {
@@ -46,6 +113,66 @@ export class FileSystemStateDriver implements LocalStateDriver {
     }
     run.result = op.result;
     await this.addRun(run);
+  }
+
+  async resumeInvokeWorkflowOp({
+    childRunId,
+    op,
+  }: ResumeInvokeWorkflowOpOpts): Promise<WaitingInvoke | null> {
+    const waitingInvoke = await this.waitingInvokes.popByChildRun(childRunId);
+    if (waitingInvoke === null) {
+      return null;
+    }
+
+    if (op.result.status === "error") {
+      op.result.error = disableRetries(op.result.error);
+    }
+
+    const opResult: OpResults["invokeWorkflow"] = {
+      config: waitingInvoke.op.config,
+      id: waitingInvoke.op.id,
+      result: op.result,
+    };
+    const filePath = this.paths.opFile(
+      waitingInvoke.parentRun.runId,
+      waitingInvoke.op.id.hashed
+    );
+    await writeJsonFile(filePath, opResult);
+    return waitingInvoke;
+  }
+
+  async timeoutInvokeWorkflowOp({
+    hashedOpId,
+    runId,
+  }: {
+    hashedOpId: string;
+    runId: string;
+  }): Promise<void> {
+    const waitingInvoke = await this.waitingInvokes.popByParentOp({
+      hashedOpId,
+      runId,
+    });
+    if (waitingInvoke === null) {
+      return;
+    }
+
+    const error = new InvokeTimeoutError({
+      childRunId: waitingInvoke.childRun.runId,
+    });
+
+    const opResult: OpResults["invokeWorkflow"] = {
+      config: waitingInvoke.op.config,
+      id: waitingInvoke.op.id,
+      result: {
+        status: "error",
+        error: toJsonError(error),
+      },
+    };
+    const filePath = this.paths.opFile(
+      waitingInvoke.parentRun.runId,
+      waitingInvoke.op.id.hashed
+    );
+    await writeJsonFile(filePath, opResult);
   }
 
   async addWaitingSignal(signal: WaitingSignal): Promise<void> {
@@ -147,6 +274,7 @@ export class FileSystemStateDriver implements LocalStateDriver {
     op: OpResult
   ): Promise<void> {
     if (
+      op.config.code === StdOpCode.invokeWorkflow ||
       op.config.code === StdOpCode.sleep ||
       op.config.code === StdOpCode.waitForSignal
     ) {

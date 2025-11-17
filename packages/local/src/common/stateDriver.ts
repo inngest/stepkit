@@ -13,6 +13,23 @@ export type Run = {
   workflowId: string;
 };
 
+export type WaitingInvoke = {
+  op: OpResults["invokeWorkflow"];
+  childRun: {
+    runId: string;
+    workflowId: string;
+  };
+  parentRun: {
+    runId: string;
+    workflowId: string;
+  };
+};
+
+export type ResumeInvokeWorkflowOpOpts = {
+  childRunId: string;
+  op: OpResult;
+};
+
 export type WaitingSignal = {
   op: OpResults["waitForSignal"];
   runId: string;
@@ -24,10 +41,35 @@ export type ResumeWaitForSignalOpOpts = {
   waitingSignal: WaitingSignal;
 };
 
+export type InvokeManager = {
+  add(invoke: WaitingInvoke): Promise<void>;
+
+  popByChildRun(runId: string): Promise<WaitingInvoke | null>;
+
+  popByParentOp({
+    hashedOpId,
+    runId,
+  }: {
+    hashedOpId: string;
+    runId: string;
+  }): Promise<WaitingInvoke | null>;
+};
+
 export interface LocalStateDriver extends StateDriver {
+  waitingInvokes: InvokeManager;
+
   addRun(run: Run): Promise<void>;
   getRun(runId: string): Promise<Run | undefined>;
   endRun(runId: string, op: OpResult): Promise<void>;
+
+  resumeInvokeWorkflowOp(
+    opts: ResumeInvokeWorkflowOpOpts
+  ): Promise<WaitingInvoke | null>;
+
+  timeoutInvokeWorkflowOp(opts: {
+    hashedOpId: string;
+    runId: string;
+  }): Promise<void>;
 
   addWaitingSignal(signal: WaitingSignal): Promise<void>;
   popWaitingSignal(signal: string): Promise<WaitingSignal | null>;

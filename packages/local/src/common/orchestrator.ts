@@ -93,7 +93,11 @@ export class Orchestrator {
         return trigger.type === "event" && trigger.name === event.name;
       });
       if (isTriggered) {
-        await this.startWorkflow(workflow, event);
+        await this.startWorkflow({
+          data: event.data,
+          maxAttempts: workflow.maxAttempts ?? defaultMaxAttempts,
+          workflowId: workflow.id,
+        });
       }
     }
   }
@@ -125,6 +129,11 @@ export class Orchestrator {
         await this.stateDriver.timeoutWaitForSignalOp(
           exec.prevOpResult.config.options.signal
         );
+      } else if (isOpResult.invokeWorkflow(exec.prevOpResult)) {
+        await this.stateDriver.timeoutInvokeWorkflowOp({
+          hashedOpId: exec.prevOpResult.id.hashed,
+          runId: exec.runId,
+        });
       }
     }
 
@@ -133,21 +142,58 @@ export class Orchestrator {
       throw new UnreachableError("no ops found");
     }
 
+    // console.log("ops", ops);
     for (const op of ops) {
       if (shouldEndRun(op, run, exec)) {
         await this.stateDriver.endRun(run.ctx.runId, op);
+        const waitingInvoke = await this.stateDriver.resumeInvokeWorkflowOp({
+          childRunId: run.ctx.runId,
+          op,
+        });
+        if (waitingInvoke !== null) {
+          await this.execQueue.add({
+            data: {
+              attempt: 1,
+              prevOpResult: waitingInvoke.op,
+              runId: waitingInvoke.parentRun.runId,
+              workflowId: waitingInvoke.parentRun.workflowId,
+            },
+            time: Date.now(),
+          });
+        }
         return;
       }
 
       let time = Date.now();
       if (isOpResult.sleep(op)) {
         time = op.config.options.wakeAt;
-      }
-      if (isOpResult.waitForSignal(op)) {
+      } else if (isOpResult.waitForSignal(op)) {
         await this.stateDriver.addWaitingSignal({
           op,
           runId: run.ctx.runId,
           workflowId: run.workflowId,
+        });
+        time = Date.now() + op.config.options.timeout;
+      } else if (isOpResult.invokeWorkflow(op)) {
+        const invokedStartData = await this.startWorkflow({
+          data: op.config.options.data,
+
+          // TODO
+          maxAttempts: defaultMaxAttempts,
+
+          workflowId: op.config.options.workflowId,
+        });
+
+        await this.stateDriver.waitingInvokes.add({
+          op,
+          childRun: {
+            runId: invokedStartData.runId,
+            workflowId: op.config.options.workflowId,
+          },
+          parentRun: {
+            runId: run.ctx.runId,
+            workflowId: run.workflowId,
+          },
         });
         time = Date.now() + op.config.options.timeout;
       }
@@ -171,7 +217,11 @@ export class Orchestrator {
     workflow: Workflow<TInput, TOutput>,
     data: TInput
   ): Promise<TOutput> {
-    const { runId } = await this.startWorkflow(workflow, data);
+    const { runId } = await this.startWorkflow({
+      data,
+      maxAttempts: workflow.maxAttempts ?? defaultMaxAttempts,
+      workflowId: workflow.id,
+    });
     let i = 0;
 
     // TODO: Should we add a timeout? An infinite loop feels dirty
@@ -223,10 +273,15 @@ export class Orchestrator {
   /**
    * Start a workflow run but don't wait for it to end
    */
-  async startWorkflow<TInput extends InputDefault>(
-    workflow: Workflow<TInput, any>,
-    data: TInput
-  ): Promise<StartData> {
+  async startWorkflow({
+    data,
+    maxAttempts,
+    workflowId,
+  }: {
+    data: unknown;
+    maxAttempts: number;
+    workflowId: string;
+  }): Promise<StartData> {
     const eventId = crypto.randomUUID();
     const runId = crypto.randomUUID();
 
@@ -237,23 +292,23 @@ export class Orchestrator {
           data,
           ext: {},
           id: eventId,
-          name: workflow.id,
+          name: workflowId,
           time: new Date(),
           type: "invoke",
         },
         runId,
       },
       result: undefined,
-      maxAttempts: workflow.maxAttempts ?? defaultMaxAttempts,
+      maxAttempts,
       opAttempts: {},
-      workflowId: workflow.id,
+      workflowId,
     });
 
     await this.execQueue.add({
       data: {
         attempt: 1,
         runId,
-        workflowId: workflow.id,
+        workflowId,
       },
       time: Date.now(),
     });

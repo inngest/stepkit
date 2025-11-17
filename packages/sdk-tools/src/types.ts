@@ -5,6 +5,7 @@ import type { ControlledPromise } from "./promises";
 
 // Standard op codes
 export const StdOpCode = {
+  invokeWorkflow: "step.invokeWorkflow",
   run: "step.run",
   sendSignal: "step.sendSignal",
   sleep: "step.sleep",

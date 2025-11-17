@@ -69,6 +69,32 @@ export type ExecutionDriver<
 export function createStdStep(reportOp: ReportOp): Step {
   return {
     ext: {},
+    invokeWorkflow: async <TInput extends InputDefault, TOutput>(
+      stepId: string,
+      opts: {
+        data?: TInput;
+        timeout: number | Date;
+        workflow: Workflow<TInput, TOutput>;
+      }
+    ) => {
+      let timeout: number;
+      if (opts.timeout instanceof Date) {
+        timeout = opts.timeout.getTime() - Date.now();
+      } else {
+        timeout = opts.timeout;
+      }
+
+      const config: OpConfigs["invokeWorkflow"] = {
+        code: StdOpCode.invokeWorkflow,
+        options: {
+          clientId: opts.workflow.client.id,
+          data: opts.data,
+          timeout,
+          workflowId: opts.workflow.id,
+        },
+      };
+      return createOpFound(reportOp, stepId, config);
+    },
     run: async <TStepRunOutput>(
       stepId: string,
       handler: (() => Promise<TStepRunOutput>) | (() => TStepRunOutput)

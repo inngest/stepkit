@@ -2,6 +2,21 @@ import { z } from "zod";
 
 import { StdOpCode, type OpResult } from "./types";
 
+const invokeWorkflowOpConfigSchema = z.object({
+  code: z.literal(StdOpCode.invokeWorkflow),
+  options: z.object({
+    clientId: z.string(),
+    data: z.unknown(),
+    timeout: z.number(),
+    workflowId: z.string(),
+  }),
+});
+type InvokeWorkflowOpConfig = z.infer<typeof invokeWorkflowOpConfigSchema>;
+type InvokeWorkflowOpResult = OpResult<InvokeWorkflowOpConfig>;
+function isInvokeWorkflowOpResult(op: OpResult): op is InvokeWorkflowOpResult {
+  return invokeWorkflowOpConfigSchema.safeParse(op.config).success;
+}
+
 const sleepOpConfigSchema = z.object({
   code: z.literal(StdOpCode.sleep),
   options: z.object({
@@ -35,16 +50,19 @@ function isWaitForSignalOpResult(op: OpResult): op is WaitForSignalOpResult {
 }
 
 export const isOpResult = {
+  invokeWorkflow: isInvokeWorkflowOpResult,
   sleep: isSleepOpResult,
   waitForSignal: isWaitForSignalOpResult,
 };
 
 export type OpResults = {
+  invokeWorkflow: InvokeWorkflowOpResult;
   sleep: SleepOpResult;
   waitForSignal: WaitForSignalOpResult;
 };
 
 export type OpConfigs = {
+  invokeWorkflow: InvokeWorkflowOpConfig;
   sleep: SleepOpConfig;
   waitForSignal: WaitForSignalOpConfig;
 };

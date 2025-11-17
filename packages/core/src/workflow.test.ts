@@ -7,12 +7,12 @@ import {
   type Context,
   type ExtDefault,
   type InputDefault,
-  type Step,
 } from "./types";
 import {
   Workflow,
   type Client,
   type StartData,
+  type Step,
   type Trigger,
 } from "./workflow";
 
@@ -22,6 +22,8 @@ class NoopClient<
   TStepExt extends ExtDefault,
 > implements Client<TWorkflowCfgExt, TCtxExt, TStepExt>
 {
+  id = "test";
+
   workflow<TInput extends InputDefault = InputDefault, TOutput = unknown>(
     opts: {
       ext?: TWorkflowCfgExt;

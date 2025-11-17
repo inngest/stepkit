@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import type { StepKitErrorProps } from "@stepkit/core/implementer";
+import {
+  stepKitErrorPropKey,
+  type StepKitErrorProps,
+} from "@stepkit/core/implementer";
 
 // StepKit-specific error options. These will persist through JSON serialization
 // and deserialization
@@ -11,11 +14,21 @@ const stepKitErrorPropsSchema = z.object({
 export function getStepKitErrorProps(
   error: Error
 ): StepKitErrorProps | undefined {
-  if (!("~stepkit" in error)) {
+  if (!(stepKitErrorPropKey in error)) {
     return undefined;
   }
 
-  return stepKitErrorPropsSchema.parse(error["~stepkit"]);
+  return stepKitErrorPropsSchema.parse(error[stepKitErrorPropKey]);
+}
+
+export function disableRetries(error: JsonError): JsonError {
+  return {
+    ...error,
+    props: {
+      ...error.props,
+      canRetry: false,
+    },
+  };
 }
 
 // Errors be be serialized/deserialized as JSON. We'll store as much info as
@@ -74,7 +87,7 @@ export function fromJsonError(json: JsonError): Error {
 
     // @ts-expect-error - The return type must be Error because we can't
     // reconstruct the error class
-    error["~stepkit"] = props;
+    error[stepKitErrorPropKey] = props;
   }
 
   return error;

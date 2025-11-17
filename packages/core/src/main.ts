@@ -1,5 +1,6 @@
 import {
   InvalidInputError,
+  InvokeTimeoutError,
   NestedStepError,
   NonRetryableError,
   StepKitError,
@@ -12,6 +13,7 @@ export {
   NestedStepError,
   NonRetryableError,
   StepKitError,
+  InvokeTimeoutError as InvokeTimeoutError,
   Workflow,
   cronTrigger,
   eventTrigger,

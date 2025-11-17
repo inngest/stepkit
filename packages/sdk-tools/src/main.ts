@@ -1,5 +1,11 @@
 import { BaseClient } from "./client";
-import { fromJsonError, getStepKitErrorProps, type JsonError } from "./errors";
+import {
+  disableRetries,
+  fromJsonError,
+  getStepKitErrorProps,
+  toJsonError,
+  type JsonError,
+} from "./errors";
 import {
   BaseExecutionDriver,
   createOpFound,
@@ -29,9 +35,11 @@ export {
   StdOpCode,
   createOpFound,
   createStdStep,
+  disableRetries,
   executeUntilDone,
   fromJsonError,
   getStepKitErrorProps,
   isOpResult,
   stdHashId,
+  toJsonError,
 };
