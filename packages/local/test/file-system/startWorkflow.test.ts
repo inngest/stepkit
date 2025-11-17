@@ -1,12 +1,18 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+
 import { describe, expect, it, onTestFinished, vi } from "vitest";
 import z from "zod";
 
 import { sleep } from "../../src/common/utils";
-import { InMemoryClient } from "../../src/main";
+import { FileSystemClient } from "../../src/main";
 
 describe("startWorkflow", () => {
   it("step.run", async () => {
-    const client = new InMemoryClient();
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+    onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+    const client = new FileSystemClient({ baseDir });
     onTestFinished(() => client.stop());
 
     const counters = {
@@ -44,7 +50,9 @@ describe("startWorkflow", () => {
 
   describe("step.waitForSignal", () => {
     it("resolve", async () => {
-      const client = new InMemoryClient();
+      const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+      onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+      const client = new FileSystemClient({ baseDir });
       onTestFinished(() => client.stop());
 
       const signal = `signal-${crypto.randomUUID()}`;
@@ -85,15 +93,17 @@ describe("startWorkflow", () => {
           top: 2,
           bottom: 1,
         });
-      });
+      }, 10_000);
       expect(waitResult).toEqual({
         data: { msg: "hi" },
         signal,
       });
-    });
+    }, 10_000);
 
     it("timeout", async () => {
-      const client = new InMemoryClient();
+      const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "stepkit-test-"));
+      onTestFinished(async () => fs.rm(baseDir, { recursive: true }));
+      const client = new FileSystemClient({ baseDir });
       onTestFinished(() => client.stop());
 
       const counters = {

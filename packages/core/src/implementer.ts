@@ -7,7 +7,9 @@ import type {
   Input,
   InputDefault,
   InputType,
+  SendSignalOpts,
   Step,
+  WaitForSignalOpts,
 } from "./types";
 import type { Client, StartData } from "./workflow";
 
@@ -18,7 +20,9 @@ export type {
   Input,
   InputDefault,
   InputType,
+  SendSignalOpts,
   StartData,
   Step,
   StepKitErrorProps,
+  WaitForSignalOpts,
 };

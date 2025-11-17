@@ -1,6 +1,7 @@
 import {
   BaseClient,
   type InputDefault,
+  type SendSignalOpts,
   type StartData,
   type Workflow,
 } from "@stepkit/sdk-tools";
@@ -41,6 +42,10 @@ export class InMemoryClient extends BaseClient {
     data: TInput
   ): Promise<TOutput> {
     return this.orc.invoke(workflow, data);
+  }
+
+  async sendSignal(opts: SendSignalOpts): Promise<{ runId: string | null }> {
+    return { runId: await this.orc.processIncomingSignal(opts) };
   }
 
   async startWorkflow<TInput extends InputDefault>(

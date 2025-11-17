@@ -1,11 +1,14 @@
 import { NonRetriableError, type ServeHandlerOptions } from "inngest";
 
 import {
+  InvalidInputError,
   NonRetryableError,
   type Context,
   type ExtDefault,
   type InputType,
+  type SendSignalOpts,
   type Step,
+  type WaitForSignalOpts,
   type Workflow,
 } from "@stepkit/sdk-tools";
 
@@ -105,11 +108,50 @@ export function inngestify(
               }
             }) as Promise<T>;
           },
+          sendSignal: async (stepId: string, opts: SendSignalOpts) => {
+            await ctx.step.sendSignal(stepId, opts);
+
+            return {
+              // TODO: Implement this
+              runId: "TODO",
+            };
+          },
           sleep: (stepId: string, duration: number) => {
             return ctx.step.sleep(stepId, duration);
           },
           sleepUntil: async (stepId: string, wakeAt: Date) => {
             await ctx.step.sleep(stepId, wakeAt.getTime() - Date.now());
+          },
+          waitForSignal: async <T>(
+            stepId: string,
+            opts: WaitForSignalOpts<T>
+          ): Promise<{ data: T; signal: string } | null> => {
+            const result = await ctx.step.waitForSignal(stepId, {
+              ...opts,
+              onConflict: "fail",
+            });
+            if (result === null) {
+              return null;
+            }
+
+            if (opts.schema === undefined) {
+              return {
+                // @ts-expect-error - Type is unknown because there isn't a schema
+                data: result.data,
+                signal: result.signal,
+              };
+            }
+
+            const validated = await opts.schema["~standard"].validate(
+              result.data
+            );
+            if (validated.issues !== undefined) {
+              throw new InvalidInputError(validated.issues);
+            }
+            return {
+              data: validated.value,
+              signal: result.signal,
+            };
           },
         };
 

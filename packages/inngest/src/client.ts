@@ -4,6 +4,7 @@ import {
   BaseClient,
   type ExtDefault,
   type InputDefault,
+  type SendSignalOpts,
   type StartData,
   type Workflow,
 } from "@stepkit/sdk-tools";
@@ -66,6 +67,10 @@ export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
       apiKey: process.env.INNGEST_SIGNING_KEY,
       baseUrl,
     });
+  }
+
+  async sendSignal(opts: SendSignalOpts): Promise<{ runId: string | null }> {
+    return await this.api.sendSignal(opts);
   }
 
   async startWorkflow<TInput extends InputDefault>(

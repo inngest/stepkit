@@ -5,11 +5,13 @@ import type { AddressInfo } from "net";
 import express from "express";
 import { serve } from "inngest/express";
 import { expect, it, onTestFinished, vi } from "vitest";
+import z from "zod";
 
 import { NonRetryableError } from "@stepkit/core";
 import type { Context } from "@stepkit/sdk-tools";
 
 import { InngestClient, inngestify } from "../src/main";
+import { sleep } from "../src/utils";
 
 it("multiple steps", async () => {
   const client = new InngestClient({ id: crypto.randomUUID(), mode: "dev" });
@@ -160,3 +162,54 @@ async function startServer(
     server.close();
   };
 }
+
+it("step.waitForSignal", async () => {
+  const client = new InngestClient({ id: crypto.randomUUID(), mode: "dev" });
+  const eventName = `event-${crypto.randomUUID()}`;
+  const signal = `signal-${crypto.randomUUID()}`;
+  const counters = {
+    top: 0,
+    bottom: 0,
+  };
+  let waitResult: { data: { msg: string }; signal: string } | null = null;
+  const workflow = client.workflow(
+    {
+      id: "workflow",
+      triggers: [{ type: "event", name: eventName }],
+    },
+    async (ctx, step) => {
+      counters.top++;
+
+      waitResult = await step.waitForSignal("a", {
+        schema: z.object({ msg: z.string() }),
+        signal,
+        timeout: 10_000,
+      });
+
+      counters.bottom++;
+    }
+  );
+
+  const close = await startServer(client, [workflow]);
+  onTestFinished(close);
+
+  await workflow.start({});
+
+  // Sleep a little to ensure the `waitForSignal` step is processed
+  await sleep(2000);
+  await client.sendSignal({
+    signal,
+    data: { msg: "hi" },
+  });
+
+  await vi.waitFor(() => {
+    expect(counters).toEqual({
+      top: 2,
+      bottom: 1,
+    });
+  });
+  expect(waitResult).toEqual({
+    data: { msg: "hi" },
+    signal,
+  });
+});

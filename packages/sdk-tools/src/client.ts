@@ -6,6 +6,7 @@ import type {
   Context,
   ExtDefault,
   InputDefault,
+  SendSignalOpts,
   StartData,
   Step,
 } from "@stepkit/core/implementer";
@@ -24,6 +25,8 @@ export abstract class BaseClient<
   constructor() {
     this.workflows = new Map();
   }
+
+  abstract sendSignal(opts: SendSignalOpts): Promise<{ runId: string | null }>;
 
   workflow<TInput extends InputDefault = InputDefault, TOutput = unknown>(
     opts: {

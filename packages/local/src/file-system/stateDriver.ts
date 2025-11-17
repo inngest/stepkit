@@ -2,11 +2,16 @@ import {
   StdOpCode,
   type Context,
   type OpResult,
-  type StateDriver,
+  type OpResults,
 } from "@stepkit/sdk-tools";
 
+import type {
+  LocalStateDriver,
+  ResumeWaitForSignalOpOpts,
+  WaitingSignal,
+} from "../common/stateDriver";
 import { UnreachableError } from "./utils/errors";
-import { readJsonFile, writeJsonFile } from "./utils/fs";
+import { deleteFile, readJsonFile, writeJsonFile } from "./utils/fs";
 import { FileSystemPaths } from "./utils/paths";
 
 export type Run = {
@@ -17,7 +22,7 @@ export type Run = {
   workflowId: string;
 };
 
-export class FileSystemStateDriver implements StateDriver {
+export class FileSystemStateDriver implements LocalStateDriver {
   private paths: FileSystemPaths;
 
   constructor(baseDir: string) {
@@ -41,6 +46,71 @@ export class FileSystemStateDriver implements StateDriver {
     }
     run.result = op.result;
     await this.addRun(run);
+  }
+
+  async addWaitingSignal(signal: WaitingSignal): Promise<void> {
+    const filePath = this.paths.signalFile(signal.op.config.options.signal);
+    const existingSignal = await readJsonFile<WaitingSignal>(filePath);
+    if (existingSignal !== undefined) {
+      throw new Error("waiting signal already exists");
+    }
+    await writeJsonFile(filePath, signal);
+  }
+
+  async popWaitingSignal(signal: string): Promise<WaitingSignal | null> {
+    const filePath = this.paths.signalFile(signal);
+    const waitingSignal = await readJsonFile<WaitingSignal>(filePath);
+    if (waitingSignal === undefined) {
+      return null;
+    }
+    await deleteFile(filePath);
+    return waitingSignal;
+  }
+
+  async resumeWaitForSignalOp({
+    data,
+    waitingSignal,
+  }: ResumeWaitForSignalOpOpts): Promise<void> {
+    const opResult: OpResults["waitForSignal"] = {
+      config: {
+        code: StdOpCode.waitForSignal,
+        options: waitingSignal.op.config.options,
+      },
+      id: waitingSignal.op.id,
+      result: {
+        status: "success",
+        output: {
+          data,
+          signal: waitingSignal.op.config.options.signal,
+        },
+      },
+    };
+    await writeJsonFile(
+      this.paths.opFile(waitingSignal.runId, waitingSignal.op.id.hashed),
+      opResult
+    );
+  }
+
+  async timeoutWaitForSignalOp(signal: string): Promise<void> {
+    const waitingSignal = await this.popWaitingSignal(signal);
+    if (waitingSignal === null) {
+      return;
+    }
+    const opResult: OpResults["waitForSignal"] = {
+      config: {
+        code: StdOpCode.waitForSignal,
+        options: waitingSignal.op.config.options,
+      },
+      id: waitingSignal.op.id,
+      result: {
+        status: "success",
+        output: null,
+      },
+    };
+    await writeJsonFile(
+      this.paths.opFile(waitingSignal.runId, waitingSignal.op.id.hashed),
+      opResult
+    );
   }
 
   async incrementOpAttempt(runId: string, hashedOpId: string): Promise<number> {
@@ -76,7 +146,10 @@ export class FileSystemStateDriver implements StateDriver {
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
     op: OpResult
   ): Promise<void> {
-    if (op.config.code === StdOpCode.sleep) {
+    if (
+      op.config.code === StdOpCode.sleep ||
+      op.config.code === StdOpCode.waitForSignal
+    ) {
       return;
     }
 

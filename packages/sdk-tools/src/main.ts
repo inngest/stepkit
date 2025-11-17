@@ -6,7 +6,7 @@ import {
   createStdStep,
 } from "./executionDriver";
 import type { ReportOp } from "./findOps";
-import { isSleepOpResult } from "./ops";
+import { isOpResult, type OpConfigs, type OpResults } from "./ops";
 import type { StateDriver } from "./stateDriver";
 import { StdOpCode, type OpResult } from "./types";
 import { executeUntilDone, stdHashId } from "./utils";
@@ -14,17 +14,24 @@ import { executeUntilDone, stdHashId } from "./utils";
 export * from "@stepkit/core";
 export type * from "@stepkit/core/implementer";
 
-export type { JsonError, OpResult, ReportOp, StateDriver };
+export type {
+  JsonError,
+  OpResult,
+  ReportOp,
+  StateDriver,
+  OpConfigs,
+  OpResults,
+};
 
 export {
   BaseClient,
   BaseExecutionDriver,
   StdOpCode,
-  fromJsonError,
   createOpFound,
   createStdStep,
   executeUntilDone,
+  fromJsonError,
   getStepKitErrorProps,
-  isSleepOpResult,
+  isOpResult,
   stdHashId,
 };

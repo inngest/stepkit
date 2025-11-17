@@ -2,6 +2,7 @@ import {
   BaseClient,
   type ExtDefault,
   type InputDefault,
+  type SendSignalOpts,
   type StartData,
   type Step,
   type Workflow,
@@ -22,6 +23,11 @@ export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
     super();
     this.id = id;
   }
+
+  sendSignal(_opts: SendSignalOpts): Promise<{ runId: string | null }> {
+    throw new Error("not implemented");
+  }
+
   startWorkflow<TInput extends InputDefault>(
     _workflow: Workflow<TInput, any, ExtDefault, ExtDefault, StepExt>,
     _input: TInput
