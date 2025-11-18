@@ -2,6 +2,7 @@ import {
   BaseExecutionDriver,
   createOpFound,
   createStdStep,
+  OpMode,
   StdOpCode,
   type ExtDefault,
   type ReportOp,
@@ -35,6 +36,7 @@ export class ExecutionDriver extends BaseExecutionDriver<
         sleepUntil: async (stepId: string, wakeAt: Date) => {
           await createOpFound(reportOp, stepId, {
             code: StdOpCode.sleep,
+            mode: OpMode.scheduled,
             options: { wakeAt },
           });
         },

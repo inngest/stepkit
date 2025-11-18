@@ -1,4 +1,4 @@
-import { StdOpCode, type OpResult } from "@stepkit/sdk-tools";
+import { OpMode, type OpResult } from "@stepkit/sdk-tools";
 
 import { UnreachableError } from "../common/errors";
 import type {
@@ -31,7 +31,7 @@ class InMemoryInvokeManager implements InvokeManager {
 
   async add(invoke: WaitingInvoke): Promise<void> {
     const key = this.getParentOpKey({
-      hashedOpId: invoke.op.id.hashed,
+      hashedOpId: invoke.op.opId.hashed,
       runId: invoke.parentRun.runId,
     });
     if (this.byParentOp.has(key)) {
@@ -49,7 +49,7 @@ class InMemoryInvokeManager implements InvokeManager {
     this.byChildRun.delete(runId);
     this.byParentOp.delete(
       this.getParentOpKey({
-        hashedOpId: waitingInvoke.op.id.hashed,
+        hashedOpId: waitingInvoke.op.opId.hashed,
         runId: waitingInvoke.parentRun.runId,
       })
     );
@@ -173,25 +173,21 @@ export class InMemoryStateDriver implements LocalStateDriver {
 
   async setOp(
     { hashedOpId, runId }: { hashedOpId: string; runId: string },
-    op: OpResult,
-    { force = false }: { force?: boolean } = {}
+    op: OpResult
   ): Promise<void> {
-    if (
-      op.config.code === StdOpCode.invokeWorkflow ||
-      op.config.code === StdOpCode.sleep ||
-      op.config.code === StdOpCode.waitForSignal
-    ) {
-      if (!force) {
-        return;
-      }
+    if (op.config.mode === OpMode.scheduled) {
+      // Don't store because future work will be scheduled via the queue
+      return;
     }
 
-    const opAttempt = await this.incrementOpAttempt(runId, hashedOpId);
-    const maxAttempts = await this.getMaxAttempts(runId);
+    if (op.result.status === "error") {
+      const opAttempt = await this.incrementOpAttempt(runId, hashedOpId);
+      const maxAttempts = await this.getMaxAttempts(runId);
 
-    if (op.result.status === "error" && opAttempt < maxAttempts) {
-      if (!force) {
-        // Retry by not storing the error
+      const canRetry =
+        op.result.error.props?.canRetry ?? opAttempt < maxAttempts;
+      if (canRetry) {
+        // Don't store because retries will be scheduled via the queue
         return;
       }
     }

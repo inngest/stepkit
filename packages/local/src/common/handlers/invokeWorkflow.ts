@@ -1,11 +1,13 @@
 import {
   InvokeTimeoutError,
   isOpResult,
+  OpMode,
   toJsonError,
   type OpResults,
 } from "@stepkit/sdk-tools";
 
 import { UnreachableError } from "../errors";
+import type { ExecQueueData } from "../queue";
 import type { LocalStateDriver } from "../stateDriver";
 import { startWorkflow } from "../utils";
 import { nextAttempt, type OpHandlers } from "./common";
@@ -22,8 +24,8 @@ export const invokeWorkflowHandlers: OpHandlers = {
     handled = true;
 
     await timeoutInvokeWorkflowOp({
-      hashedOpId: queueItem.prevOpResult.id.hashed,
-      runId: queueItem.runId,
+      hashedOpId: queueItem.prevOpResult.opId.hashed,
+      queueItem,
       stateDriver,
     });
     return handled;
@@ -34,7 +36,6 @@ export const invokeWorkflowHandlers: OpHandlers = {
     op,
     queueItem,
     stateDriver,
-    workflowId,
     workflows,
   }): Promise<boolean> => {
     let handled = false;
@@ -66,7 +67,7 @@ export const invokeWorkflowHandlers: OpHandlers = {
       },
       parentRun: {
         runId: queueItem.runId,
-        workflowId,
+        workflowId: queueItem.workflowId,
       },
     });
 
@@ -87,16 +88,16 @@ export const invokeWorkflowHandlers: OpHandlers = {
 
 async function timeoutInvokeWorkflowOp({
   hashedOpId,
-  runId,
+  queueItem,
   stateDriver,
 }: {
   hashedOpId: string;
-  runId: string;
+  queueItem: ExecQueueData;
   stateDriver: LocalStateDriver;
 }): Promise<void> {
   const waitingInvoke = await stateDriver.waitingInvokes.popByParentOp({
     hashedOpId,
-    runId,
+    runId: queueItem.runId,
   });
   if (waitingInvoke === null) {
     return;
@@ -107,19 +108,23 @@ async function timeoutInvokeWorkflowOp({
   });
 
   const opResult: OpResults["invokeWorkflow"] = {
-    config: waitingInvoke.op.config,
-    id: waitingInvoke.op.id,
+    config: {
+      ...waitingInvoke.op.config,
+      mode: OpMode.immediate,
+    },
+    opId: waitingInvoke.op.opId,
     result: {
       status: "error",
       error: toJsonError(error),
     },
+    runId: waitingInvoke.parentRun.runId,
+    workflowId: waitingInvoke.parentRun.workflowId,
   };
   await stateDriver.setOp(
     {
-      hashedOpId: waitingInvoke.op.id.hashed,
+      hashedOpId: waitingInvoke.op.opId.hashed,
       runId: waitingInvoke.parentRun.runId,
     },
-    opResult,
-    { force: true }
+    opResult
   );
 }

@@ -2,6 +2,7 @@ import {
   disableRetries,
   fromJsonError,
   getStepKitErrorProps,
+  OpMode,
   StdOpCode,
   type OpResult,
   type OpResults,
@@ -9,7 +10,7 @@ import {
 
 import type { ExecQueueData, SortedQueue } from "../queue";
 import type { LocalStateDriver } from "../stateDriver";
-import type { OpHandlers } from "./common";
+import { type OpHandlers } from "./common";
 
 export const runEndHandlers: OpHandlers = {
   execQueue: async (): Promise<boolean> => {
@@ -27,8 +28,8 @@ export const runEndHandlers: OpHandlers = {
       return handled;
     }
     handled = true;
-    await stateDriver.endRun(queueItem.runId, op);
 
+    await stateDriver.endRun(queueItem.runId, op);
     await resumeWaitingInvoke({ execQueue, op, queueItem, stateDriver });
     return handled;
   },
@@ -95,26 +96,30 @@ async function resumeWaitingInvoke({
   }
 
   const opResult: OpResults["invokeWorkflow"] = {
-    config: waitingInvoke.op.config,
-    id: waitingInvoke.op.id,
+    config: {
+      ...waitingInvoke.op.config,
+      mode: OpMode.immediate,
+    },
+    opId: waitingInvoke.op.opId,
     result: op.result,
+    runId: waitingInvoke.parentRun.runId,
+    workflowId: waitingInvoke.parentRun.workflowId,
   };
   await stateDriver.setOp(
     {
-      hashedOpId: waitingInvoke.op.id.hashed,
-      runId: waitingInvoke.parentRun.runId,
+      hashedOpId: waitingInvoke.op.opId.hashed,
+      runId: opResult.runId,
     },
-    opResult,
-    { force: true }
+    opResult
   );
 
   await execQueue.add({
     data: {
       attempt: 1,
       maxAttempts: queueItem.maxAttempts,
-      prevOpResult: waitingInvoke.op,
-      runId: waitingInvoke.parentRun.runId,
-      workflowId: waitingInvoke.parentRun.workflowId,
+      prevOpResult: opResult,
+      runId: opResult.runId,
+      workflowId: opResult.workflowId,
     },
     time: Date.now(),
   });

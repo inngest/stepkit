@@ -56,8 +56,7 @@ export interface LocalStateDriver extends StateDriver {
 
   setOp(
     { hashedOpId, runId }: { hashedOpId: string; runId: string },
-    op: OpResult,
-    opts?: { force?: boolean }
+    op: OpResult
   ): Promise<void>;
 
   addRun(run: Run): Promise<void>;

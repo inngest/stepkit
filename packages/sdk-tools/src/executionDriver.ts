@@ -17,7 +17,7 @@ import {
 
 import { fromJsonError, toJsonError } from "./errors";
 import { findOps, type ReportOp } from "./findOps";
-import type { OpConfigs } from "./ops";
+import { OpMode, type OpConfigs } from "./ops";
 import { createControlledPromise } from "./promises";
 import type { StateDriver } from "./stateDriver";
 import {
@@ -86,6 +86,7 @@ export function createStdStep(reportOp: ReportOp): Step {
 
       const config: OpConfigs["invokeWorkflow"] = {
         code: StdOpCode.invokeWorkflow,
+        mode: OpMode.scheduled,
         options: {
           clientId: opts.workflow.client.id,
           data: opts.data,
@@ -99,17 +100,27 @@ export function createStdStep(reportOp: ReportOp): Step {
       stepId: string,
       handler: (() => Promise<TStepRunOutput>) | (() => TStepRunOutput)
     ): Promise<TStepRunOutput> => {
-      return createOpFound(reportOp, stepId, { code: StdOpCode.run }, handler);
+      return createOpFound(
+        reportOp,
+        stepId,
+        {
+          code: StdOpCode.run,
+          mode: OpMode.immediate,
+        },
+        handler
+      );
     },
     sendSignal: async (stepId: string, opts: SendSignalOpts) => {
       return createOpFound(reportOp, stepId, {
         code: StdOpCode.sendSignal,
         options: opts,
+        mode: OpMode.scheduled,
       });
     },
     sleep: async (stepId: string, duration: number) => {
       const config: OpConfigs["sleep"] = {
         code: StdOpCode.sleep,
+        mode: OpMode.scheduled,
         options: { wakeAt: Date.now() + duration },
       };
       return createOpFound(reportOp, stepId, config);
@@ -117,6 +128,7 @@ export function createStdStep(reportOp: ReportOp): Step {
     sleepUntil: async (stepId: string, wakeAt: Date) => {
       return createOpFound(reportOp, stepId, {
         code: StdOpCode.sleep,
+        mode: OpMode.scheduled,
         options: { wakeAt },
       });
     },
@@ -126,6 +138,7 @@ export function createStdStep(reportOp: ReportOp): Step {
     ): Promise<{ data: T; signal: string } | null> => {
       return createOpFound(reportOp, stepId, {
         code: StdOpCode.waitForSignal,
+        mode: OpMode.scheduled,
         options: opts,
       });
     },
@@ -159,12 +172,17 @@ export abstract class BaseExecutionDriver<
       if (result.issues !== undefined && result.issues.length > 0) {
         return [
           await this.onWorkflowResult(workflow, ctx, {
-            config: { code: StdOpCode.workflow },
-            id: { hashed: "", id: "", index: 0 },
+            config: {
+              code: StdOpCode.workflow,
+              mode: OpMode.immediate,
+            },
+            opId: { hashed: "", id: "", index: 0 },
             result: {
               status: "error",
               error: toJsonError(new InvalidInputError(result.issues)),
             },
+            runId: ctx.runId,
+            workflowId: workflow.id,
           }),
         ];
       }
@@ -197,7 +215,10 @@ export abstract class BaseExecutionDriver<
     ctx: Context<TInput, TCtxExt>,
     op: OpResult
   ): Promise<OpResult> => {
-    await this.state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, op);
+    await this.state.setOp(
+      { runId: ctx.runId, hashedOpId: op.opId.hashed },
+      op
+    );
     return op;
   };
 }
@@ -282,8 +303,10 @@ export async function createOpResults<
   for (const op of ops) {
     const opResult: OpResult = {
       config: op.config,
-      id: op.id,
+      opId: op.id,
       result: { status: "success", output: undefined },
+      runId: ctx.runId,
+      workflowId: workflow.id,
     };
 
     if (op.handler !== undefined) {

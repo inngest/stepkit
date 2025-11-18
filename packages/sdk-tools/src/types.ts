@@ -20,6 +20,7 @@ export type StdOpCode = (typeof StdOpCode)[keyof typeof StdOpCode];
 export type OpConfig = {
   code: string;
   options?: Record<string, unknown>;
+  mode: "immediate" | "scheduled";
 };
 
 // When an op has succeeded or errored
@@ -28,7 +29,7 @@ export type OpResult<
   TOutput = unknown,
 > = {
   config: TOpConfig;
-  id: {
+  opId: {
     hashed: string;
     id: string;
     index: number;
@@ -42,6 +43,8 @@ export type OpResult<
         status: "error";
         error: JsonError;
       };
+  runId: string;
+  workflowId: string;
 };
 
 // When an op is found (i.e. has not succeeded or failed yet)

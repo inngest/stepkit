@@ -8,7 +8,6 @@ export type OpResultHandler = (opts: {
   op: OpResult;
   queueItem: ExecQueueData;
   stateDriver: LocalStateDriver;
-  workflowId: string;
   workflows: Map<string, Workflow<any, any>>;
 }) => Promise<boolean>;
 

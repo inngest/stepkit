@@ -30,7 +30,7 @@ export function stepInvokeWorkflowSuite<TClient extends BaseClient>(
           { id: "workflow" },
           async (ctx, step) => {
             counters.parent.top++;
-            childOutput = await step.invokeWorkflow("workflow-child", {
+            childOutput = await step.invokeWorkflow("invoke", {
               timeout: 2000,
               workflow: workflowChild,
             });
@@ -93,7 +93,7 @@ export function stepInvokeWorkflowSuite<TClient extends BaseClient>(
         async (ctx, step) => {
           counters.parent.top++;
           try {
-            await step.invokeWorkflow("workflow-child", {
+            await step.invokeWorkflow("invoke", {
               timeout: 2000,
               workflow: workflowChild,
             });
@@ -155,7 +155,7 @@ export function stepInvokeWorkflowSuite<TClient extends BaseClient>(
         async (ctx, step) => {
           counters.parent.top++;
           try {
-            await step.invokeWorkflow("a", {
+            await step.invokeWorkflow("invoke", {
               timeout: 1000,
               workflow: workflowChild,
             });

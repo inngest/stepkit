@@ -1,4 +1,4 @@
-import { type OpResult, type StateDriver } from "@stepkit/sdk-tools";
+import { OpMode, type OpResult, type StateDriver } from "@stepkit/sdk-tools";
 
 import type { CommRequest } from "./types";
 
@@ -38,8 +38,13 @@ export class CommRequestStateDriver implements StateDriver {
     }
 
     return {
-      config: { code: "unknown" },
-      id: { hashed: hashedOpId, id: "unknown", index: 0 },
+      config: {
+        code: "unknown",
+        mode: OpMode.immediate,
+      },
+      opId: { hashed: hashedOpId, id: "unknown", index: 0 },
+      runId: "unknown",
+      workflowId: "unknown",
       result,
     };
   }

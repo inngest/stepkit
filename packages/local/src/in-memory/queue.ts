@@ -12,7 +12,6 @@ export class InMemorySortedQueue<T> implements SortedQueue<T> {
   }
 
   async add(item: QueueItem<T>): Promise<void> {
-    // console.log("add", JSON.stringify(item, null, 2));
     const index = this.items.findIndex((i) => item.time < i.time);
     if (index === -1) {
       this.items = [...this.items, item];

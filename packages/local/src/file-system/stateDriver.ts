@@ -1,4 +1,4 @@
-import { StdOpCode, type Context, type OpResult } from "@stepkit/sdk-tools";
+import { OpMode, type Context, type OpResult } from "@stepkit/sdk-tools";
 
 import { UnreachableError } from "../common/errors";
 import type {
@@ -26,7 +26,7 @@ class FileSystemInvokeManager implements InvokeManager {
     const byChildPath = this.paths.invokeByChildRunFile(invoke.childRun.runId);
     const byParentPath = this.paths.invokeByParentOpFile(
       invoke.parentRun.runId,
-      invoke.op.id.hashed
+      invoke.op.opId.hashed
     );
 
     const existingByParent = await readJsonFile<WaitingInvoke>(byParentPath);
@@ -49,7 +49,7 @@ class FileSystemInvokeManager implements InvokeManager {
     await deleteFile(
       this.paths.invokeByParentOpFile(
         waitingInvoke.parentRun.runId,
-        waitingInvoke.op.id.hashed
+        waitingInvoke.op.opId.hashed
       )
     );
 
@@ -162,17 +162,11 @@ export class FileSystemStateDriver implements LocalStateDriver {
 
   async setOp(
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
-    op: OpResult,
-    { force = false }: { force?: boolean } = {}
+    op: OpResult
   ): Promise<void> {
-    if (
-      op.config.code === StdOpCode.invokeWorkflow ||
-      op.config.code === StdOpCode.sleep ||
-      op.config.code === StdOpCode.waitForSignal
-    ) {
-      if (!force) {
-        return;
-      }
+    if (op.config.mode === OpMode.scheduled) {
+      // Don't store because future work will be scheduled via the queue
+      return;
     }
 
     // Note: Using sync operations for incrementOpAttempt and getMaxAttempts
@@ -183,13 +177,14 @@ export class FileSystemStateDriver implements LocalStateDriver {
       return;
     }
 
-    run.opAttempts[hashedOpId] = (run.opAttempts[hashedOpId] ?? 0) + 1;
-    const opAttempt = run.opAttempts[hashedOpId];
-    await this.addRun(run);
+    if (op.result.status === "error") {
+      const opAttempt = await this.incrementOpAttempt(runId, hashedOpId);
+      const maxAttempts = await this.getMaxAttempts(runId);
 
-    if (op.result.status === "error" && opAttempt < run.maxAttempts) {
-      if (!force) {
-        // Retry by not storing the error
+      const canRetry =
+        op.result.error.props?.canRetry ?? opAttempt < maxAttempts;
+      if (canRetry) {
+        // Don't store because retries will be scheduled via the queue
         return;
       }
     }

@@ -12,7 +12,12 @@ import {
 
 import { BaseClient } from "./client";
 import type { ReportOp } from "./findOps";
-import { BaseExecutionDriver, createOpFound, createStdStep } from "./main";
+import {
+  BaseExecutionDriver,
+  createOpFound,
+  createStdStep,
+  OpMode,
+} from "./main";
 import type { OpResult } from "./types";
 import { executeUntilDone } from "./utils";
 
@@ -89,8 +94,11 @@ describe("execute once", () => {
       expect(counter).toBe(1);
       expect(output).toEqual([
         {
-          config: { code: "workflow" },
-          id: {
+          config: {
+            code: "workflow",
+            mode: OpMode.immediate,
+          },
+          opId: {
             hashed: "",
             id: "",
             index: 0,
@@ -99,8 +107,10 @@ describe("execute once", () => {
             output: "Hello, Alice!",
             status: "success",
           },
+          runId: "test-run-id",
+          workflowId: "workflow",
         },
-      ]);
+      ] satisfies OpResult[]);
     });
 
     it("error", async () => {
@@ -118,8 +128,11 @@ describe("execute once", () => {
       expect(counter).toBe(1);
       expect(output).toEqual([
         {
-          config: { code: "workflow" },
-          id: {
+          config: {
+            code: "workflow",
+            mode: OpMode.immediate,
+          },
+          opId: {
             hashed: "",
             id: "",
             index: 0,
@@ -133,8 +146,10 @@ describe("execute once", () => {
             },
             status: "error",
           },
+          runId: "test-run-id",
+          workflowId: "workflow",
         },
-      ]);
+      ] satisfies OpResult[]);
     });
   });
 
@@ -167,8 +182,11 @@ describe("execute once", () => {
       });
       expect(result).toEqual([
         {
-          config: { code: "step.run" },
-          id: {
+          config: {
+            code: "step.run",
+            mode: OpMode.immediate,
+          },
+          opId: {
             hashed: "03b5f7de3b5d7975054984c1ae3fa120f622833e",
             id: "get-name",
             index: 0,
@@ -177,8 +195,10 @@ describe("execute once", () => {
             output: "Alice",
             status: "success",
           },
+          runId: "test-run-id",
+          workflowId: "workflow",
         },
-      ]);
+      ] satisfies OpResult[]);
     });
 
     it("error", async () => {
@@ -208,8 +228,11 @@ describe("execute once", () => {
       });
       expect(result).toEqual([
         {
-          config: { code: "step.run" },
-          id: {
+          config: {
+            code: "step.run",
+            mode: OpMode.immediate,
+          },
+          opId: {
             hashed: "03b5f7de3b5d7975054984c1ae3fa120f622833e",
             id: "get-name",
             index: 0,
@@ -223,8 +246,10 @@ describe("execute once", () => {
             },
             status: "error",
           },
+          runId: "test-run-id",
+          workflowId: "workflow",
         },
-      ]);
+      ] satisfies OpResult[]);
     });
   });
 
@@ -258,9 +283,10 @@ describe("execute once", () => {
       {
         config: {
           code: "step.sleep",
+          mode: OpMode.scheduled,
           options: { wakeAt: expect.any(Number) },
         },
-        id: {
+        opId: {
           hashed: "4cef13bd645056cd329243fd43c1e09b1dfebb9a",
           id: "zzz",
           index: 0,
@@ -269,8 +295,10 @@ describe("execute once", () => {
           output: undefined,
           status: "success",
         },
+        runId: "test-run-id",
+        workflowId: "workflow",
       },
-    ]);
+    ] satisfies OpResult[]);
   });
 });
 
@@ -321,8 +349,11 @@ describe("execute to completion", () => {
     });
     expect(allResults).toEqual([
       {
-        config: { code: "step.run" },
-        id: {
+        config: {
+          code: "step.run",
+          mode: OpMode.immediate,
+        },
+        opId: {
           hashed: "3c53d28d711a44c677df82223b78a81fc42ff19e",
           id: "get-greeting",
           index: 0,
@@ -331,10 +362,15 @@ describe("execute to completion", () => {
           output: "Hello",
           status: "success",
         },
+        runId: "test-run-id",
+        workflowId: "workflow",
       },
       {
-        config: { code: "step.run" },
-        id: {
+        config: {
+          code: "step.run",
+          mode: OpMode.immediate,
+        },
+        opId: {
           hashed: "03b5f7de3b5d7975054984c1ae3fa120f622833e",
           id: "get-name",
           index: 0,
@@ -343,10 +379,15 @@ describe("execute to completion", () => {
           output: "Alice",
           status: "success",
         },
+        runId: "test-run-id",
+        workflowId: "workflow",
       },
       {
-        config: { code: "workflow" },
-        id: {
+        config: {
+          code: "workflow",
+          mode: OpMode.immediate,
+        },
+        opId: {
           hashed: "",
           id: "",
           index: 0,
@@ -355,8 +396,10 @@ describe("execute to completion", () => {
           output: "Hello, Alice!",
           status: "success",
         },
+        runId: "test-run-id",
+        workflowId: "workflow",
       },
-    ]);
+    ] satisfies OpResult[]);
   });
 
   it("parallel steps", async () => {
@@ -433,8 +476,11 @@ describe("execute to completion", () => {
     expect(allResults).toEqual([
       [
         {
-          config: { code: "step.run" },
-          id: {
+          config: {
+            code: "step.run",
+            mode: OpMode.immediate,
+          },
+          opId: {
             hashed: "d616db3cc1276a33b72d526499c69671aa7c8ab5",
             id: "a",
             index: 0,
@@ -443,12 +489,17 @@ describe("execute to completion", () => {
             output: "A",
             status: "success",
           },
+          runId: "test-run-id",
+          workflowId: "workflow",
         },
       ],
       [
         {
-          config: { code: "step.run" },
-          id: {
+          config: {
+            code: "step.run",
+            mode: OpMode.immediate,
+          },
+          opId: {
             hashed: "700134726669965a0c6dfd42804b6074307e0396",
             id: "p1",
             index: 0,
@@ -457,10 +508,15 @@ describe("execute to completion", () => {
             output: "P1",
             status: "success",
           },
+          runId: "test-run-id",
+          workflowId: "workflow",
         },
         {
-          config: { code: "step.run" },
-          id: {
+          config: {
+            code: "step.run",
+            mode: OpMode.immediate,
+          },
+          opId: {
             hashed: "c1ffc96bef39f32722049847bd2b755c59b9148a",
             id: "p2",
             index: 0,
@@ -469,12 +525,17 @@ describe("execute to completion", () => {
             output: "P2",
             status: "success",
           },
+          runId: "test-run-id",
+          workflowId: "workflow",
         },
       ],
       [
         {
-          config: { code: "step.run" },
-          id: {
+          config: {
+            code: "step.run",
+            mode: OpMode.immediate,
+          },
+          opId: {
             hashed: "312e91d4b6541e0599765a35fda6d39a5685d98d",
             id: "b",
             index: 0,
@@ -483,12 +544,17 @@ describe("execute to completion", () => {
             output: "B",
             status: "success",
           },
+          runId: "test-run-id",
+          workflowId: "workflow",
         },
       ],
       [
         {
-          config: { code: "workflow" },
-          id: {
+          config: {
+            code: "workflow",
+            mode: OpMode.immediate,
+          },
+          opId: {
             hashed: "",
             id: "",
             index: 0,
@@ -497,9 +563,11 @@ describe("execute to completion", () => {
             output: undefined,
             status: "success",
           },
+          runId: "test-run-id",
+          workflowId: "workflow",
         },
       ],
-    ]);
+    ] satisfies OpResult[][]);
   });
 
   it("promise cleanup", async () => {
@@ -609,7 +677,7 @@ it("custom step", async () => {
             return await createOpFound(
               reportOp,
               stepId,
-              { code: "step.multiply" },
+              { code: "step.multiply", mode: OpMode.immediate },
               () => multiply(a, b)
             );
           },
@@ -636,8 +704,11 @@ it("custom step", async () => {
   });
   expect(ops).toEqual([
     {
-      config: { code: "step.multiply" },
-      id: {
+      config: {
+        code: "step.multiply",
+        mode: OpMode.immediate,
+      },
+      opId: {
         hashed: "187c5953271798be6a3b9c99a4ddf69f3ac19889",
         id: "foo",
         index: 0,
@@ -646,7 +717,9 @@ it("custom step", async () => {
         output: 6,
         status: "success",
       },
-    },
+      runId: "test-run-id",
+      workflowId: "workflow",
+    } satisfies OpResult,
   ]);
 
   const output = await executeUntilDone(

@@ -1,4 +1,4 @@
-import { isOpResult } from "@stepkit/sdk-tools";
+import { isOpResult, OpMode } from "@stepkit/sdk-tools";
 
 import { nextAttempt, type OpHandlers } from "./common";
 
@@ -13,13 +13,20 @@ export const sleepHandlers: OpHandlers = {
     }
     handled = true;
 
+    const opResult = {
+      ...queueItem.prevOpResult,
+      config: {
+        ...queueItem.prevOpResult.config,
+        mode: OpMode.immediate,
+      },
+    };
+
     await stateDriver.setOp(
       {
         runId: queueItem.runId,
-        hashedOpId: queueItem.prevOpResult.id.hashed,
+        hashedOpId: opResult.opId.hashed,
       },
-      queueItem.prevOpResult,
-      { force: true }
+      opResult
     );
 
     return handled;

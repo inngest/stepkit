@@ -1,5 +1,6 @@
 import {
   isOpResult,
+  OpMode,
   StdOpCode,
   type OpResults,
   type SendSignalOpts,
@@ -33,20 +34,22 @@ export const waitForSignalHandlers: OpHandlers = {
       config: {
         code: StdOpCode.waitForSignal,
         options: waitingSignal.op.config.options,
+        mode: OpMode.immediate,
       },
-      id: waitingSignal.op.id,
+      opId: waitingSignal.op.opId,
       result: {
         status: "success",
         output: null,
       },
+      runId: waitingSignal.runId,
+      workflowId: waitingSignal.workflowId,
     };
     await stateDriver.setOp(
       {
-        hashedOpId: waitingSignal.op.id.hashed,
+        hashedOpId: waitingSignal.op.opId.hashed,
         runId: waitingSignal.runId,
       },
-      opResult,
-      { force: true }
+      opResult
     );
     return handled;
   },
@@ -134,8 +137,9 @@ async function resumeWaitForSignalOp({
     config: {
       code: StdOpCode.waitForSignal,
       options: waitingSignal.op.config.options,
+      mode: OpMode.immediate,
     },
-    id: waitingSignal.op.id,
+    opId: waitingSignal.op.opId,
     result: {
       status: "success",
       output: {
@@ -143,13 +147,14 @@ async function resumeWaitForSignalOp({
         signal: waitingSignal.op.config.options.signal,
       },
     },
+    runId: waitingSignal.runId,
+    workflowId: waitingSignal.workflowId,
   };
   await stateDriver.setOp(
     {
-      hashedOpId: waitingSignal.op.id.hashed,
+      hashedOpId: waitingSignal.op.opId.hashed,
       runId: waitingSignal.runId,
     },
-    opResult,
-    { force: true }
+    opResult
   );
 }
