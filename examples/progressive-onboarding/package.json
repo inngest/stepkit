@@ -1,0 +1,21 @@
+{
+  "name": "examples/progressive-onboarding",
+  "version": "0.0.0",
+  "main": "./main.ts",
+  "types": "./main.ts",
+  "scripts": {
+    "dev": "tsx main.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@stepkit/core": "*",
+    "@stepkit/in-memory": "*",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
