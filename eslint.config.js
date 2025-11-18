@@ -41,7 +41,7 @@ export default tseslint.config(
       "@typescript-eslint/no-confusing-void-expression": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
-      "@typescript-eslint/restrict-template-expression": [
+      "@typescript-eslint/restrict-template-expressions": [
         "error",
         {
           allowNumber: true,
