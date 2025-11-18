@@ -1,6 +1,6 @@
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 
-import type { Context, ExtDefault, InputDefault, Step } from "./types";
+import type { Context, ExtDefault, InputDefault } from "./types";
 
 type CronTrigger = {
   type: "cron";
@@ -79,6 +79,8 @@ export type Client<
   TCtxExt extends ExtDefault = ExtDefault,
   TStepExt extends ExtDefault = ExtDefault,
 > = {
+  id: string;
+
   workflow: <TInput extends InputDefault = InputDefault, TOutput = unknown>(
     opts: {
       ext?: TWorkflowCfgExt;
@@ -102,4 +104,44 @@ export type Client<
 export type StartData = {
   eventId: string;
   runId: string;
+};
+
+// `step` object methods
+export type Step<TExt extends ExtDefault = ExtDefault> = {
+  ext: TExt;
+
+  invokeWorkflow: <TInput extends InputDefault, TOutput>(
+    stepId: string,
+    opts: {
+      data?: TInput;
+      timeout: number | Date;
+      workflow: Workflow<TInput, TOutput, any, any, any>;
+    }
+  ) => Promise<TOutput>;
+
+  run: <T>(stepId: string, handler: () => T) => Promise<T>;
+
+  sendSignal: (
+    stepId: string,
+    opts: SendSignalOpts
+  ) => Promise<{ runId: string | null }>;
+
+  sleep: (stepId: string, duration: number) => Promise<void>;
+  sleepUntil: (stepId: string, wakeAt: Date) => Promise<void>;
+
+  waitForSignal: <T>(
+    stepId: string,
+    opts: WaitForSignalOpts<T>
+  ) => Promise<{ data: T; signal: string } | null>;
+};
+
+export type SendSignalOpts = {
+  data?: unknown;
+  signal: string;
+};
+
+export type WaitForSignalOpts<T> = {
+  schema?: StandardSchemaV1<T>;
+  signal: string;
+  timeout: number | Date;
 };

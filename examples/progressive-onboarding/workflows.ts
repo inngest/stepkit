@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { z } from "zod";
 
 import { client } from "./client";

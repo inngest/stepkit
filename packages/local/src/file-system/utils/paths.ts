@@ -30,6 +30,20 @@ export class FileSystemPaths {
     return join(this.baseDir, "signals", `${signal}.json`);
   }
 
+  invokeByChildRunFile(childRunId: string): string {
+    return join(this.baseDir, "invokes", "by-child", `${childRunId}.json`);
+  }
+
+  invokeByParentOpFile(parentRunId: string, hashedOpId: string): string {
+    return join(
+      this.baseDir,
+      "invokes",
+      "by-parent",
+      parentRunId,
+      `${hashedOpId}.json`
+    );
+  }
+
   getBaseDir(): string {
     return this.baseDir;
   }

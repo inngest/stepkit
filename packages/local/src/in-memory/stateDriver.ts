@@ -1,22 +1,113 @@
-import { StdOpCode, type OpResult, type OpResults } from "@stepkit/sdk-tools";
+import { OpMode, type OpResult } from "@stepkit/sdk-tools";
 
+import { UnreachableError } from "../common/errors";
 import type {
+  InvokeManager,
   LocalStateDriver,
-  ResumeWaitForSignalOpOpts,
   Run,
+  SignalManager,
+  WaitingInvoke,
   WaitingSignal,
 } from "../common/stateDriver";
-import { UnreachableError } from "../common/utils";
+
+class InMemoryInvokeManager implements InvokeManager {
+  private byChildRun: Map<string, WaitingInvoke>;
+  private byParentOp: Map<string, WaitingInvoke>;
+
+  constructor() {
+    this.byChildRun = new Map();
+    this.byParentOp = new Map();
+  }
+
+  private getParentOpKey({
+    hashedOpId,
+    runId,
+  }: {
+    hashedOpId: string;
+    runId: string;
+  }): string {
+    return `${runId}:${hashedOpId}`;
+  }
+
+  async add(invoke: WaitingInvoke): Promise<void> {
+    const key = this.getParentOpKey({
+      hashedOpId: invoke.op.opId.hashed,
+      runId: invoke.parentRun.runId,
+    });
+    if (this.byParentOp.has(key)) {
+      throw new Error("waiting invoke already exists");
+    }
+    this.byParentOp.set(key, invoke);
+    this.byChildRun.set(invoke.childRun.runId, invoke);
+  }
+
+  async popByChildRun(runId: string): Promise<WaitingInvoke | null> {
+    const waitingInvoke = this.byChildRun.get(runId);
+    if (waitingInvoke === undefined) {
+      return null;
+    }
+    this.byChildRun.delete(runId);
+    this.byParentOp.delete(
+      this.getParentOpKey({
+        hashedOpId: waitingInvoke.op.opId.hashed,
+        runId: waitingInvoke.parentRun.runId,
+      })
+    );
+    return waitingInvoke;
+  }
+
+  async popByParentOp({
+    hashedOpId,
+    runId,
+  }: {
+    hashedOpId: string;
+    runId: string;
+  }): Promise<WaitingInvoke | null> {
+    const key = this.getParentOpKey({ hashedOpId, runId });
+    const waitingInvoke = this.byParentOp.get(key);
+    if (waitingInvoke === undefined) {
+      return null;
+    }
+    this.byParentOp.delete(key);
+    this.byChildRun.delete(waitingInvoke.childRun.runId);
+    return waitingInvoke;
+  }
+}
+
+class InMemorySignalManager implements SignalManager {
+  private signals: Map<string, WaitingSignal>;
+  constructor() {
+    this.signals = new Map();
+  }
+
+  async add(signal: WaitingSignal): Promise<void> {
+    if (this.signals.has(signal.op.config.options.signal)) {
+      throw new Error("waiting signal already exists");
+    }
+    this.signals.set(signal.op.config.options.signal, signal);
+  }
+
+  async pop(signal: string): Promise<WaitingSignal | null> {
+    const waitingSignal = this.signals.get(signal);
+    if (waitingSignal === undefined) {
+      return null;
+    }
+    this.signals.delete(signal);
+    return waitingSignal;
+  }
+}
 
 export class InMemoryStateDriver implements LocalStateDriver {
   private ops: Map<string, string>;
   private runs: Map<string, Run>;
-  private waitingSignals: Map<string, WaitingSignal>;
+  waitingInvokes: InvokeManager;
+  waitingSignals: InMemorySignalManager;
 
   constructor() {
     this.ops = new Map();
     this.runs = new Map();
-    this.waitingSignals = new Map();
+    this.waitingInvokes = new InMemoryInvokeManager();
+    this.waitingSignals = new InMemorySignalManager();
   }
 
   async addRun(run: Run): Promise<void> {
@@ -33,70 +124,6 @@ export class InMemoryStateDriver implements LocalStateDriver {
       throw new UnreachableError("run not found");
     }
     run.result = op.result;
-  }
-
-  async addWaitingSignal(signal: WaitingSignal): Promise<void> {
-    if (this.waitingSignals.has(signal.op.config.options.signal)) {
-      throw new Error("waiting signal already exists");
-    }
-    this.waitingSignals.set(signal.op.config.options.signal, signal);
-  }
-
-  async popWaitingSignal(signal: string): Promise<WaitingSignal | null> {
-    const waitingSignal = this.waitingSignals.get(signal);
-    if (waitingSignal === undefined) {
-      return null;
-    }
-    this.waitingSignals.delete(signal);
-    return waitingSignal;
-  }
-
-  async resumeWaitForSignalOp({
-    data,
-    waitingSignal,
-  }: ResumeWaitForSignalOpOpts): Promise<void> {
-    const opResult: OpResults["waitForSignal"] = {
-      config: {
-        code: StdOpCode.waitForSignal,
-        options: waitingSignal.op.config.options,
-      },
-      id: waitingSignal.op.id,
-      result: {
-        status: "success",
-        output: {
-          data,
-          signal: waitingSignal.op.config.options.signal,
-        },
-      },
-    };
-    const key = this.getOpKey({
-      hashedOpId: waitingSignal.op.id.hashed,
-      runId: waitingSignal.runId,
-    });
-    this.ops.set(key, JSON.stringify(opResult));
-  }
-
-  async timeoutWaitForSignalOp(signal: string): Promise<void> {
-    const waitingSignal = await this.popWaitingSignal(signal);
-    if (waitingSignal === null) {
-      return;
-    }
-    const opResult: OpResults["waitForSignal"] = {
-      config: {
-        code: StdOpCode.waitForSignal,
-        options: waitingSignal.op.config.options,
-      },
-      id: waitingSignal.op.id,
-      result: {
-        status: "success",
-        output: null,
-      },
-    };
-    const key = this.getOpKey({
-      hashedOpId: waitingSignal.op.id.hashed,
-      runId: waitingSignal.runId,
-    });
-    this.ops.set(key, JSON.stringify(opResult));
   }
 
   async incrementOpAttempt(runId: string, hashedOpId: string): Promise<number> {
@@ -145,34 +172,24 @@ export class InMemoryStateDriver implements LocalStateDriver {
   }
 
   async setOp(
-    { runId, hashedOpId }: { runId: string; hashedOpId: string },
+    { hashedOpId, runId }: { hashedOpId: string; runId: string },
     op: OpResult
   ): Promise<void> {
-    if (
-      op.config.code === StdOpCode.sleep ||
-      op.config.code === StdOpCode.waitForSignal
-    ) {
+    if (op.config.mode === OpMode.scheduled) {
+      // Don't store because future work will be scheduled via the queue
       return;
     }
 
-    const opAttempt = await this.incrementOpAttempt(runId, hashedOpId);
-    const maxAttempts = await this.getMaxAttempts(runId);
+    if (op.result.status === "error") {
+      const opAttempt = await this.incrementOpAttempt(runId, hashedOpId);
+      const maxAttempts = await this.getMaxAttempts(runId);
 
-    if (op.result.status === "error" && opAttempt < maxAttempts) {
-      // Retry by not storing the error
-      return;
-    }
-
-    const key = this.getOpKey({ runId, hashedOpId });
-    this.ops.set(key, JSON.stringify(op));
-  }
-
-  async wakeSleepOp(
-    { runId, hashedOpId }: { runId: string; hashedOpId: string },
-    op: OpResult
-  ): Promise<void> {
-    if (op.config.code !== StdOpCode.sleep) {
-      throw new UnreachableError("op is not a sleep");
+      const canRetry =
+        op.result.error.props?.canRetry ?? opAttempt < maxAttempts;
+      if (canRetry) {
+        // Don't store because retries will be scheduled via the queue
+        return;
+      }
     }
 
     const key = this.getOpKey({ runId, hashedOpId });

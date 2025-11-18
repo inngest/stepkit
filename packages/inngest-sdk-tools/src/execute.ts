@@ -39,7 +39,7 @@ export async function execute(
 
   return {
     body: ops.map((op) => {
-      let name = op.id.id;
+      let name = op.opId.id;
       let opcode: string;
       if (op.config.code === StdOpCode.run) {
         opcode = "StepRun";
@@ -63,8 +63,8 @@ export async function execute(
       }
 
       return {
-        displayName: op.id.id,
-        id: op.id.hashed,
+        displayName: name,
+        id: op.opId.hashed,
         op: opcode,
         name,
         data,

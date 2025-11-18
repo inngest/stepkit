@@ -1,20 +1,24 @@
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 
+export const stepKitErrorPropKey = "~stepkit";
+
 // StepKit-specific error options. These will persist through JSON serialization
 // and deserialization
 export type StepKitErrorProps = {
   canRetry: boolean;
+  errorClass?: string;
 };
 
 export class StepKitError extends Error {
-  public ["~stepkit"]: StepKitErrorProps;
+  public [stepKitErrorPropKey]: StepKitErrorProps;
 
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = this.constructor.name;
 
-    this["~stepkit"] = {
+    this[stepKitErrorPropKey] = {
       canRetry: true,
+      errorClass: this.constructor.name,
     };
   }
 }
@@ -23,7 +27,7 @@ export class NonRetryableError extends StepKitError {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = this.constructor.name;
-    this["~stepkit"].canRetry = false;
+    this[stepKitErrorPropKey].canRetry = false;
   }
 }
 
@@ -47,6 +51,13 @@ export class NestedStepError extends NonRetryableError {
     super(
       `Step is nested inside another step: ${stepId} inside ${parentStepId}`
     );
+    this.name = this.constructor.name;
+  }
+}
+
+export class InvokeTimeoutError extends NonRetryableError {
+  constructor({ childRunId }: { childRunId: string }) {
+    super(`invoked run ${childRunId} timed out`);
     this.name = this.constructor.name;
   }
 }

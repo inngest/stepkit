@@ -12,6 +12,8 @@ import { InMemoryDriver } from "./executionDriver";
 import { InMemorySortedQueue } from "./queue";
 import { InMemoryStateDriver } from "./stateDriver";
 
+const defaultMaxAttempts = 4;
+
 export class InMemoryClient extends BaseClient {
   private orc: Orchestrator;
 
@@ -52,6 +54,10 @@ export class InMemoryClient extends BaseClient {
     workflow: Workflow<TInput, any>,
     data: TInput
   ): Promise<StartData> {
-    return this.orc.startWorkflow(workflow, data);
+    return this.orc.startWorkflow({
+      data,
+      maxAttempts: workflow.maxAttempts ?? defaultMaxAttempts,
+      workflowId: workflow.id,
+    });
   }
 }

@@ -1,8 +1,11 @@
+import { eventTrigger } from "@stepkit/core";
+
 import { client } from "./client";
 
 export const workflow = client.workflow(
   {
     id: "say-hi",
+    triggers: [eventTrigger("event-1")],
   },
   async (ctx, step) => {
     const greeting = await step.run("get-greeting", () => {
@@ -35,6 +38,24 @@ export const workflow = client.workflow(
     }
     console.log(`Waited for event: ${event.id}`);
 
+    console.log(
+      await step.invokeWorkflow("invoke-other-workflow", {
+        timeout: 5000,
+        workflow: otherWorkflow,
+      })
+    );
+
+    return "Done";
+  }
+);
+
+export const otherWorkflow = client.workflow(
+  {
+    id: "other-workflow",
+  },
+  async ({ input }) => {
+    console.log("other workflow");
+    console.log(input);
     return "Done";
   }
 );

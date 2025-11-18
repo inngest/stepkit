@@ -16,8 +16,10 @@ type FileSystemClientOptions = {
   baseDir?: string;
 };
 
+const defaultMaxAttempts = 4;
+
 export class FileSystemClient extends BaseClient {
-  private baseDir: string;
+  readonly baseDir: string;
   private orc: Orchestrator;
 
   constructor(options: FileSystemClientOptions = {}) {
@@ -64,6 +66,10 @@ export class FileSystemClient extends BaseClient {
     workflow: Workflow<TInput, any>,
     data: TInput
   ): Promise<StartData> {
-    return this.orc.startWorkflow(workflow, data);
+    return this.orc.startWorkflow({
+      data,
+      maxAttempts: workflow.maxAttempts ?? defaultMaxAttempts,
+      workflowId: workflow.id,
+    });
   }
 }

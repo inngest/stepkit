@@ -1,10 +1,15 @@
-import { NonRetriableError, type ServeHandlerOptions } from "inngest";
+import {
+  NonRetriableError,
+  referenceFunction,
+  type ServeHandlerOptions,
+} from "inngest";
 
 import {
   InvalidInputError,
   NonRetryableError,
   type Context,
   type ExtDefault,
+  type InputDefault,
   type InputType,
   type SendSignalOpts,
   type Step,
@@ -18,6 +23,7 @@ import {
   type SentEvent,
   type StepExt,
 } from "./client";
+import { isNullish, isRecord } from "./utils";
 
 export function inngestify(
   client: InngestClient,
@@ -52,17 +58,21 @@ export function inngestify(
           type = "cron";
         }
 
+        if (!isNullish(ctx.event.data) && !isRecord(ctx.event.data)) {
+          throw new Error("unreachable: event data is not a record");
+        }
+        const data = ctx.event.data ?? {};
+        delete data._inngest;
+
         const workflowCtx: Context = {
           runId: ctx.runId,
           input: {
-            ...ctx.event,
+            data,
             id: ctx.event.id ?? "unknown",
             ext: {},
+            name: ctx.event.name,
             time,
             type,
-
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            data: ctx.event.data ?? {},
           },
           ext: {},
         };
@@ -93,6 +103,25 @@ export function inngestify(
                 v: event.v ?? undefined,
               };
             },
+          },
+          invokeWorkflow: async <TInput extends InputDefault, TOutput>(
+            stepId: string,
+            opts: {
+              data?: TInput;
+              timeout: number | Date;
+              workflow: Workflow<TInput, TOutput>;
+            }
+          ) => {
+            const result = await ctx.step.invoke(stepId, {
+              data: opts.data,
+              function: referenceFunction({
+                appId: opts.workflow.client.id,
+                functionId: opts.workflow.id,
+              }),
+              timeout: opts.timeout,
+            });
+
+            return result as TOutput;
           },
           run: <T>(stepId: string, handler: () => T) => {
             return ctx.step.run(stepId, async () => {

@@ -7,6 +7,7 @@ import {
 } from "@stepkit/core/implementer";
 
 import { toJsonError } from "./errors";
+import { OpMode } from "./ops";
 import { createControlledPromise } from "./promises";
 import {
   StdOpCode,
@@ -134,21 +135,31 @@ export async function findOps<
   const output = await handlerPromise;
   if (output instanceof Error) {
     opResult = {
-      config: { code: StdOpCode.workflow },
-      id: { hashed: "", id: "", index: 0 },
+      config: {
+        code: StdOpCode.workflow,
+        mode: OpMode.immediate,
+      },
+      opId: { hashed: "", id: "", index: 0 },
       result: {
         status: "error",
         error: toJsonError(output),
       },
+      runId: ctx.runId,
+      workflowId: workflow.id,
     };
   } else {
     opResult = {
-      config: { code: StdOpCode.workflow },
-      id: { hashed: "", id: "", index: 0 },
+      config: {
+        code: StdOpCode.workflow,
+        mode: OpMode.immediate,
+      },
+      opId: { hashed: "", id: "", index: 0 },
       result: {
         status: "success",
         output,
       },
+      runId: ctx.runId,
+      workflowId: workflow.id,
     };
   }
 

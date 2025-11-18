@@ -12,6 +12,9 @@ export default tseslint.config(
       "**/.tsup/**",
       "**/coverage/**",
     ],
+    linterOptions: {
+      reportUnusedDisableDirectives: "error",
+    },
   },
 
   // Base JavaScript config
@@ -38,6 +41,12 @@ export default tseslint.config(
       "@typescript-eslint/no-confusing-void-expression": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
+      "@typescript-eslint/restrict-template-expressions": [
+        "error",
+        {
+          allowNumber: true,
+        },
+      ],
 
       // Disable because child classes may need to be async, but base classes
       // don't necessarily have `await` in them
@@ -96,7 +105,7 @@ export default tseslint.config(
   },
 
   {
-    files: ["**/*.test.ts"],
+    files: ["**/*.test.ts", "**/test/**/*.ts"],
     plugins: {
       vitest,
     },

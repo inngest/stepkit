@@ -35,7 +35,7 @@ export async function executeUntilDone<
       throw new Error("unreachable: no ops found");
     }
     const op = ops[0];
-    const attempt = attempts[op.id.hashed] ?? 1;
+    const attempt = attempts[op.opId.hashed] ?? 1;
 
     if (op.result.status === "error") {
       if (op.result.error.props?.canRetry === false) {
@@ -44,7 +44,7 @@ export async function executeUntilDone<
 
       if (attempt < (workflow.maxAttempts ?? defaultMaxAttempts)) {
         // Bump attempt and retry
-        attempts[op.id.hashed] = attempt + 1;
+        attempts[op.opId.hashed] = attempt + 1;
         continue;
       }
     }
