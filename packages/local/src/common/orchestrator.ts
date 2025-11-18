@@ -1,36 +1,20 @@
 import {
   fromJsonError,
-  getStepKitErrorProps,
-  isOpResult,
-  StdOpCode,
   type BaseExecutionDriver,
   type Input,
   type InputDefault,
-  type OpResult,
   type SendSignalOpts,
   type StartData,
   type Workflow,
 } from "@stepkit/sdk-tools";
 
+import { defaultMaxAttempts } from "./consts";
 import { UnreachableError } from "./errors";
-import type { SortedQueue } from "./queue";
-import type { LocalStateDriver, Run } from "./stateDriver";
-import { sleep } from "./utils";
-
-const defaultMaxAttempts = 4;
-
-type EventQueueData = Input<any, "event">;
-
-type ExecQueueData = {
-  attempt: number;
-
-  // OpResult that preceeded this queue item. For example, when a `step.run`
-  // completes then we schedule a new queue item for the next execution
-  prevOpResult?: OpResult;
-
-  runId: string;
-  workflowId: string;
-};
+import { handleExecQueueItem, handleOpResult } from "./handlers/main";
+import { processIncomingSignal } from "./handlers/waitForSignal";
+import type { EventQueueData, ExecQueueData, SortedQueue } from "./queue";
+import type { LocalStateDriver } from "./stateDriver";
+import { sleep, startWorkflow } from "./utils";
 
 /**
  * High-level orchestrator for events and runs. Manages state and execution
@@ -116,96 +100,24 @@ export class Orchestrator {
     if (workflow === undefined) {
       throw new UnreachableError("workflow not found");
     }
-    if (exec.prevOpResult !== undefined) {
-      if (isOpResult.sleep(exec.prevOpResult)) {
-        await this.stateDriver.wakeSleepOp(
-          {
-            runId: exec.runId,
-            hashedOpId: exec.prevOpResult.id.hashed,
-          },
-          exec.prevOpResult
-        );
-      } else if (isOpResult.waitForSignal(exec.prevOpResult)) {
-        await this.stateDriver.timeoutWaitForSignalOp(
-          exec.prevOpResult.config.options.signal
-        );
-      } else if (isOpResult.invokeWorkflow(exec.prevOpResult)) {
-        await this.stateDriver.timeoutInvokeWorkflowOp({
-          hashedOpId: exec.prevOpResult.id.hashed,
-          runId: exec.runId,
-        });
-      }
-    }
+    await handleExecQueueItem({
+      queueItem: exec,
+      stateDriver: this.stateDriver,
+    });
 
     const ops = await this.execDriver.execute(workflow, run.ctx);
     if (ops.length === 0) {
       throw new UnreachableError("no ops found");
     }
 
-    // console.log("ops", ops);
     for (const op of ops) {
-      if (shouldEndRun(op, run, exec)) {
-        await this.stateDriver.endRun(run.ctx.runId, op);
-        const waitingInvoke = await this.stateDriver.resumeInvokeWorkflowOp({
-          childRunId: run.ctx.runId,
-          op,
-        });
-        if (waitingInvoke !== null) {
-          await this.execQueue.add({
-            data: {
-              attempt: 1,
-              prevOpResult: waitingInvoke.op,
-              runId: waitingInvoke.parentRun.runId,
-              workflowId: waitingInvoke.parentRun.workflowId,
-            },
-            time: Date.now(),
-          });
-        }
-        return;
-      }
-
-      let time = Date.now();
-      if (isOpResult.sleep(op)) {
-        time = op.config.options.wakeAt;
-      } else if (isOpResult.waitForSignal(op)) {
-        await this.stateDriver.addWaitingSignal({
-          op,
-          runId: run.ctx.runId,
-          workflowId: run.workflowId,
-        });
-        time = Date.now() + op.config.options.timeout;
-      } else if (isOpResult.invokeWorkflow(op)) {
-        const invokedStartData = await this.startWorkflow({
-          data: op.config.options.data,
-
-          // TODO
-          maxAttempts: defaultMaxAttempts,
-
-          workflowId: op.config.options.workflowId,
-        });
-
-        await this.stateDriver.waitingInvokes.add({
-          op,
-          childRun: {
-            runId: invokedStartData.runId,
-            workflowId: op.config.options.workflowId,
-          },
-          parentRun: {
-            runId: run.ctx.runId,
-            workflowId: run.workflowId,
-          },
-        });
-        time = Date.now() + op.config.options.timeout;
-      }
-
-      await this.execQueue.add({
-        data: {
-          attempt: nextAttempt(op, exec, run),
-          prevOpResult: op,
-          runId: run.ctx.runId,
-          workflowId: run.workflowId,
-        },
-        time,
+      await handleOpResult({
+        execQueue: this.execQueue,
+        op,
+        queueItem: exec,
+        stateDriver: this.stateDriver,
+        workflowId: run.workflowId,
+        workflows: this.workflows,
       });
     }
   }
@@ -227,7 +139,6 @@ export class Orchestrator {
     // TODO: Should we add a timeout? An infinite loop feels dirty
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     while (true) {
-      // console.log("waiting for run to end", i);
       i++;
       if (i > 1) {
         await sleep(100);
@@ -250,24 +161,12 @@ export class Orchestrator {
   }
 
   async processIncomingSignal(opts: SendSignalOpts): Promise<string | null> {
-    const waitingSignal = await this.stateDriver.popWaitingSignal(opts.signal);
-    if (waitingSignal === null) {
-      return null;
-    }
-    await this.stateDriver.resumeWaitForSignalOp({
-      data: opts.data,
-      waitingSignal,
+    return processIncomingSignal({
+      opts,
+      stateDriver: this.stateDriver,
+      workflows: this.workflows,
+      execQueue: this.execQueue,
     });
-
-    await this.execQueue.add({
-      data: {
-        attempt: 1,
-        runId: waitingSignal.runId,
-        workflowId: waitingSignal.workflowId,
-      },
-      time: Date.now(),
-    });
-    return waitingSignal.runId;
   }
 
   /**
@@ -282,100 +181,12 @@ export class Orchestrator {
     maxAttempts: number;
     workflowId: string;
   }): Promise<StartData> {
-    const eventId = crypto.randomUUID();
-    const runId = crypto.randomUUID();
-
-    await this.stateDriver.addRun({
-      ctx: {
-        ext: {},
-        input: {
-          data,
-          ext: {},
-          id: eventId,
-          name: workflowId,
-          time: new Date(),
-          type: "invoke",
-        },
-        runId,
-      },
-      result: undefined,
+    return startWorkflow({
+      data,
       maxAttempts,
-      opAttempts: {},
       workflowId,
+      stateDriver: this.stateDriver,
+      execQueue: this.execQueue,
     });
-
-    await this.execQueue.add({
-      data: {
-        attempt: 1,
-        runId,
-        workflowId,
-      },
-      time: Date.now(),
-    });
-
-    return {
-      eventId,
-      runId,
-    };
   }
-}
-
-/**
- * Determines if the run should end
- */
-function shouldEndRun(
-  op: OpResult,
-  run: Run,
-  queueItem: ExecQueueData
-): boolean {
-  if (op.result.status === "success") {
-    if (op.config.code === StdOpCode.workflow) {
-      // Run was successful
-      return true;
-    }
-    // Step was successful
-    return false;
-  }
-
-  const error = fromJsonError(op.result.error);
-  const canRetry = getStepKitErrorProps(error)?.canRetry ?? true;
-  if (!canRetry) {
-    // Non-retryable error
-    return true;
-  }
-
-  const exhaustedAttempts = queueItem.attempt >= run.maxAttempts;
-  if (!exhaustedAttempts) {
-    // Has remaining attempts
-    return false;
-  }
-
-  if (op.config.code === StdOpCode.workflow) {
-    // Workflow-level error with no remaining attempts
-    return true;
-  }
-
-  // Step-level error with no remaining attempts. But the run is not done yet
-  // since the error needs to be thrown at the workflow level
-  return false;
-}
-
-/**
- * Determines the attempt number for the next execution queue item
- */
-function nextAttempt(op: OpResult, exec: ExecQueueData, run: Run): number {
-  if (op.result.status !== "error") {
-    // Success, so reset attempt
-    return 1;
-  }
-
-  const exhaustedAttempts = exec.attempt >= run.maxAttempts;
-  if (exhaustedAttempts && op.config.code !== StdOpCode.workflow) {
-    // Step-level error with no remaining attempts. But we need to reset the
-    // attempt since the error needs to be thrown at the workflow level
-    return 1;
-  }
-
-  // Next attempt
-  return exec.attempt + 1;
 }

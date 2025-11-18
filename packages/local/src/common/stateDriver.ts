@@ -25,20 +25,10 @@ export type WaitingInvoke = {
   };
 };
 
-export type ResumeInvokeWorkflowOpOpts = {
-  childRunId: string;
-  op: OpResult;
-};
-
 export type WaitingSignal = {
   op: OpResults["waitForSignal"];
   runId: string;
   workflowId: string;
-};
-
-export type ResumeWaitForSignalOpOpts = {
-  data: unknown;
-  waitingSignal: WaitingSignal;
 };
 
 export type InvokeManager = {
@@ -55,33 +45,26 @@ export type InvokeManager = {
   }): Promise<WaitingInvoke | null>;
 };
 
+export type SignalManager = {
+  add(signal: WaitingSignal): Promise<void>;
+  pop(signal: string): Promise<WaitingSignal | null>;
+};
+
 export interface LocalStateDriver extends StateDriver {
   waitingInvokes: InvokeManager;
+  waitingSignals: SignalManager;
+
+  setOp(
+    { hashedOpId, runId }: { hashedOpId: string; runId: string },
+    op: OpResult,
+    opts?: { force?: boolean }
+  ): Promise<void>;
 
   addRun(run: Run): Promise<void>;
   getRun(runId: string): Promise<Run | undefined>;
   endRun(runId: string, op: OpResult): Promise<void>;
 
-  resumeInvokeWorkflowOp(
-    opts: ResumeInvokeWorkflowOpOpts
-  ): Promise<WaitingInvoke | null>;
-
-  timeoutInvokeWorkflowOp(opts: {
-    hashedOpId: string;
-    runId: string;
-  }): Promise<void>;
-
-  addWaitingSignal(signal: WaitingSignal): Promise<void>;
-  popWaitingSignal(signal: string): Promise<WaitingSignal | null>;
-  resumeWaitForSignalOp(opts: ResumeWaitForSignalOpOpts): Promise<void>;
-  timeoutWaitForSignalOp(signal: string): Promise<void>;
-
   incrementOpAttempt(runId: string, hashedOpId: string): Promise<number>;
 
   getMaxAttempts(runId: string): Promise<number>;
-
-  wakeSleepOp(
-    id: { runId: string; hashedOpId: string },
-    op: OpResult
-  ): Promise<void>;
 }

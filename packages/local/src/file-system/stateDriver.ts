@@ -1,22 +1,13 @@
-import {
-  disableRetries,
-  InvokeTimeoutError,
-  StdOpCode,
-  toJsonError,
-  type Context,
-  type OpResult,
-  type OpResults,
-} from "@stepkit/sdk-tools";
+import { StdOpCode, type Context, type OpResult } from "@stepkit/sdk-tools";
 
+import { UnreachableError } from "../common/errors";
 import type {
   InvokeManager,
   LocalStateDriver,
-  ResumeInvokeWorkflowOpOpts,
-  ResumeWaitForSignalOpOpts,
+  SignalManager,
   WaitingInvoke,
   WaitingSignal,
 } from "../common/stateDriver";
-import { UnreachableError } from "./utils/errors";
 import { deleteFile, readJsonFile, writeJsonFile } from "./utils/fs";
 import { FileSystemPaths } from "./utils/paths";
 
@@ -87,13 +78,38 @@ class FileSystemInvokeManager implements InvokeManager {
   }
 }
 
+class FileSystemSignalManager implements SignalManager {
+  constructor(private paths: FileSystemPaths) {}
+
+  async add(signal: WaitingSignal): Promise<void> {
+    const filePath = this.paths.signalFile(signal.op.config.options.signal);
+    const existingSignal = await readJsonFile<WaitingSignal>(filePath);
+    if (existingSignal !== undefined) {
+      throw new Error("waiting signal already exists");
+    }
+    await writeJsonFile(filePath, signal);
+  }
+
+  async pop(signal: string): Promise<WaitingSignal | null> {
+    const filePath = this.paths.signalFile(signal);
+    const waitingSignal = await readJsonFile<WaitingSignal>(filePath);
+    if (waitingSignal === undefined) {
+      return null;
+    }
+    await deleteFile(filePath);
+    return waitingSignal;
+  }
+}
+
 export class FileSystemStateDriver implements LocalStateDriver {
   private paths: FileSystemPaths;
   waitingInvokes: FileSystemInvokeManager;
+  waitingSignals: FileSystemSignalManager;
 
   constructor(baseDir: string) {
     this.paths = new FileSystemPaths(baseDir);
     this.waitingInvokes = new FileSystemInvokeManager(this.paths);
+    this.waitingSignals = new FileSystemSignalManager(this.paths);
   }
 
   async addRun(run: Run): Promise<void> {
@@ -113,131 +129,6 @@ export class FileSystemStateDriver implements LocalStateDriver {
     }
     run.result = op.result;
     await this.addRun(run);
-  }
-
-  async resumeInvokeWorkflowOp({
-    childRunId,
-    op,
-  }: ResumeInvokeWorkflowOpOpts): Promise<WaitingInvoke | null> {
-    const waitingInvoke = await this.waitingInvokes.popByChildRun(childRunId);
-    if (waitingInvoke === null) {
-      return null;
-    }
-
-    if (op.result.status === "error") {
-      op.result.error = disableRetries(op.result.error);
-    }
-
-    const opResult: OpResults["invokeWorkflow"] = {
-      config: waitingInvoke.op.config,
-      id: waitingInvoke.op.id,
-      result: op.result,
-    };
-    const filePath = this.paths.opFile(
-      waitingInvoke.parentRun.runId,
-      waitingInvoke.op.id.hashed
-    );
-    await writeJsonFile(filePath, opResult);
-    return waitingInvoke;
-  }
-
-  async timeoutInvokeWorkflowOp({
-    hashedOpId,
-    runId,
-  }: {
-    hashedOpId: string;
-    runId: string;
-  }): Promise<void> {
-    const waitingInvoke = await this.waitingInvokes.popByParentOp({
-      hashedOpId,
-      runId,
-    });
-    if (waitingInvoke === null) {
-      return;
-    }
-
-    const error = new InvokeTimeoutError({
-      childRunId: waitingInvoke.childRun.runId,
-    });
-
-    const opResult: OpResults["invokeWorkflow"] = {
-      config: waitingInvoke.op.config,
-      id: waitingInvoke.op.id,
-      result: {
-        status: "error",
-        error: toJsonError(error),
-      },
-    };
-    const filePath = this.paths.opFile(
-      waitingInvoke.parentRun.runId,
-      waitingInvoke.op.id.hashed
-    );
-    await writeJsonFile(filePath, opResult);
-  }
-
-  async addWaitingSignal(signal: WaitingSignal): Promise<void> {
-    const filePath = this.paths.signalFile(signal.op.config.options.signal);
-    const existingSignal = await readJsonFile<WaitingSignal>(filePath);
-    if (existingSignal !== undefined) {
-      throw new Error("waiting signal already exists");
-    }
-    await writeJsonFile(filePath, signal);
-  }
-
-  async popWaitingSignal(signal: string): Promise<WaitingSignal | null> {
-    const filePath = this.paths.signalFile(signal);
-    const waitingSignal = await readJsonFile<WaitingSignal>(filePath);
-    if (waitingSignal === undefined) {
-      return null;
-    }
-    await deleteFile(filePath);
-    return waitingSignal;
-  }
-
-  async resumeWaitForSignalOp({
-    data,
-    waitingSignal,
-  }: ResumeWaitForSignalOpOpts): Promise<void> {
-    const opResult: OpResults["waitForSignal"] = {
-      config: {
-        code: StdOpCode.waitForSignal,
-        options: waitingSignal.op.config.options,
-      },
-      id: waitingSignal.op.id,
-      result: {
-        status: "success",
-        output: {
-          data,
-          signal: waitingSignal.op.config.options.signal,
-        },
-      },
-    };
-    await writeJsonFile(
-      this.paths.opFile(waitingSignal.runId, waitingSignal.op.id.hashed),
-      opResult
-    );
-  }
-
-  async timeoutWaitForSignalOp(signal: string): Promise<void> {
-    const waitingSignal = await this.popWaitingSignal(signal);
-    if (waitingSignal === null) {
-      return;
-    }
-    const opResult: OpResults["waitForSignal"] = {
-      config: {
-        code: StdOpCode.waitForSignal,
-        options: waitingSignal.op.config.options,
-      },
-      id: waitingSignal.op.id,
-      result: {
-        status: "success",
-        output: null,
-      },
-    };
-    await writeJsonFile(
-      this.paths.opFile(waitingSignal.runId, waitingSignal.op.id.hashed),
-      opResult
-    );
   }
 
   async incrementOpAttempt(runId: string, hashedOpId: string): Promise<number> {
@@ -271,14 +162,17 @@ export class FileSystemStateDriver implements LocalStateDriver {
 
   async setOp(
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
-    op: OpResult
+    op: OpResult,
+    { force = false }: { force?: boolean } = {}
   ): Promise<void> {
     if (
       op.config.code === StdOpCode.invokeWorkflow ||
       op.config.code === StdOpCode.sleep ||
       op.config.code === StdOpCode.waitForSignal
     ) {
-      return;
+      if (!force) {
+        return;
+      }
     }
 
     // Note: Using sync operations for incrementOpAttempt and getMaxAttempts
@@ -294,20 +188,10 @@ export class FileSystemStateDriver implements LocalStateDriver {
     await this.addRun(run);
 
     if (op.result.status === "error" && opAttempt < run.maxAttempts) {
-      // Retry by not storing the error
-      return;
-    }
-
-    const filePath = this.paths.opFile(runId, hashedOpId);
-    await writeJsonFile(filePath, op);
-  }
-
-  async wakeSleepOp(
-    { runId, hashedOpId }: { runId: string; hashedOpId: string },
-    op: OpResult
-  ): Promise<void> {
-    if (op.config.code !== StdOpCode.sleep) {
-      throw new UnreachableError("op is not a sleep");
+      if (!force) {
+        // Retry by not storing the error
+        return;
+      }
     }
 
     const filePath = this.paths.opFile(runId, hashedOpId);

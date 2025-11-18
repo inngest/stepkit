@@ -4,6 +4,7 @@ export type EventQueueData = Input<any, "event">;
 
 export type ExecQueueData = {
   attempt: number;
+  maxAttempts: number;
 
   // OpResult that preceeded this queue item. For example, when a `step.run`
   // completes then we schedule a new queue item for the next execution
