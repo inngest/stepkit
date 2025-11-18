@@ -47,7 +47,10 @@ The Team
     `.trim(),
   }),
 
-  featureIntroduction: (userName: string, featuresUsed: number): EmailTemplate => ({
+  featureIntroduction: (
+    userName: string,
+    featuresUsed: number
+  ): EmailTemplate => ({
     subject: "Discover powerful features you haven't tried yet",
     body: `
 Hi ${userName},
