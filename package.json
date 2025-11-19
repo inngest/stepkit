@@ -13,7 +13,8 @@
     "lint:fix": "pnpm --no-bail -r lint:fix",
     "precommit": "pnpm format:check; pnpm lint; pnpm type-check; pnpm test; pnpm dpdm",
     "test": "pnpm --no-bail -r test",
-    "type-check": "pnpm --no-bail -r type-check"
+    "type-check": "pnpm --no-bail -r type-check",
+    "build": "tsc -p tsconfig.build.json && tsdown --config tsdown.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "9.39.1",
@@ -24,6 +25,7 @@
     "eslint-plugin-vitest": "^0.5.4",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.3.0",
+    "tsdown": "^0.16.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
     "vitest": "^4.0.5"
