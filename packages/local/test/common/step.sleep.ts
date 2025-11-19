@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { BaseClient } from "@stepkit/sdk-tools";
 
@@ -6,11 +6,19 @@ export function stepSleepSuite<TClient extends BaseClient>(
   createClient: () => TClient | Promise<TClient>,
   cleanup: (client: TClient) => void | Promise<void>
 ): void {
-  describe("step.sleep", () => {
-    it("success", async () => {
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
+  interface TestContext {
+    client: TClient;
+  }
 
+  describe.concurrent("step.sleep", () => {
+    beforeEach<TestContext>(async (ctx) => {
+      ctx.client = await createClient();
+    });
+    afterEach<TestContext>(async ({ client }) => {
+      await cleanup(client);
+    });
+
+    it<TestContext>("success", async ({ client }) => {
       const counters = {
         top: 0,
         bottom: 0,

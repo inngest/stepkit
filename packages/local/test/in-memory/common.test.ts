@@ -1,9 +1,9 @@
 import { InMemoryClient } from "../../src/main";
+import { parallelStepSuite } from "../common/parallelSteps";
 import { stepInvokeWorkflowSuite } from "../common/step.invoke";
 import { stepRunSuite } from "../common/step.run";
 import { stepSleepSuite } from "../common/step.sleep";
 import { stepWaitForSignalSuite } from "../common/step.waitForSignal";
-import { workflowSuite } from "../common/workflow";
 
 stepInvokeWorkflowSuite(
   () => new InMemoryClient(),
@@ -25,7 +25,7 @@ stepWaitForSignalSuite(
   (client) => client.stop()
 );
 
-workflowSuite(
+parallelStepSuite(
   () => new InMemoryClient(),
   (client) => client.stop()
 );

@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { BaseClient } from "@stepkit/sdk-tools";
 
@@ -9,11 +9,19 @@ export function stepInvokeWorkflowSuite<TClient extends BaseClient>(
   createClient: () => TClient | Promise<TClient>,
   cleanup: (client: TClient) => void | Promise<void>
 ): void {
-  describe("step.invokeWorkflow", () => {
-    it("success", async () => {
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
+  interface TestContext {
+    client: TClient;
+  }
 
+  describe.concurrent("step.invokeWorkflow", () => {
+    beforeEach<TestContext>(async (ctx) => {
+      ctx.client = await createClient();
+    });
+    afterEach<TestContext>(async ({ client }) => {
+      await cleanup(client);
+    });
+
+    it<TestContext>("success", async ({ client }) => {
       try {
         const counters = {
           child: {
@@ -66,10 +74,7 @@ export function stepInvokeWorkflowSuite<TClient extends BaseClient>(
       }
     });
 
-    it("error", async () => {
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
-
+    it<TestContext>("error", async ({ client }) => {
       class MyError extends Error {
         constructor(message: string) {
           super(message);
@@ -134,10 +139,7 @@ export function stepInvokeWorkflowSuite<TClient extends BaseClient>(
       });
     });
 
-    it("timeout", async () => {
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
-
+    it<TestContext>("timeout", async ({ client }) => {
       const counters = {
         child: {
           top: 0,

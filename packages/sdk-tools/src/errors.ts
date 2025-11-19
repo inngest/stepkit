@@ -5,6 +5,15 @@ import {
   type StepKitErrorProps,
 } from "@stepkit/core/implementer";
 
+// Only use for code blocks that should be truly unreachable. We should never
+// actually throw this error
+export class UnreachableError extends Error {
+  constructor(message: string) {
+    super(`unreachable: ${message}`);
+    this.name = this.constructor.name;
+  }
+}
+
 // StepKit-specific error options. These will persist through JSON serialization
 // and deserialization
 const stepKitErrorPropsSchema = z.object({

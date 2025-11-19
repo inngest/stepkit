@@ -2,7 +2,6 @@ export type ControlledPromise<T> = {
   promise: Promise<T>;
   resolve: (value: T) => ControlledPromise<T>;
   reject: (reason: unknown) => ControlledPromise<T>;
-  reset: () => void;
 };
 
 export const createControlledPromise = <T = void>(): ControlledPromise<T> => {
@@ -31,15 +30,28 @@ export const createControlledPromise = <T = void>(): ControlledPromise<T> => {
     throw new Error("unreachable");
   }
 
-  const out = { promise, resolve, reject };
-
-  const reset = () => {
-    const newPromise = createControlledPromise<T>();
-    out.promise = newPromise.promise;
-    out.resolve = newPromise.resolve;
-    out.reject = newPromise.reject;
-    return out;
-  };
-
-  return { ...out, reset };
+  return { promise, resolve, reject };
 };
+
+const inFlight = new Map<string, Promise<unknown>>();
+
+/**
+ * Only allow one in-flight call at a time. Multiple in-flight calls will wait
+ * for the first one to complete.
+ */
+export async function singleFlight<T>(
+  idempotencyKey: string,
+  callback: () => Promise<T>
+): Promise<T> {
+  const existing = inFlight.get(idempotencyKey);
+  if (existing !== undefined) {
+    return existing as T;
+  }
+
+  const promise = callback().finally(() => {
+    inFlight.delete(idempotencyKey);
+  });
+
+  inFlight.set(idempotencyKey, promise);
+  return promise;
+}

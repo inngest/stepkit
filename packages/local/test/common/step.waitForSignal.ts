@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import type { BaseClient } from "@stepkit/sdk-tools";
@@ -9,11 +9,19 @@ export function stepWaitForSignalSuite<TClient extends BaseClient>(
   createClient: () => TClient | Promise<TClient>,
   cleanup: (client: TClient) => void | Promise<void>
 ): void {
-  describe("step.waitForSignal", () => {
-    it("resolve", async () => {
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
+  interface TestContext {
+    client: TClient;
+  }
 
+  describe.concurrent("step.waitForSignal", () => {
+    beforeEach<TestContext>(async (ctx) => {
+      ctx.client = await createClient();
+    });
+    afterEach<TestContext>(async ({ client }) => {
+      await cleanup(client);
+    });
+
+    it<TestContext>("resolve", async ({ client }) => {
       const signal = `signal-${crypto.randomUUID()}`;
       let runID: string | undefined;
       const counters = {
@@ -59,10 +67,7 @@ export function stepWaitForSignalSuite<TClient extends BaseClient>(
       });
     });
 
-    it("timeout", async () => {
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
-
+    it<TestContext>("timeout", async ({ client }) => {
       const counters = {
         top: 0,
         bottom: 0,

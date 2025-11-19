@@ -1,4 +1,9 @@
-import { OpMode, type Context, type OpResult } from "@stepkit/sdk-tools";
+import {
+  OpMode,
+  singleFlight,
+  type Context,
+  type OpResult,
+} from "@stepkit/sdk-tools";
 
 import { UnreachableError } from "../common/errors";
 import type {
@@ -177,6 +182,11 @@ export class FileSystemStateDriver implements LocalStateDriver {
       return;
     }
 
+    if ((await this.getOp({ runId, hashedOpId })) !== undefined) {
+      // Already written
+      return;
+    }
+
     if (op.result.status === "error") {
       const opAttempt = await this.incrementOpAttempt(runId, hashedOpId);
       const maxAttempts = await this.getMaxAttempts(runId);
@@ -190,6 +200,8 @@ export class FileSystemStateDriver implements LocalStateDriver {
     }
 
     const filePath = this.paths.opFile(runId, hashedOpId);
-    await writeJsonFile(filePath, op);
+    await singleFlight(`${runId}:${hashedOpId}`, () =>
+      writeJsonFile(filePath, op)
+    );
   }
 }

@@ -7,7 +7,7 @@ import type {
   InputDefault,
 } from "@stepkit/core/implementer";
 
-import { fromJsonError } from "./errors";
+import { fromJsonError, UnreachableError } from "./errors";
 import { isOpResult } from "./ops";
 import type { OpResult } from "./types";
 
@@ -32,7 +32,7 @@ export async function executeUntilDone<
   for (let i = 0; i < maxIterations; i++) {
     const ops = await execute(ctx, workflow);
     if (ops[0] === undefined) {
-      throw new Error("unreachable: no ops found");
+      throw new UnreachableError("no ops found");
     }
     const op = ops[0];
     const attempt = attempts[op.opId.hashed] ?? 1;
@@ -67,7 +67,7 @@ export async function executeUntilDone<
     return op.result.output;
   }
 
-  throw new Error("unreachable: infinite loop detected");
+  throw new UnreachableError("infinite loop detected");
 }
 
 export function ensureAsync<T>(
