@@ -2,24 +2,17 @@
   "name": "@stepkit/sdk-tools",
   "version": "0.0.0",
   "type": "module",
-  "main": "./main.cjs",
-  "module": "./main.js",
-  "types": "./main.d.ts",
+  "main": "./src/main.ts",
+  "module": "./src/main.ts",
+  "types": "./src/main.ts",
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   },
   "exports": {
-    ".": {
-      "types": {
-        "import": "./main.d.ts",
-        "require": "./main.d.cts"
-      },
-      "import": "./main.js",
-      "require": "./main.cjs"
-    }
+    ".": "./src/main.ts"
   },
   "scripts": {
-    "build": "tsdown --config tsdown.config.ts",
+    "build": "tsdown --config tsdown.config.ts && node ../../scripts/fix-dist-package.js .",
     "dpdm": "dpdm --exit-code circular:1 src/main.ts",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
