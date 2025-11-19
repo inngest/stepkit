@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "node16",
     "lib": ["ES2022"],
     "declaration": true,
     "strict": true,
@@ -9,6 +8,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "module": "Preserve",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "baseUrl": ".",

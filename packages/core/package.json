@@ -13,7 +13,7 @@
     "./implementer": "./src/implementer.ts"
   },
   "scripts": {
-    "build": "tsdown --config tsdown.config.ts && node ../../scripts/fix-dist-package.js .",
+    "build": "tsdown --config tsdown.config.ts && node ../../scripts/distPackage.js .",
     "dpdm": "dpdm --exit-code circular:1 src/main.ts src/implementer.ts",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",

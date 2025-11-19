@@ -2,15 +2,15 @@
 
 //
 // updates package.json in dist/ to point to built files instead of source files
-// Usage: node scripts/fix-dist-package.js <package-dir>
-// Example: node scripts/fix-dist-package.js packages/core
+// Usage: node scripts/distPackage.js <package-dir>
+// Example: node scripts/distPackage.js packages/core
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
 const packageDir = process.argv[2];
 
 if (!packageDir) {
-  console.error("Usage: node scripts/fix-dist-package.js <package-dir>");
+  console.error("Usage: node scripts/distPackage.js <package-dir>");
   process.exit(1);
 }
 
