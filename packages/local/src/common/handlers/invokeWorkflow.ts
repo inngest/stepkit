@@ -13,31 +13,36 @@ import { startWorkflow } from "../utils";
 import { nextAttempt, type OpHandlers } from "./common";
 
 export const invokeWorkflowHandlers: OpHandlers = {
-  execQueue: async ({ queueItem, stateDriver }): Promise<boolean> => {
+  execQueue: async ({ queueItem, stateDriver }) => {
     let handled = false;
     if (queueItem.prevOpResult === undefined) {
-      return handled;
+      return { handled };
     }
     if (!isOpResult.invokeWorkflow(queueItem.prevOpResult)) {
-      return handled;
+      return { handled };
     }
     handled = true;
+
+    const isEnded =
+      (await stateDriver.getOp({
+        hashedOpId: queueItem.prevOpResult.opId.hashed,
+        runId: queueItem.runId,
+      })) !== undefined;
+    const isTimeout = queueItem.prevOpResult.config.mode === OpMode.scheduled;
+    if (isEnded && isTimeout) {
+      // The invokeWorkflow is ended so we need to ignore the timeout queue item
+      return { handled, allowExecution: false };
+    }
 
     await timeoutInvokeWorkflowOp({
       hashedOpId: queueItem.prevOpResult.opId.hashed,
       queueItem,
       stateDriver,
     });
-    return handled;
+    return { handled };
   },
 
-  opResult: async ({
-    execQueue,
-    op,
-    queueItem,
-    stateDriver,
-    workflows,
-  }): Promise<boolean> => {
+  opResult: async ({ execQueue, op, queueItem, stateDriver, workflows }) => {
     let handled = false;
     if (!isOpResult.invokeWorkflow(op)) {
       return handled;

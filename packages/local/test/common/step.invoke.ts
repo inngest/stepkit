@@ -30,6 +30,7 @@ export function stepInvokeWorkflowSuite<TClient extends BaseClient>(
           },
           parent: {
             top: 0,
+            delayStep: 0,
             bottom: 0,
           },
         };
@@ -42,6 +43,15 @@ export function stepInvokeWorkflowSuite<TClient extends BaseClient>(
               timeout: 2000,
               workflow: workflowChild,
             });
+
+            await step.run("delay", async () => {
+              counters.parent.delayStep++;
+
+              // Wait past the previous `invokeWorkflow`'s timeout. This ensures
+              // we properly skip the timeout job
+              await sleep(3000);
+            });
+
             counters.parent.bottom++;
           }
         );
@@ -63,11 +73,12 @@ export function stepInvokeWorkflowSuite<TClient extends BaseClient>(
               bottom: 1,
             },
             parent: {
-              top: 2,
+              top: 3,
+              delayStep: 1,
               bottom: 1,
             },
           });
-        });
+        }, 4000);
         expect(childOutput).toEqual("Hello");
       } finally {
         await cleanup(client);

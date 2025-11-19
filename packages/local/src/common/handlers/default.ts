@@ -1,11 +1,11 @@
 import { nextAttempt, type OpHandlers } from "./common";
 
 export const defaultHandlers: OpHandlers = {
-  execQueue: async (): Promise<boolean> => {
-    return false;
+  execQueue: async () => {
+    return { handled: false };
   },
 
-  opResult: async ({ execQueue, op, queueItem }): Promise<boolean> => {
+  opResult: async ({ execQueue, op, queueItem }) => {
     await execQueue.add({
       data: {
         attempt: nextAttempt(op, queueItem),
