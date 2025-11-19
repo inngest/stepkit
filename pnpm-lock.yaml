@@ -79,10 +79,10 @@ importers:
   packages/inngest:
     dependencies:
       '@stepkit/core':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../core
       '@stepkit/sdk-tools':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../sdk-tools
     devDependencies:
       '@types/express':
@@ -107,7 +107,7 @@ importers:
   packages/inngest-sdk-tools:
     dependencies:
       '@stepkit/sdk-tools':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../sdk-tools
       zod:
         specifier: ^4.1.12
@@ -124,10 +124,10 @@ importers:
   packages/local:
     dependencies:
       '@stepkit/core':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../core
       '@stepkit/sdk-tools':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../sdk-tools
     devDependencies:
       dpdm:
@@ -149,7 +149,7 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       '@stepkit/core':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../core
       hash.js:
         specifier: ^1.1.7

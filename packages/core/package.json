@@ -29,8 +29,8 @@
   "scripts": {
     "build": "tsdown --config tsdown.config.ts",
     "dpdm": "dpdm --exit-code circular:1 src/main.ts src/implementer.ts",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "test": "NODE_OPTIONS='--expose-gc' vitest",
     "test:watch": "NODE_OPTIONS='--expose-gc' vitest --watch",
     "type-check": "tsc --noEmit"

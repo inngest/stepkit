@@ -21,15 +21,15 @@
   "scripts": {
     "build": "tsdown --config tsdown.config.ts",
     "dpdm": "dpdm --exit-code circular:1 src/main.ts",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@stepkit/core": "workspace:*",
-    "@stepkit/sdk-tools": "workspace:*"
+    "@stepkit/core": "*",
+    "@stepkit/sdk-tools": "*"
   },
   "devDependencies": {
     "dpdm": "^3.14.0",
