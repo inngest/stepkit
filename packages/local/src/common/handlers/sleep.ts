@@ -3,13 +3,13 @@ import { isOpResult, OpMode } from "@stepkit/sdk-tools";
 import { nextAttempt, type OpHandlers } from "./common";
 
 export const sleepHandlers: OpHandlers = {
-  execQueue: async ({ queueItem, stateDriver }): Promise<boolean> => {
+  execQueue: async ({ queueItem, stateDriver }) => {
     let handled = false;
     if (queueItem.prevOpResult === undefined) {
-      return handled;
+      return { handled };
     }
     if (!isOpResult.sleep(queueItem.prevOpResult)) {
-      return handled;
+      return { handled };
     }
     handled = true;
 
@@ -29,10 +29,10 @@ export const sleepHandlers: OpHandlers = {
       opResult
     );
 
-    return handled;
+    return { handled };
   },
 
-  opResult: async ({ execQueue, op, queueItem }): Promise<boolean> => {
+  opResult: async ({ execQueue, op, queueItem }) => {
     let handled = false;
     if (!isOpResult.sleep(op)) {
       return handled;

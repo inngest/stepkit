@@ -13,10 +13,12 @@ import type {
 class InMemoryInvokeManager implements InvokeManager {
   private byChildRun: Map<string, WaitingInvoke>;
   private byParentOp: Map<string, WaitingInvoke>;
+  private tombstones: Set<string>;
 
   constructor() {
     this.byChildRun = new Map();
     this.byParentOp = new Map();
+    this.tombstones = new Set();
   }
 
   private getParentOpKey({

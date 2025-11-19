@@ -10,7 +10,7 @@ import {
 
 import { defaultMaxAttempts } from "./consts";
 import { UnreachableError } from "./errors";
-import { handleExecQueueItem, handleOpResult } from "./handlers/main";
+import { execQueueItemPreExecution, handleOpResult } from "./handlers/main";
 import { processIncomingSignal } from "./handlers/waitForSignal";
 import type { EventQueueData, ExecQueueData, SortedQueue } from "./queue";
 import type { LocalStateDriver } from "./stateDriver";
@@ -100,10 +100,13 @@ export class Orchestrator {
     if (workflow === undefined) {
       throw new UnreachableError("workflow not found");
     }
-    await handleExecQueueItem({
+    const allowExecution = await execQueueItemPreExecution({
       queueItem: exec,
       stateDriver: this.stateDriver,
     });
+    if (!allowExecution) {
+      return;
+    }
 
     const ops = await this.execDriver.execute(workflow, run.ctx);
     if (ops.length === 0) {

@@ -26,6 +26,7 @@ export function stepWaitForSignalSuite<TClient extends BaseClient>(
       let runID: string | undefined;
       const counters = {
         top: 0,
+        delayStep: 0,
         bottom: 0,
       };
       let waitResult: { data: { msg: string }; signal: string } | null = null;
@@ -38,7 +39,15 @@ export function stepWaitForSignalSuite<TClient extends BaseClient>(
           waitResult = await step.waitForSignal("a", {
             schema: z.object({ msg: z.string() }),
             signal,
-            timeout: 10_000,
+            timeout: 2000,
+          });
+
+          await step.run("delay", async () => {
+            counters.delayStep++;
+
+            // Wait past the previous `invokeWorkflow`'s timeout. This ensures
+            // we properly skip the timeout job
+            await sleep(3000);
           });
 
           counters.bottom++;
@@ -48,7 +57,7 @@ export function stepWaitForSignalSuite<TClient extends BaseClient>(
       await workflow.start({});
 
       // Sleep a little to ensure the `waitForSignal` step is processed
-      await sleep(2000);
+      await sleep(1000);
       const sendResult = await client.sendSignal({
         signal,
         data: { msg: "hi" },
@@ -57,7 +66,8 @@ export function stepWaitForSignalSuite<TClient extends BaseClient>(
 
       await vi.waitFor(() => {
         expect(counters).toEqual({
-          top: 2,
+          top: 3,
+          delayStep: 1,
           bottom: 1,
         });
       }, 5_000);

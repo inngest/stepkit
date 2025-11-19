@@ -14,7 +14,7 @@ export type OpResultHandler = (opts: {
 export type ExecQueueHandler = (opts: {
   queueItem: ExecQueueData;
   stateDriver: LocalStateDriver;
-}) => Promise<boolean>;
+}) => Promise<{ handled: boolean; allowExecution?: boolean }>;
 
 export type OpHandlers = {
   execQueue: ExecQueueHandler;

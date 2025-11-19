@@ -13,16 +13,11 @@ import type { LocalStateDriver } from "../stateDriver";
 import { type OpHandlers } from "./common";
 
 export const runEndHandlers: OpHandlers = {
-  execQueue: async (): Promise<boolean> => {
-    return false;
+  execQueue: async () => {
+    return { handled: false };
   },
 
-  opResult: async ({
-    execQueue,
-    op,
-    queueItem,
-    stateDriver,
-  }): Promise<boolean> => {
+  opResult: async ({ execQueue, op, queueItem, stateDriver }) => {
     let handled = false;
     if (!shouldEndRun(op, queueItem)) {
       return handled;

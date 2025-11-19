@@ -17,16 +17,21 @@ const handlers: OpHandlers[] = [
   defaultHandlers,
 ];
 
-export async function handleExecQueueItem(opts: {
+/**
+ * Handle any pre-execution logic for execution queue items. Returns true if
+ * execution should be allowed
+ */
+export async function execQueueItemPreExecution(opts: {
   queueItem: ExecQueueData;
   stateDriver: LocalStateDriver;
-}): Promise<void> {
+}): Promise<boolean> {
   for (const handler of handlers) {
-    const handled = await handler.execQueue(opts);
-    if (handled) {
-      return;
+    const result = await handler.execQueue(opts);
+    if (result.handled) {
+      return result.allowExecution ?? true;
     }
   }
+  return true;
 }
 
 export async function handleOpResult(opts: {
