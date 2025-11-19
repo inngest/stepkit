@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { NonRetryableError, type BaseClient } from "@stepkit/sdk-tools";
 
@@ -8,11 +8,19 @@ export function stepRunSuite<TClient extends BaseClient>(
   createClient: () => TClient | Promise<TClient>,
   cleanup: (client: TClient) => void | Promise<void>
 ): void {
-  describe("step.run", () => {
-    it("success", async () => {
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
+  interface TestContext {
+    client: TClient;
+  }
 
+  describe.concurrent("step.run", () => {
+    beforeEach<TestContext>(async (ctx) => {
+      ctx.client = await createClient();
+    });
+    afterEach<TestContext>(async ({ client }) => {
+      await cleanup(client);
+    });
+
+    it<TestContext>("success", async ({ client }) => {
       const counters = {
         top: 0,
         getGreeting: 0,
@@ -49,10 +57,7 @@ export function stepRunSuite<TClient extends BaseClient>(
       });
     });
 
-    it("successful retry", async () => {
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
-
+    it<TestContext>("successful retry", async ({ client }) => {
       const counters = {
         top: 0,
         insideStep: 0,
@@ -84,10 +89,7 @@ export function stepRunSuite<TClient extends BaseClient>(
       });
     });
 
-    it("fail", async () => {
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
-
+    it<TestContext>("fail", async ({ client }) => {
       class FooError extends Error {
         constructor(message: string, options?: ErrorOptions) {
           super(message, options);
@@ -156,10 +158,7 @@ export function stepRunSuite<TClient extends BaseClient>(
       });
     });
 
-    it("NonRetryableError", async () => {
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
-
+    it<TestContext>("NonRetryableError", async ({ client }) => {
       class MyError extends Error {
         constructor(message: string, options?: ErrorOptions) {
           super(message, options);
@@ -199,11 +198,8 @@ export function stepRunSuite<TClient extends BaseClient>(
       });
     });
 
-    it("duplicate step ID", async () => {
+    it<TestContext>("duplicate step ID", async ({ client }) => {
       // Duplicate step IDs are treated as different steps
-
-      const client = await createClient();
-      onTestFinished(async () => cleanup(client));
 
       const counters = {
         top: 0,

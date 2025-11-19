@@ -6,7 +6,7 @@ import {
   type Step,
 } from "@stepkit/core/implementer";
 
-import { toJsonError } from "./errors";
+import { toJsonError, UnreachableError } from "./errors";
 import { OpMode } from "./ops";
 import { createControlledPromise } from "./promises";
 import {
@@ -101,12 +101,14 @@ export async function findOps<
       try {
         i++;
         if (i > maxIterations) {
-          throw new Error("unreachable: infinite loop detected");
+          throw new UnreachableError("infinite loop detected");
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        // Yield to the event loop to allow ops to be reported. We're using
+        // `setImmediate` since it runs after I/O callbacks but before timers.
+        await new Promise((resolve) => setImmediate(resolve));
+
         if (foundOps.length === 0) {
-          pause.reset();
           return [];
         }
 
@@ -123,7 +125,7 @@ export async function findOps<
       }
     }
 
-    throw new Error("unreachable: infinite loop detected");
+    throw new UnreachableError("infinite loop detected");
   }
 
   const ops = await opLoop();

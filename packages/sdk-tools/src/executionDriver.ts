@@ -15,10 +15,10 @@ import {
   type WaitForSignalOpts,
 } from "@stepkit/core/implementer";
 
-import { fromJsonError, toJsonError } from "./errors";
+import { fromJsonError, toJsonError, UnreachableError } from "./errors";
 import { findOps, type ReportOp } from "./findOps";
 import { OpMode, type OpConfigs } from "./ops";
-import { createControlledPromise } from "./promises";
+import { createControlledPromise, singleFlight } from "./promises";
 import type { StateDriver } from "./stateDriver";
 import {
   controlFlow,
@@ -41,7 +41,7 @@ export const insideStep = {
       return undefined;
     }
     if (typeof value !== "string") {
-      throw new Error("unreachable: invalid value in AsyncLocalStorage");
+      throw new UnreachableError("invalid value in AsyncLocalStorage");
     }
     return value;
   },
@@ -310,10 +310,21 @@ export async function createOpResults<
     };
 
     if (op.handler !== undefined) {
-      // Dynamic op
       try {
         insideStep.set(op.id.id);
-        const output = await op.handler();
+
+        // Use `withIdempotency` to ensure that the same op doesn't have
+        // multiple in-flight calls.
+        //
+        // This was added as a hack to get parallel steps working for local
+        // backends (in-memory and file-system). It's only a solution for
+        // single-instance apps (i.e. no replicas). Production-ready backends
+        // must handle this on their end
+        const output = await singleFlight(
+          `${ctx.runId}:${op.id.hashed}`,
+          op.handler
+        );
+
         opResult.result = { status: "success", output };
       } catch (e) {
         opResult.result = {
