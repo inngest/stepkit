@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "pnpm --filter '@stepkit/core' --filter '@stepkit/sdk-tools' --filter '@stepkit/local' --filter '@stepkit/inngest' build",
     "dpdm": "pnpm --no-bail -r dpdm",
     "examples:in-memory": "pnpm -C examples/in-memory dev",
     "examples:inngest": "pnpm -C examples/inngest dev",
@@ -14,9 +15,13 @@
     "precommit": "pnpm format:check; pnpm lint; pnpm type-check; pnpm test; pnpm dpdm",
     "test": "pnpm --no-bail -r test",
     "type-check": "pnpm --no-bail -r type-check",
-    "build": "tsc -p tsconfig.build.json && tsdown --config tsdown.config.ts"
+    "changeset": "changeset",
+    "release:version": "changeset version",
+    "release:all": "pnpm build && changeset publish"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.29.7",
     "@eslint/js": "9.39.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@types/node": "^24.9.2",

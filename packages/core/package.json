@@ -1,13 +1,33 @@
 {
   "name": "@stepkit/core",
   "version": "0.0.0",
-  "main": "./src/main.ts",
-  "types": "./src/main.ts",
+  "type": "module",
+  "main": "./main.cjs",
+  "module": "./main.js",
+  "types": "./main.d.ts",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "exports": {
-    ".": "./src/main.ts",
-    "./implementer": "./src/implementer.ts"
+    ".": {
+      "types": {
+        "import": "./main.d.ts",
+        "require": "./main.d.cts"
+      },
+      "import": "./main.js",
+      "require": "./main.cjs"
+    },
+    "./implementer": {
+      "types": {
+        "import": "./implementer.d.ts",
+        "require": "./implementer.d.cts"
+      },
+      "import": "./implementer.js",
+      "require": "./implementer.cjs"
+    }
   },
   "scripts": {
+    "build": "tsdown --config tsdown.config.ts",
     "dpdm": "dpdm --exit-code circular:1 src/main.ts src/implementer.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

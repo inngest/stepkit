@@ -1,3 +1,9 @@
 .claude
 .stepkit
 node_modules/
+dist/
+*.tgz
+
+# TypeScript build artifacts
+*.tsbuildinfo
+
