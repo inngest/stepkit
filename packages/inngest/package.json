@@ -22,7 +22,7 @@
     }
   },
   "scripts": {
-    "build": "tsdown --config tsdown.config.ts && node ../../scripts/distPackage.js .",
+    "build": "tsdown --config tsdown.config.ts",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "test": "vitest run --reporter=tree",

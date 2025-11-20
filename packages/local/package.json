@@ -22,7 +22,7 @@
     }
   },
   "scripts": {
-    "build": "tsdown --config tsdown.config.ts && node ../../scripts/distPackage.js .",
+    "build": "tsdown --config tsdown.config.ts",
     "dpdm": "dpdm --exit-code circular:1 src/main.ts",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
