@@ -9,8 +9,28 @@
     "registry": "https://registry.npmjs.org"
   },
   "exports": {
-    ".": "./src/main.ts",
-    "./implementer": "./src/implementer.ts"
+    ".": {
+      "source": "./src/main.ts",
+      "import": {
+        "types": "./dist/main.d.ts",
+        "default": "./dist/main.js"
+      },
+      "require": {
+        "types": "./dist/main.d.cts",
+        "default": "./dist/main.cjs"
+      }
+    },
+    "./implementer": {
+      "source": "./src/implementer.ts",
+      "import": {
+        "types": "./dist/implementer.d.ts",
+        "default": "./dist/implementer.js"
+      },
+      "require": {
+        "types": "./dist/implementer.d.cts",
+        "default": "./dist/implementer.cjs"
+      }
+    }
   },
   "scripts": {
     "build": "tsdown --config tsdown.config.ts && node ../../scripts/distPackage.js .",

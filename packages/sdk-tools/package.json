@@ -9,7 +9,17 @@
     "registry": "https://registry.npmjs.org"
   },
   "exports": {
-    ".": "./src/main.ts"
+    ".": {
+      "source": "./src/main.ts",
+      "import": {
+        "types": "./dist/main.d.ts",
+        "default": "./dist/main.js"
+      },
+      "require": {
+        "types": "./dist/main.d.cts",
+        "default": "./dist/main.cjs"
+      }
+    }
   },
   "scripts": {
     "build": "tsdown --config tsdown.config.ts && node ../../scripts/distPackage.js .",

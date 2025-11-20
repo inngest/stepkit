@@ -4,8 +4,28 @@
   "main": "./src/main.ts",
   "types": "./src/main.ts",
   "exports": {
-    ".": "./src/main.ts",
-    "./express": "./src/express.ts"
+    ".": {
+      "source": "./src/main.ts",
+      "import": {
+        "types": "./dist/main.d.ts",
+        "default": "./dist/main.js"
+      },
+      "require": {
+        "types": "./dist/main.d.cts",
+        "default": "./dist/main.cjs"
+      }
+    },
+    "./express": {
+      "source": "./src/express.ts",
+      "import": {
+        "types": "./dist/express.d.ts",
+        "default": "./dist/express.js"
+      },
+      "require": {
+        "types": "./dist/express.d.cts",
+        "default": "./dist/express.cjs"
+      }
+    }
   },
   "scripts": {
     "build": "tsc",

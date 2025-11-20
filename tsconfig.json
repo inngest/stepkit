@@ -12,10 +12,6 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "baseUrl": ".",
-    "paths": {
-      "@stepkit/core": ["packages/core/src/main.ts"],
-      "@stepkit/inngest": ["packages/inngest/src/index.ts"],
-      "@stepkit/local": ["packages/local/src/main.ts"]
-    }
+    "customConditions": ["source"]
   }
 }
