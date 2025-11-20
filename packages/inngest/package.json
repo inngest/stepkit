@@ -15,8 +15,8 @@
     "build": "tsdown --config tsdown.config.ts && node ../../scripts/distPackage.js .",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest run --reporter=tree",
+    "test:watch": "vitest --watch --reporter=tree",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

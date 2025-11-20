@@ -16,8 +16,8 @@
     "dpdm": "dpdm --exit-code circular:1 src/main.ts",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
+    "test": "vitest run --reporter=tree",
+    "test:watch": "vitest --watch --reporter=tree",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

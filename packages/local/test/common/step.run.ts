@@ -54,7 +54,7 @@ export function stepRunSuite<TClient extends BaseClient>(
           getName: 1,
           bottom: 1,
         });
-      });
+      }, 2000);
     });
 
     it<TestContext>("successful retry", async ({ client }) => {

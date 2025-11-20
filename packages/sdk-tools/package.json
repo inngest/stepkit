@@ -16,8 +16,8 @@
     "dpdm": "dpdm --exit-code circular:1 src/main.ts",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "test": "NODE_OPTIONS='--expose-gc' vitest",
-    "test:watch": "NODE_OPTIONS='--expose-gc' vitest --watch",
+    "test": "NODE_OPTIONS='--expose-gc' vitest run --reporter=tree",
+    "test:watch": "NODE_OPTIONS='--expose-gc' vitest --watch --reporter=tree",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
