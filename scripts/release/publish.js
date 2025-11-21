@@ -61,7 +61,9 @@ const exec = async (...args) => {
     exitCode: latestCode,
     stdout: latestStdout,
     stderr: latestStderr,
-  } = await getExecOutput("npm", ["dist-tag", "ls"]);
+  } = await getExecOutput("npm", ["dist-tag", "ls"], {
+    ignoreReturnCode: true,
+  }); 
 
   if (latestCode !== 0) {
     //
@@ -100,18 +102,23 @@ const exec = async (...args) => {
   });
 
   console.log("publishing", tag, "to dist tag:", distTag);
+
+  //
+  // Only use --provenance in CI environments with OIDC support
+  const publishArgs = ["publish", "--tag", distTag, "--access", "public"];
+  if (process.env.CI) {
+    publishArgs.push("--provenance");
+  }
+
+
   const {
     exitCode: publishExitCode,
     stdout: publishStdout,
     stderr: publishStderr,
-  } = await getExecOutput(
-    "npm",
-    ["publish", "--tag", distTag, "--access", "public", "--provenance"],
-    {
-      cwd: distDir,
-      ignoreReturnCode: true,
-    }
-  );
+  } = await getExecOutput("npm", publishArgs, {
+    cwd: distDir,
+    ignoreReturnCode: true,
+  });
 
   if (publishExitCode !== 0) {
     //
