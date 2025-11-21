@@ -23,12 +23,18 @@ try {
   // Update main, module, and types to point to built files
   if (pkg.main?.startsWith("./src/")) {
     pkg.main = "./main.cjs";
+  } else if (pkg.main?.startsWith("./dist/")) {
+    pkg.main = pkg.main.replace("./dist/", "./");
   }
   if (pkg.module?.startsWith("./src/")) {
     pkg.module = "./main.js";
+  } else if (pkg.module?.startsWith("./dist/")) {
+    pkg.module = pkg.module.replace("./dist/", "./");
   }
   if (pkg.types?.startsWith("./src/")) {
     pkg.types = "./main.d.ts";
+  } else if (pkg.types?.startsWith("./dist/")) {
+    pkg.types = pkg.types.replace("./dist/", "./");
   }
 
   //
@@ -65,20 +71,30 @@ function transformExports(exports) {
 }
 
 function transformPath(path) {
-  if (typeof path !== "string" || !path.startsWith("./src/")) {
+  if (typeof path !== "string") {
     return path;
   }
 
   //
-  // Transform ./src/main.ts to conditional exports
-  const filename = path.replace("./src/", "").replace(/\.ts$/, "");
+  // Remove ./dist/ prefix since we're publishing from dist
+  if (path.startsWith("./dist/")) {
+    return path.replace("./dist/", "./");
+  }
 
-  return {
-    types: {
-      import: `./${filename}.d.ts`,
-      require: `./${filename}.d.cts`,
-    },
-    import: `./${filename}.js`,
-    require: `./${filename}.cjs`,
-  };
+  //
+  // Transform ./src/main.ts to conditional exports
+  if (path.startsWith("./src/")) {
+    const filename = path.replace("./src/", "").replace(/\.ts$/, "");
+
+    return {
+      types: {
+        import: `./${filename}.d.ts`,
+        require: `./${filename}.d.cts`,
+      },
+      import: `./${filename}.js`,
+      require: `./${filename}.cjs`,
+    };
+  }
+
+  return path;
 }

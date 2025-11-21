@@ -14,6 +14,13 @@ export default defineConfig({
   minify: false,
   report: true,
   unbundle: true,
-  copy: ["package.json"],
+  copy: [
+    "package.json",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "LICENSE.md",
+    "README.md",
+  ],
   skipNodeModulesBundle: true,
 });

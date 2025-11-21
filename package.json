@@ -16,15 +16,19 @@
     "test": "pnpm --no-bail -r test",
     "type-check": "pnpm --no-bail -r type-check",
     "changeset": "changeset",
-    "release:version": "changeset version",
-    "release:all": "pnpm build && changeset publish"
+    "release:all": "pnpm run build && pnpm run release:publish && pnpm run release:tag",
+    "release:version": "npx changeset version && pnpm run --if-present --recursive release:version",
+    "release:publish": "pnpm run --if-present --recursive release",
+    "release:tag": "node scripts/release/tag.js"
   },
   "devDependencies": {
+    "@actions/exec": "^1.1.1",
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.7",
     "@eslint/js": "9.39.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@types/node": "^24.9.2",
+    "cross-env": "^7.0.3",
     "eslint": "9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vitest": "^0.5.4",

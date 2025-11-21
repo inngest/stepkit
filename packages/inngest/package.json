@@ -25,6 +25,7 @@
     "build": "tsdown --config tsdown.config.ts && node ../../scripts/distPackage.js .",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
+    "release": "pnpm run test && pnpm run build && cross-env DIST_DIR=dist node ../../scripts/release/publish.js",
     "test": "vitest run --reporter=tree",
     "test:watch": "vitest --watch --reporter=tree",
     "type-check": "tsc --noEmit"
