@@ -15,10 +15,7 @@
     "typescript": "^5.0.4",
     "wrangler": "^4.48.0"
   },
-  "packageManager": "pnpm@10",
-  "engines": {
-    "pnpm": "^10"
-  },
+  "packageManager": "pnpm",
   "pnpm": {
     "overrides": {
       "esbuild": "0.21.4"
