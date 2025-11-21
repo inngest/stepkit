@@ -1,4 +1,4 @@
-import type { OpResult, Workflow } from "@stepkit/sdk-tools";
+import { type OpResult, type Workflow } from "@stepkit/sdk-tools";
 
 import type { ExecQueueData, SortedQueue } from "../queue";
 import type { LocalStateDriver } from "../stateDriver";

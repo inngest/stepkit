@@ -8,7 +8,7 @@ import {
   type OpResults,
 } from "@stepkit/sdk-tools";
 
-import type { ExecQueueData, SortedQueue } from "../queue";
+import { type ExecQueueData, type SortedQueue } from "../queue";
 import type { LocalStateDriver } from "../stateDriver";
 import { type OpHandlers } from "./common";
 
@@ -110,9 +110,9 @@ async function resumeWaitingInvoke({
 
   await execQueue.add({
     data: {
+      action: { code: "discover" },
       attempt: 1,
       maxAttempts: queueItem.maxAttempts,
-      prevOpResult: opResult,
       runId: opResult.runId,
       workflowId: opResult.workflowId,
     },

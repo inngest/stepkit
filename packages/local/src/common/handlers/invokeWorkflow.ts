@@ -6,8 +6,9 @@ import {
   type OpResults,
 } from "@stepkit/sdk-tools";
 
+import { defaultMaxAttempts } from "../consts";
 import { UnreachableError } from "../errors";
-import type { ExecQueueData } from "../queue";
+import { type ExecQueueData } from "../queue";
 import type { LocalStateDriver } from "../stateDriver";
 import { startWorkflow } from "../utils";
 import { nextAttempt, type OpHandlers } from "./common";
@@ -15,27 +16,28 @@ import { nextAttempt, type OpHandlers } from "./common";
 export const invokeWorkflowHandlers: OpHandlers = {
   execQueue: async ({ queueItem, stateDriver }) => {
     let handled = false;
-    if (queueItem.prevOpResult === undefined) {
-      return { handled };
-    }
-    if (!isOpResult.invokeWorkflow(queueItem.prevOpResult)) {
+    const { action } = queueItem;
+    if (action.code !== "invokeWorkflow.timeout") {
       return { handled };
     }
     handled = true;
 
     const isEnded =
       (await stateDriver.getOp({
-        hashedOpId: queueItem.prevOpResult.opId.hashed,
+        hashedOpId: action.opResult.opId.hashed,
         runId: queueItem.runId,
       })) !== undefined;
-    const isTimeout = queueItem.prevOpResult.config.mode === OpMode.scheduled;
-    if (isEnded && isTimeout) {
-      // The invokeWorkflow is ended so we need to ignore the timeout queue item
-      return { handled, allowExecution: false };
+    if (isEnded) {
+      return {
+        // Don't allow execution because this timeout was invalidated
+        allowExecution: false,
+
+        handled,
+      };
     }
 
     await timeoutInvokeWorkflowOp({
-      hashedOpId: queueItem.prevOpResult.opId.hashed,
+      hashedOpId: action.opResult.opId.hashed,
       queueItem,
       stateDriver,
     });
@@ -57,10 +59,7 @@ export const invokeWorkflowHandlers: OpHandlers = {
     const invokedStartData = await startWorkflow({
       data: op.config.options.data,
       execQueue,
-
-      // TODO
-      maxAttempts: 4,
-
+      maxAttempts: childWorkflow.maxAttempts ?? defaultMaxAttempts,
       stateDriver,
       workflowId: op.config.options.workflowId,
     });
@@ -78,9 +77,12 @@ export const invokeWorkflowHandlers: OpHandlers = {
 
     await execQueue.add({
       data: {
+        action: {
+          code: "invokeWorkflow.timeout",
+          opResult: op,
+        },
         attempt: nextAttempt(op, queueItem),
         maxAttempts: queueItem.maxAttempts,
-        prevOpResult: op,
         runId: queueItem.runId,
         workflowId: queueItem.workflowId,
       },

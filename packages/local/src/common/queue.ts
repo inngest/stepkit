@@ -1,15 +1,37 @@
-import type { Input, OpResult } from "@stepkit/sdk-tools";
+import type { Input, OpResults } from "@stepkit/sdk-tools";
 
 export type EventQueueData = Input<any, "event">;
 
+// Blindly discover new ops in the workflow
+type ActionDiscover = {
+  code: "discover";
+};
+
+type ActionInvokeWorkflowTimeout = {
+  code: "invokeWorkflow.timeout";
+  opResult: OpResults["invokeWorkflow"];
+};
+
+type ActionSleepWakeup = {
+  code: "sleep.wakeup";
+  opResult: OpResults["sleep"];
+};
+
+type ActionWaitForSignalTimeout = {
+  code: "waitForSignal.timeout";
+  opResult: OpResults["waitForSignal"];
+};
+
 export type ExecQueueData = {
+  // Controls how the queue item is handled
+  action:
+    | ActionDiscover
+    | ActionInvokeWorkflowTimeout
+    | ActionSleepWakeup
+    | ActionWaitForSignalTimeout;
+
   attempt: number;
   maxAttempts: number;
-
-  // OpResult that preceeded this queue item. For example, when a `step.run`
-  // completes then we schedule a new queue item for the next execution
-  prevOpResult?: OpResult;
-
   runId: string;
   workflowId: string;
 };

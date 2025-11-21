@@ -5,28 +5,24 @@ import { nextAttempt, type OpHandlers } from "./common";
 export const sleepHandlers: OpHandlers = {
   execQueue: async ({ queueItem, stateDriver }) => {
     let handled = false;
-    if (queueItem.prevOpResult === undefined) {
-      return { handled };
-    }
-    if (!isOpResult.sleep(queueItem.prevOpResult)) {
+    const { action } = queueItem;
+    if (action.code !== "sleep.wakeup") {
       return { handled };
     }
     handled = true;
 
-    const opResult = {
-      ...queueItem.prevOpResult,
-      config: {
-        ...queueItem.prevOpResult.config,
-        mode: OpMode.immediate,
-      },
-    };
-
     await stateDriver.setOp(
       {
         runId: queueItem.runId,
-        hashedOpId: opResult.opId.hashed,
+        hashedOpId: action.opResult.opId.hashed,
       },
-      opResult
+      {
+        ...action.opResult,
+        config: {
+          ...action.opResult.config,
+          mode: OpMode.immediate,
+        },
+      }
     );
 
     return { handled };
@@ -41,9 +37,12 @@ export const sleepHandlers: OpHandlers = {
 
     await execQueue.add({
       data: {
+        action: {
+          code: "sleep.wakeup",
+          opResult: op,
+        },
         attempt: nextAttempt(op, queueItem),
         maxAttempts: queueItem.maxAttempts,
-        prevOpResult: op,
         runId: queueItem.runId,
         workflowId: queueItem.workflowId,
       },
