@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-
 import path from "path";
 import { fileURLToPath } from "url";
+
 import { exec as rawExec } from "@actions/exec";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

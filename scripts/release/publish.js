@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-
 import path from "path";
-import { exec as rawExec, getExecOutput } from "@actions/exec";
+
+import { getExecOutput, exec as rawExec } from "@actions/exec";
 
 const name = process.env.npm_package_name;
 const version = process.env.npm_package_version;
@@ -63,7 +63,7 @@ const exec = async (...args) => {
     stderr: latestStderr,
   } = await getExecOutput("npm", ["dist-tag", "ls"], {
     ignoreReturnCode: true,
-  }); 
+  });
 
   if (latestCode !== 0) {
     //
@@ -109,7 +109,6 @@ const exec = async (...args) => {
   if (process.env.CI) {
     publishArgs.push("--provenance");
   }
-
 
   const {
     exitCode: publishExitCode,
