@@ -8,9 +8,9 @@ export const defaultHandlers: OpHandlers = {
   opResult: async ({ execQueue, op, queueItem }) => {
     await execQueue.add({
       data: {
+        action: { code: "discover" },
         attempt: nextAttempt(op, queueItem),
         maxAttempts: queueItem.maxAttempts,
-        prevOpResult: op,
         runId: queueItem.runId,
         workflowId: queueItem.workflowId,
       },

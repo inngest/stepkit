@@ -16,52 +16,36 @@ import { nextAttempt, type OpHandlers } from "./common";
 export const waitForSignalHandlers: OpHandlers = {
   execQueue: async ({ queueItem, stateDriver }) => {
     let handled = false;
-    if (queueItem.prevOpResult === undefined) {
-      return { handled };
-    }
-    if (!isOpResult.waitForSignal(queueItem.prevOpResult)) {
+    const { action } = queueItem;
+    if (action.code !== "waitForSignal.timeout") {
       return { handled };
     }
     handled = true;
 
     const isEnded =
       (await stateDriver.getOp({
-        hashedOpId: queueItem.prevOpResult.opId.hashed,
+        hashedOpId: action.opResult.opId.hashed,
         runId: queueItem.runId,
       })) !== undefined;
-    const isTimeout = queueItem.prevOpResult.config.mode === OpMode.scheduled;
-    if (isEnded && isTimeout) {
-      // The waitForSignal is ended so we need to ignore the timeout queue item
-      return { handled, allowExecution: false };
-    }
+    if (isEnded) {
+      return {
+        // Don't allow execution because this timeout was invalidated
+        allowExecution: false,
 
+        handled,
+      };
+    }
     const waitingSignal = await stateDriver.waitingSignals.pop(
-      queueItem.prevOpResult.config.options.signal
+      action.opResult.config.options.signal
     );
     if (waitingSignal === null) {
       return { handled };
     }
-    const opResult: OpResults["waitForSignal"] = {
-      config: {
-        code: StdOpCode.waitForSignal,
-        options: waitingSignal.op.config.options,
-        mode: OpMode.immediate,
-      },
-      opId: waitingSignal.op.opId,
-      result: {
-        status: "success",
-        output: null,
-      },
-      runId: waitingSignal.runId,
-      workflowId: waitingSignal.workflowId,
-    };
-    await stateDriver.setOp(
-      {
-        hashedOpId: waitingSignal.op.opId.hashed,
-        runId: waitingSignal.runId,
-      },
-      opResult
-    );
+    await timeoutWaitForSignalOp({
+      op: action.opResult,
+      stateDriver,
+      waitingSignal,
+    });
     return { handled };
   },
 
@@ -79,9 +63,12 @@ export const waitForSignalHandlers: OpHandlers = {
     });
     await execQueue.add({
       data: {
+        action: {
+          code: "waitForSignal.timeout",
+          opResult: op,
+        },
         attempt: nextAttempt(op, queueItem),
         maxAttempts: queueItem.maxAttempts,
-        prevOpResult: op,
         runId: queueItem.runId,
         workflowId: queueItem.workflowId,
       },
@@ -91,6 +78,9 @@ export const waitForSignalHandlers: OpHandlers = {
   },
 };
 
+/**
+ * Process a signal that was sent by a client
+ */
 export async function processIncomingSignal({
   opts,
   stateDriver,
@@ -120,6 +110,7 @@ export async function processIncomingSignal({
 
   await execQueue.add({
     data: {
+      action: { code: "discover" },
       attempt: 1,
       runId: waitingSignal.runId,
       maxAttempts: workflow.maxAttempts ?? defaultMaxAttempts,
@@ -130,6 +121,9 @@ export async function processIncomingSignal({
   return waitingSignal.runId;
 }
 
+/**
+ * Resume a `step.waitForSignal` op
+ */
 async function resumeWaitForSignalOp({
   data,
   stateDriver,
@@ -162,5 +156,36 @@ async function resumeWaitForSignalOp({
       runId: waitingSignal.runId,
     },
     opResult
+  );
+}
+
+/**
+ * Timeout a `step.waitForSignal` op
+ */
+async function timeoutWaitForSignalOp({
+  op,
+  stateDriver,
+  waitingSignal,
+}: {
+  op: OpResults["waitForSignal"];
+  stateDriver: LocalStateDriver;
+  waitingSignal: WaitingSignal;
+}): Promise<void> {
+  await stateDriver.setOp(
+    {
+      hashedOpId: waitingSignal.op.opId.hashed,
+      runId: waitingSignal.runId,
+    },
+    {
+      ...op,
+      config: {
+        ...op.config,
+        mode: OpMode.immediate,
+      },
+      result: {
+        status: "success",
+        output: null,
+      },
+    }
   );
 }
