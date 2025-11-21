@@ -1,13 +1,7 @@
-const path = require("path");
-const { exec: rawExec, getExecOutput } = require("@actions/exec");
+#!/usr/bin/env node
 
-const branch = process.env.BRANCH;
-if (branch !== "main" && !branch.endsWith(".x")) {
-  throw new Error(
-    `Stopping release from branch ${branch}; only "main" and "v*.x" branches are allowed to release`
-  );
-}
-console.log("branch:", branch);
+import path from "path";
+import { exec as rawExec, getExecOutput } from "@actions/exec";
 
 const name = process.env.npm_package_name;
 const version = process.env.npm_package_version;
@@ -59,6 +53,7 @@ const exec = async (...args) => {
     throw new Error(`git ls-remote exited with ${exitCode}:\n${stderr}`);
   }
 
+  //
   // Get current latest version
   let latestVersion;
 
@@ -69,6 +64,7 @@ const exec = async (...args) => {
   } = await getExecOutput("npm", ["dist-tag", "ls"]);
 
   if (latestCode !== 0) {
+    //
     // It could be a non-zero code if the package was never published before
     const notFoundMsg = "is not in this registry";
 
@@ -97,14 +93,7 @@ const exec = async (...args) => {
 
   console.log("latestVersion:", latestVersion);
 
-  // If this is going to be backport release, don't allow us to continue if we
-  // have no latest version to reset to
-  if (branch !== "main" && !latestVersion) {
-    throw new Error(
-      "Cannot continue with backport release; no latest version found"
-    );
-  }
-
+  //
   // Release to npm
   await exec("npm", ["config", "set", "git-tag-version", "false"], {
     cwd: distDir,
@@ -125,6 +114,7 @@ const exec = async (...args) => {
   );
 
   if (publishExitCode !== 0) {
+    //
     // It could be a non-zero code if the package was already published by
     // another action or human. If this is the case, we should not fail the
     // action.
@@ -144,23 +134,4 @@ const exec = async (...args) => {
   }
 
   console.log("Publish successful");
-
-  // If this was a backport release, republish the "latest" tag at the actual latest version
-  if (branch !== "main" && distTag === "latest") {
-    console.log(
-      'is backport release; updating "latest" tag to:',
-      latestVersion
-    );
-
-    // `npm dist-tag` doesn't obey `publishConfig.registry`, so we must
-    // explicitly pass the registry URL here
-    await exec("npm", [
-      "dist-tag",
-      "add",
-      `stepkit@${latestVersion}`,
-      "latest",
-      "--registry",
-      registry,
-    ]);
-  }
 })();

@@ -1,13 +1,10 @@
-const path = require("path");
-const { exec: rawExec } = require("@actions/exec");
+#!/usr/bin/env node
 
-const branch = process.env.BRANCH;
-if (branch !== "main" && !branch.endsWith(".x")) {
-  throw new Error(
-    `Stopping release from branch ${branch}; only "main" and "v*.x" branches are allowed to release`
-  );
-}
-console.log("branch:", branch);
+import path from "path";
+import { fileURLToPath } from "url";
+import { exec as rawExec } from "@actions/exec";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const exec = async (...args) => {
   const exitCode = await rawExec(...args);
@@ -19,10 +16,11 @@ const exec = async (...args) => {
 const repoRootDir = path.join(__dirname, "..", "..");
 
 (async () => {
+  //
   // Tag and push the release commit
   console.log('running "changeset tag" to tag the release commit');
   await exec("changeset", ["tag"], { cwd: repoRootDir });
 
-  console.log(`pushing git tags to origin/${branch}`);
-  await exec("git", ["push", "--follow-tags", "origin", branch]);
+  console.log("pushing git tags to origin");
+  await exec("git", ["push", "--follow-tags"]);
 })();

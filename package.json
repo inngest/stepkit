@@ -16,10 +16,10 @@
     "test": "pnpm --no-bail -r test",
     "type-check": "pnpm --no-bail -r type-check",
     "changeset": "changeset",
-    "release:all": "pnpm run build && pnpm run release:publish && pnpm run release:tag",
-    "release:version": "npx changeset version && pnpm run --if-present --recursive release:version",
-    "release:publish": "pnpm run --if-present --recursive release",
-    "release:tag": "node scripts/release/tag.js"
+    "release:version": "changeset version",
+    "release:publish": "pnpm --filter '@stepkit/core' --filter '@stepkit/sdk-tools' --filter '@stepkit/local' --filter '@stepkit/inngest' release",
+    "release:tag": "node scripts/release/tag.js",
+    "release:all": "pnpm run build && pnpm run release:publish && pnpm run release:tag"
   },
   "devDependencies": {
     "@actions/exec": "^1.1.1",
