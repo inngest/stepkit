@@ -32,7 +32,7 @@
     "test": "echo \"No tests yet\""
   },
   "dependencies": {
-    "@stepkit/sdk-tools": "*",
+    "@stepkit/sdk-tools": "workspace:*",
     "zod": "^4.1.12"
   },
   "optionalDependencies": {

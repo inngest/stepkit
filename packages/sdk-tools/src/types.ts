@@ -42,6 +42,9 @@ export type OpResult<
     | {
         status: "error";
         error: JsonError;
+      }
+    | {
+        status: "plan";
       };
   runId: string;
   workflowId: string;

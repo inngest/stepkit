@@ -108,7 +108,16 @@ export class Orchestrator {
       return;
     }
 
-    const ops = await this.execDriver.execute(workflow, run.ctx);
+    let targetHashedOpId: string | undefined;
+    if (exec.action.code === "targetOp") {
+      targetHashedOpId = exec.action.hashedOpId;
+    }
+
+    const ops = await this.execDriver.execute({
+      ctx: run.ctx,
+      targetHashedOpId,
+      workflow,
+    });
     if (ops.length === 0) {
       throw new UnreachableError("no ops found");
     }
@@ -158,6 +167,9 @@ export class Orchestrator {
       if (run.result.status === "success") {
         // @ts-expect-error - Necessary because of generics
         return run.result.output;
+      }
+      if (run.result.status === "plan") {
+        throw new UnreachableError("status is plan");
       }
       throw fromJsonError(run.result.error);
     }

@@ -60,15 +60,18 @@ importers:
   packages/cloudflare:
     dependencies:
       '@stepkit/core':
-        specifier: '*'
-        version: 0.0.1
+        specifier: workspace:*
+        version: link:../core
       '@stepkit/sdk-tools':
-        specifier: '*'
-        version: 0.0.1
+        specifier: workspace:*
+        version: link:../sdk-tools
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20250417.0
         version: 4.20251121.0
+      '@types/node':
+        specifier: ^24.9.2
+        version: 24.9.2
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -107,11 +110,11 @@ importers:
   packages/inngest:
     dependencies:
       '@stepkit/core':
-        specifier: '*'
-        version: 0.0.1
+        specifier: workspace:*
+        version: link:../core
       '@stepkit/sdk-tools':
-        specifier: '*'
-        version: 0.0.1
+        specifier: workspace:*
+        version: link:../sdk-tools
     devDependencies:
       '@types/express':
         specifier: ^5.0.5
@@ -135,8 +138,8 @@ importers:
   packages/inngest-sdk-tools:
     dependencies:
       '@stepkit/sdk-tools':
-        specifier: '*'
-        version: 0.0.1
+        specifier: workspace:*
+        version: link:../sdk-tools
       zod:
         specifier: ^4.1.12
         version: 4.1.12
@@ -152,11 +155,11 @@ importers:
   packages/local:
     dependencies:
       '@stepkit/core':
-        specifier: '*'
-        version: 0.0.1
+        specifier: workspace:*
+        version: link:../core
       '@stepkit/sdk-tools':
-        specifier: '*'
-        version: 0.0.1
+        specifier: workspace:*
+        version: link:../sdk-tools
     devDependencies:
       dpdm:
         specifier: ^3.14.0
@@ -177,8 +180,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       '@stepkit/core':
-        specifier: '*'
-        version: 0.0.1
+        specifier: workspace:*
+        version: link:../core
       hash.js:
         specifier: ^1.1.7
         version: 1.1.7

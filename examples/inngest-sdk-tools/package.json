@@ -11,8 +11,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@stepkit/core": "*",
-    "@stepkit/inngest-sdk-tools": "*",
+    "@stepkit/core": "workspace:*",
+    "@stepkit/inngest-sdk-tools": "workspace:*",
     "express": "^5.1.0"
   },
   "devDependencies": {

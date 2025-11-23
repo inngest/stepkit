@@ -1,3 +1,5 @@
+import { UnreachableError } from "packages/sdk-tools/src/errors";
+
 import type { Workflow } from "@stepkit/core";
 import { StdOpCode, type Context, type ExtDefault } from "@stepkit/sdk-tools";
 
@@ -22,7 +24,7 @@ export async function execute(
     },
     runId: req.ctx.run_id,
   };
-  const ops = await driver.execute(workflow, ctx);
+  const ops = await driver.execute({ ctx, workflow });
   if (ops.length === 1 && ops[0] !== undefined) {
     const op = ops[0];
     if (op.config.code === StdOpCode.workflow) {
@@ -58,6 +60,8 @@ export async function execute(
       let data: unknown;
       if (op.result.status === "success") {
         data = op.result.output;
+      } else if (op.result.status === "plan") {
+        throw new UnreachableError("status is plan");
       } else {
         data = op.result.error.message;
       }

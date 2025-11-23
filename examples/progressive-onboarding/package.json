@@ -10,8 +10,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@stepkit/core": "*",
-    "@stepkit/local": "*",
+    "@stepkit/core": "workspace:*",
+    "@stepkit/local": "workspace:*",
     "zod": "^4.1.12"
   },
   "devDependencies": {

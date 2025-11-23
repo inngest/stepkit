@@ -23,16 +23,16 @@
   },
   "scripts": {
     "build": "tsdown --config tsdown.config.ts && node ../../scripts/distPackage.js .",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "release": "pnpm run test && pnpm run build && cross-env DIST_DIR=dist node ../../scripts/release/publish.js",
     "test": "vitest run --reporter=tree",
     "test:watch": "vitest --watch --reporter=tree",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@stepkit/core": "*",
-    "@stepkit/sdk-tools": "*"
+    "@stepkit/core": "workspace:*",
+    "@stepkit/sdk-tools": "workspace:*"
   },
   "devDependencies": {
     "@types/express": "^5.0.5",

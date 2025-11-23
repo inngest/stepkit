@@ -17,6 +17,11 @@ type ActionSleepWakeup = {
   opResult: OpResults["sleep"];
 };
 
+type ActionTargetOp = {
+  code: "targetOp";
+  hashedOpId: string;
+};
+
 type ActionWaitForSignalTimeout = {
   code: "waitForSignal.timeout";
   opResult: OpResults["waitForSignal"];
@@ -28,6 +33,7 @@ export type ExecQueueData = {
     | ActionDiscover
     | ActionInvokeWorkflowTimeout
     | ActionSleepWakeup
+    | ActionTargetOp
     | ActionWaitForSignalTimeout;
 
   attempt: number;

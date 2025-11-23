@@ -1,12 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "../..",
-    "paths": {
-      "@stepkit/core": ["packages/core/src/main.ts"],
-      "@stepkit/inngest": ["packages/inngest/src/index.ts"],
-      "@stepkit/local": ["packages/local/src/main.ts"]
-    }
+    "baseUrl": "../.."
   },
   "include": ["src/**/*", "test/**/*.ts"]
 }

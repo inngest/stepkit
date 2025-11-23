@@ -1,7 +1,5 @@
 import {
   isOpResult,
-  OpMode,
-  StdOpCode,
   type OpResults,
   type SendSignalOpts,
   type Workflow,
@@ -22,11 +20,12 @@ export const waitForSignalHandlers: OpHandlers = {
     }
     handled = true;
 
+    const existingOp = await stateDriver.getOp({
+      hashedOpId: action.opResult.opId.hashed,
+      runId: queueItem.runId,
+    });
     const isEnded =
-      (await stateDriver.getOp({
-        hashedOpId: action.opResult.opId.hashed,
-        runId: queueItem.runId,
-      })) !== undefined;
+      existingOp !== undefined && existingOp.result.status !== "plan";
     if (isEnded) {
       return {
         // Don't allow execution because this timeout was invalidated
@@ -134,11 +133,7 @@ async function resumeWaitForSignalOp({
   waitingSignal: WaitingSignal;
 }): Promise<void> {
   const opResult: OpResults["waitForSignal"] = {
-    config: {
-      code: StdOpCode.waitForSignal,
-      options: waitingSignal.op.config.options,
-      mode: OpMode.immediate,
-    },
+    config: waitingSignal.op.config,
     opId: waitingSignal.op.opId,
     result: {
       status: "success",
@@ -178,10 +173,6 @@ async function timeoutWaitForSignalOp({
     },
     {
       ...op,
-      config: {
-        ...op.config,
-        mode: OpMode.immediate,
-      },
       result: {
         status: "success",
         output: null,
