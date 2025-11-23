@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@stepkit/core": "*",
-    "@stepkit/in-memory": "*",
+    "@stepkit/local": "*",
     "zod": "^4.1.12"
   },
   "devDependencies": {

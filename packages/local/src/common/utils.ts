@@ -1,6 +1,6 @@
 import type { StartData } from "@stepkit/sdk-tools";
 
-import type { ExecQueueData, SortedQueue } from "./queue";
+import { type ExecQueueData, type SortedQueue } from "./queue";
 import type { LocalStateDriver } from "./stateDriver";
 
 export async function sleep(ms: number): Promise<void> {
@@ -44,6 +44,7 @@ export async function startWorkflow({
 
   await execQueue.add({
     data: {
+      action: { code: "discover" },
       attempt: 1,
       maxAttempts,
       runId,

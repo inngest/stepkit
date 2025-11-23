@@ -4,9 +4,8 @@ import {
   type ServeHandlerOptions,
 } from "inngest";
 
+import { InvalidInputError, NonRetryableError } from "@stepkit/core";
 import {
-  InvalidInputError,
-  NonRetryableError,
   type Context,
   type ExtDefault,
   type InputDefault,
