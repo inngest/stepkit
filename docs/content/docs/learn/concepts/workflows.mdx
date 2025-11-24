@@ -1,0 +1,73 @@
+---
+title: Workflows
+---
+
+Workflows provide fault-tolerant code execution by handling failures and interruptions gracefully through automatic retries and state persistence. Despite network failures, timeouts, infrastructure outages, and other transient errors, your code just works.
+
+The key to unbreakable workflows is to breakdown the flow into durable steps, ensuring that the workflow can resume from the last successful step in case of failure. 
+
+## How to define a workflow
+
+Stepkit exports multiple drivers offering different storage and orchestration strategies. 
+
+- [In-Memory Driver](/docs/learn/driver-guides/in-memory-driver) - Stores state in memory (ephemeral)
+- [File System Driver](/docs/learn/driver-guides/file-system-driver) - Stores state on local disk
+- [Inngest Driver](/docs/learn/driver-guides/inngest-driver) - Stores state on Inngest platform
+
+Each driver exposes the same API to create workflows but might offer different step APIs for custom steps.
+
+```typescript
+const client = new Client({
+  driver: new InMemoryDriver(),
+});
+```
+
+### Create a workflow
+
+Workflows are regular code. Write code and use libraries like you normally would.
+
+Workflows suspend at each step until it completes, when you call `sleep()`, or when a failure happens. Each step's return value gets stored. When the workflow resumes, it skips completed steps and uses their stored results.
+
+Workflows take a first parameter which is an object with the workflow id and an optional input schema. The `inputSchema` is used to validate the input to the workflow when it is invoked. 
+
+```typescript
+const workflow = client.workflow(
+  {
+    id: "my-workflow",
+    // optional input schema
+    inputSchema: z.object({ name: z.string() }),
+  },
+
+);
+```
+
+### Add steps to a workflow
+
+The second parameter of a workflow is a function that has a `context` object and `step` object as parameters. The `context` object is used to access the input to the workflow and the step argument is used to orchestrate steps within the workflow.
+
+You can read more about steps in the [steps](/docs/learn/concepts/steps) documentation.
+
+```typescript
+const workflow = client.workflow(
+  {
+    id: "my-workflow",
+  },
+  async ({ input }, step) => {
+    // This step will run when the workflow is invoked
+    await step.run("my-step", async () => {
+      return { name: input.data.name };
+    });
+  }
+);
+```
+---
+
+## Invoke a workflow
+
+Workflows are invoked by calling the `startWorkflow` method on the client. The method takes the workflow you want to invoke as the first argument and the input to the workflow as the second argument. 
+
+```typescript
+const result = await client.startWorkflow(workflow, { name: "John" });
+```
+
+It is that simple to create and start building with workflows. You can look more into available drivers in the [drivers](/docs/learn/concepts/drivers) documentation.

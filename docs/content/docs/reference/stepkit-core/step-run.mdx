@@ -1,0 +1,85 @@
+---
+title: step.run()
+---
+
+Executes a durable step within a workflow. Once a step completes successfully, its result is cached and the step will not re-execute on workflow resume. Failed steps automatically retry with exponential backoff.
+
+## Signature
+
+```typescript
+step.run<T>(stepId: string, handler: () => T): Promise<T>
+```
+
+## Parameters
+
+| Name | Type | Description |
+|------|------|-------------|
+| `stepId` | `string` | Unique identifier for this step. Used for state persistence and memoization. Must be unique within the workflow. |
+| `handler` | `() => T` | Function containing the step's logic. Can be synchronous or asynchronous. The return value is cached for workflow resumption. |
+
+## Examples
+
+**Basic step:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "process-order" },
+  async ({ input }, step) => {
+    const order = await step.run("fetch-order", async () => {
+      return await db.orders.get(input.data.orderId);
+    });
+    
+    return { orderId: order.id };
+  }
+);
+```
+
+**Multiple steps:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "user-signup" },
+  async ({ input }, step) => {
+    const user = await step.run("create-user", async () => {
+      return await db.users.create({ email: input.data.email });
+    });
+    
+    await step.run("send-welcome-email", async () => {
+      return await sendEmail(user.email, "Welcome!");
+    });
+    
+    await step.run("add-to-crm", async () => {
+      return await crm.addContact(user);
+    });
+    
+    return user;
+  }
+);
+```
+
+## Behavior
+
+### Memoization
+Once a step completes successfully, its result is stored. If the workflow resumes (due to a crash, timeout, or subsequent step failure), completed steps return their cached results instead of re-executing.
+
+```typescript
+// First execution: all steps run
+await step.run("step-1", async () => console.log("runs"));  // logs
+await step.run("step-2", async () => console.log("runs"));  // logs
+await step.run("step-3", async () => { throw new Error(); }); // fails
+
+// After retry: only failed step re-runs
+await step.run("step-1", async () => console.log("runs"));  // cached, doesn't log
+await step.run("step-2", async () => console.log("runs"));  // cached, doesn't log
+await step.run("step-3", async () => console.log("runs"));  // re-runs, logs
+```
+
+### Automatic Retries
+Failed steps automatically retry with exponential backoff. The number of retry attempts is controlled by the workflow's `maxAttempts` configuration.
+
+### Return Values
+Step handlers can return any JSON-serializable value. The return value is type-safe and available to subsequent workflow code.
+
+<Callout type="info">
+Return values are JSON serialized for storage. Types may not match runtime types after resumption (e.g. `Date` objects become strings).
+</Callout>

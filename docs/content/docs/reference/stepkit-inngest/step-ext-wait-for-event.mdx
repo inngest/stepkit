@@ -1,0 +1,115 @@
+---
+title: step.ext.waitForEvent()
+---
+
+Pause workflow execution until a specific event is received or a timeout is reached. This is an Inngest-specific step extension that enables event-driven, long-running workflows with human-in-the-loop processes or cross-workflow communication.
+
+## Signature
+
+```typescript
+step.ext.waitForEvent(
+  stepId: string,
+  opts: { event: string; timeout: number | string | Date }
+): Promise<ReceivedEvent | null>
+```
+
+## Parameters
+
+| Name | Type | Description |
+|------|------|-------------|
+| `stepId` | `string` | Unique identifier for this step. Used for state persistence. |
+| `opts` | `WaitOptions` | Configuration options. See [WaitOptions](#waitoptions) below. |
+
+### WaitOptions
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `event` | `string` | **Required.** The event name to wait for. |
+| `timeout` | `number \| string \| Date` | **Required.** Maximum time to wait. Can be milliseconds (number), duration string (e.g., "7d"), or a Date object. |
+
+## Returns
+
+Returns a promise that resolves to either:
+- `ReceivedEvent` - The event that was received
+- `null` - If the timeout was reached before an event arrived
+
+### ReceivedEvent
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `data` | `Record<string, unknown>` | Event payload data. |
+| `id` | `string` | Unique event identifier. |
+| `name` | `string` | Event name. |
+| `ts` | `number` | Event timestamp in milliseconds. |
+| `v` | `string \| undefined` | Event version identifier. |
+
+## Examples
+
+**Wait for approval with timeout:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "document-approval" },
+  async ({ input }, step) => {
+    const document = await step.run("create-document", async () => {
+      return await db.documents.create(input.data);
+    });
+    
+    await step.run("notify-approver", async () => {
+      return await sendEmail(document.approverId, "Please review");
+    });
+    
+    // Wait up to 7 days for approval
+    const approval = await step.ext.waitForEvent("wait-approval", {
+      event: "document.approved",
+      timeout: "7d",
+    });
+    
+    if (approval === null) {
+      // Timeout reached without approval
+      await step.run("handle-timeout", async () => {
+        return await markDocumentExpired(document.id);
+      });
+      return { status: "expired" };
+    }
+    
+    await step.run("finalize-document", async () => {
+      return await db.documents.approve(document.id);
+    });
+    
+    return { status: "approved", approver: approval.data.userId };
+  }
+);
+```
+
+**Payment confirmation workflow:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "payment-confirmation" },
+  async ({ input }, step) => {
+    const order = await step.run("create-order", async () => {
+      return await createOrder(input.data);
+    });
+    
+    // Wait for payment webhook
+    const payment = await step.ext.waitForEvent("wait-payment", {
+      event: "payment.completed",
+      timeout: 3600000, // 1 hour in milliseconds
+    });
+    
+    if (payment === null) {
+      await step.run("cancel-order", async () => {
+        return await cancelOrder(order.id);
+      });
+      return { status: "cancelled" };
+    }
+    
+    await step.run("fulfill-order", async () => {
+      return await fulfillOrder(order.id, payment.data);
+    });
+    
+    return { status: "completed" };
+  }
+);
+```

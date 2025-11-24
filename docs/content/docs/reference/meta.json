@@ -1,0 +1,6 @@
+{
+  "title": "Reference",
+  "icon": "Library",
+  "pages": ["---@stepkit/core---", "...stepkit-core", "---@stepkit/inngest---", "...stepkit-inngest"],
+  "root": true
+}

@@ -1,0 +1,58 @@
+---
+title: step.sleep()
+---
+
+Pauses workflow execution for a specified duration without holding compute resources. The workflow resumes automatically after the sleep duration.
+
+## Signature
+
+```typescript
+step.sleep(stepId: string, duration: number): Promise<void>
+```
+
+## Parameters
+
+| Name | Type | Description |
+|------|------|-------------|
+| `stepId` | `string` | Unique identifier for this sleep step. Used for state persistence and resumption. |
+| `duration` | `number` | Duration to sleep in milliseconds. Must be a positive integer. |
+
+## Examples
+
+**Basic sleep:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "delayed-process" },
+  async ({ input }, step) => {
+    await step.run("process-start", async () => {
+      return await startProcess();
+    });
+    
+    await step.sleep("wait-30s", 30 * 1000);
+    
+    await step.run("process-complete", async () => {
+      return await completeProcess();
+    });
+  }
+);
+```
+
+**Long-duration sleep:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "trial-expiration" },
+  async ({ input }, step) => {
+    await step.run("start-trial", async () => {
+      return await startTrial(input.data.userId);
+    });
+    
+    await step.sleep("wait-7-days", 7 * 24 * 60 * 60 * 1000);
+    
+    await step.run("send-expiration-notice", async () => {
+      return await sendExpirationEmail(input.data.userId);
+    });
+  } 
+);
+```

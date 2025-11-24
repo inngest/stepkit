@@ -1,0 +1,85 @@
+---
+title: step.sleepUntil()
+---
+
+Pause workflow execution until a specific date and time. The workflow resumes automatically at the specified time without consuming compute resources while waiting.
+
+## Signature
+
+```typescript
+step.sleepUntil(stepId: string, wakeAt: Date): Promise<void>
+```
+
+## Parameters
+
+| Name | Type | Description |
+|------|------|-------------|
+| `stepId` | `string` | Unique identifier for this sleep step. Used for state persistence and resumption. |
+| `wakeAt` | `Date` | The date and time when the workflow should resume. |
+
+## Examples
+
+**Sleep until specific date:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "scheduled-reminder" },
+  async ({ input }, step) => {
+    await step.run("create-reminder", async () => {
+      return await db.reminders.create(input.data);
+    });
+    
+    // Sleep until the reminder date
+    const reminderDate = new Date(input.data.scheduledFor);
+    await step.sleepUntil("wait-until-scheduled", reminderDate);
+    
+    await step.run("send-reminder", async () => {
+      return await sendReminder(input.data.userId);
+    });
+  }
+);
+```
+
+**Sleep until end of business day:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "daily-report" },
+  async ({ input }, step) => {
+    await step.run("process-data", async () => {
+      return await processData(input.data);
+    });
+    
+    // Sleep until 5 PM today
+    const endOfDay = new Date();
+    endOfDay.setHours(17, 0, 0, 0);
+    
+    await step.sleepUntil("wait-until-5pm", endOfDay);
+    
+    await step.run("send-report", async () => {
+      return await sendDailyReport();
+    });
+  }
+);
+```
+
+**Sleep until next scheduled time:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "subscription-renewal" },
+  async ({ input }, step) => {
+    const subscription = await step.run("get-subscription", async () => {
+      return await db.subscriptions.get(input.data.subscriptionId);
+    });
+    
+    // Sleep until renewal date
+    const renewalDate = new Date(subscription.renewsAt);
+    await step.sleepUntil("wait-until-renewal", renewalDate);
+    
+    await step.run("process-renewal", async () => {
+      return await renewSubscription(subscription.id);
+    });
+  }
+);
+```

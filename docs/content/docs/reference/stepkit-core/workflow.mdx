@@ -1,0 +1,260 @@
+---
+title: Workflow
+description: Create durable workflows
+---
+
+Workflows are the top-level execution units in StepKit that orchestrate one or more steps into reliable, observable processes. They're created using the `client.workflow()` method, which provides type-safe configuration and runtime guarantees.
+
+## Creating a Workflow
+
+Workflows are created by calling `client.workflow()` with configuration options and a handler function:
+
+```typescript
+import { client } from "./client";
+import { z } from "zod";
+
+export const workflow = client.workflow(
+  {
+    id: "say-hi",
+    inputSchema: z.object({ name: z.string() }),
+  },
+  async ({ input }, step) => {
+    const randomNumber = await step.run("random-number", () => {
+      return Math.floor(Math.random() * 100);
+    });
+
+    return `Hello ${input.data.name}! Your random number is ${randomNumber}.`;
+  }
+);
+```
+
+## Configuration
+
+The first argument to `client.workflow()` is a configuration object with the following options:
+
+| Name | Type | Description |
+|------|------|-------------|
+| `id` | `string` | **Required.** A unique identifier for the workflow. Used for workflow discovery, logging, and execution tracking. |
+| `inputSchema` | `StandardSchemaV1` | **Optional.** A schema validator for workflow input. Supports any Standard Schema v1 compliant library (Zod, Valibot, ArkType, etc.). Provides both static TypeScript types and runtime validation. |
+| `triggers` | `Trigger[]` | **Optional.** Define how and when the workflow should be triggered. See [Trigger types](#trigger) below. |
+| `maxAttempts` | `number` | **Optional.** The maximum number of times the workflow will retry on failure. Defaults to the client's configured retry behavior. |
+| `ext` | `TCfgExt` | **Optional.** Driver-specific extensions and configuration options. The shape of this object depends on your orchestration driver. |
+
+### Trigger
+
+A `Trigger` can be either a cron-based schedule or an event-based trigger:
+
+| Type | Properties | Description |
+|------|------------|-------------|
+| `CronTrigger` | `type: "cron"`<br/>`schedule: string` | Triggers the workflow on a cron schedule. Use `cronTrigger(schedule)` helper to create. |
+| `EventTrigger` | `type: "event"`<br/>`name: string` | Triggers the workflow when a specific event occurs. Use `eventTrigger(name)` helper to create. |
+
+### Examples
+
+**Basic workflow with input validation:**
+
+```typescript
+import { z } from "zod";
+
+const workflow = client.workflow(
+  {
+    id: "process-order",
+    inputSchema: z.object({
+      orderId: z.string(),
+      amount: z.number(),
+    }),
+  },
+  async ({ input }, step) => {
+    // input.data is fully typed and validated
+    console.log(input.data.orderId);
+  }
+);
+```
+
+**Workflow with triggers:**
+
+```typescript
+import { cronTrigger, eventTrigger } from "@stepkit/core";
+
+const workflow = client.workflow(
+  {
+    id: "daily-cleanup",
+    triggers: [
+      cronTrigger("0 2 * * *"),
+      eventTrigger("cleanup.requested"),
+    ],
+  },
+  async ({ input }, step) => {
+    // Workflow logic here
+  }
+);
+```
+
+**Workflow with retry configuration:**
+
+```typescript
+const workflow = client.workflow(
+  {
+    id: "critical-task",
+    maxAttempts: 5,
+  },
+  async ({ input }, step) => {
+    // Workflow logic here
+  }
+);
+```
+
+## Handler Function
+
+The second argument is the handler function that defines your workflow's logic:
+
+```typescript
+async (ctx: Context<TInput, TCtxExt>, step: Step<TStepExt>) => Promise<TOutput>
+```
+
+The context object is typically destructured to access `input` directly:
+
+```typescript
+async ({ input }, step) => {
+  // Access input data via input.data
+  console.log(input.data);
+}
+```
+
+### Parameters
+
+| Name | Type | Description |
+|------|------|-------------|
+| `ctx` | `Context<TInput, TCtxExt>` | Context object containing workflow execution information. See [Context properties](#context) below. |
+| `step` | `Step<TStepExt>` | Step API for creating durable operations. See [Step methods](#step-methods) below. |
+
+### Context
+
+The context object provides access to workflow input and extensions:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `input.data` | `TInput` | The validated workflow input data (typed and validated by `inputSchema`). |
+| `ext` | `TCtxExt` | Driver-specific context extensions. Shape depends on the orchestration driver. |
+
+### Step Methods
+
+The step object provides methods for creating durable, retryable operations:
+
+| Method | Description |
+|--------|-------------|
+| `run(id, fn)` | Execute a durable step. See [step.run()](/docs/reference/stepkit-core/step-run). |
+| `sleep(id, duration)` | Pause workflow without holding resources. See [step.sleep()](/docs/reference/stepkit-core/step-sleep). |
+| `waitForSignal(id, options)` | Wait for external signal or event. See [step.waitForSignal()](/docs/reference/stepkit-core/step-waitForSignal). |
+| `ext.*` | Driver-specific step extensions. |
+
+## Starting a Workflow
+
+Once created, start a workflow instance by calling `client.startWorkflow()`:
+
+```typescript
+const workflow = client.workflow(
+  { id: "process-order", inputSchema: z.object({ orderId: z.string() }) },
+  async ({ input }, step) => { /* ... */ }
+);
+
+// Start the workflow
+const result = await client.startWorkflow(workflow, { orderId: "order_123" });
+```
+
+### StartData
+
+The `client.startWorkflow()` method returns a `StartData` object with the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `runId` | `string` | Unique identifier for this workflow run. |
+| `eventId` | `string` | Event identifier (used for event-triggered workflows). |
+
+## Execution Model
+
+When a workflow executes:
+
+1. **Initial Run**: The handler function runs from the beginning
+2. **Step Checkpoints**: Each completed step creates a checkpoint in durable storage
+3. **Resume on Failure**: If the workflow crashes or times out, it resumes from the last successful step
+4. **Memoization**: Previously completed steps return their cached results instead of re-executing
+
+This execution model makes workflows resilient to failures, deployments, and infrastructure issues.
+
+## Input and Output
+
+### Accepting Input
+
+Workflow input is accessed via `input.data` and validated by the optional `inputSchema`:
+
+```typescript
+import { z } from "zod";
+
+const workflow = client.workflow(
+  {
+    id: "process-order",
+    inputSchema: z.object({
+      orderId: z.string(),
+      userId: z.number(),
+    }),
+  },
+  async ({ input }, step) => {
+    // input.data is fully typed and validated
+    console.log(input.data.orderId);
+    console.log(input.data.userId);
+  }
+);
+```
+
+### Returning Output
+
+The handler function's return value becomes the workflow output. It must be JSON-serializable:
+
+```typescript
+const workflow = client.workflow(
+  { id: "create-user" },
+  async ({ input }, step) => {
+    return { 
+      userId: "123", 
+      status: "completed" 
+    };
+  }
+);
+```
+
+<Callout type="info">
+Return values are JSON serialized for storage. Types may not match runtime types after resumption (e.g. `Date` objects become strings).
+</Callout>
+
+## Long-Running Workflows
+
+Workflows can run for seconds, hours, days, or even months using `step.sleep()` without consuming compute resources:
+
+```typescript
+const onboarding = client.workflow(
+  {
+    id: "user-onboarding",
+    inputSchema: z.object({ userId: z.string() }),
+  },
+  async ({ input }, step) => {
+    await step.run("send-day-1-email", async () => {
+      return await sendOnboardingEmail(input.data.userId, "day-1");
+    });
+    
+    // Sleep for 3 days without holding resources
+    await step.sleep("wait-3-days", 3 * 24 * 60 * 60 * 1000);
+    
+    await step.run("send-day-4-email", async () => {
+      return await sendOnboardingEmail(input.data.userId, "day-4");
+    });
+  }
+);
+```
+
+## Related
+
+- [StepKit Client](/docs/reference/stepkit-core/stepkit-client) - Client initialization and configuration
+- [step.run()](/docs/reference/stepkit-core/step-run) - Execute durable steps
+- [step.sleep()](/docs/reference/stepkit-core/step-sleep) - Pause workflows without holding resources
+- [Orchestration Drivers](/docs/learn/concepts/orchestration-drivers) - Runtime platforms for workflows

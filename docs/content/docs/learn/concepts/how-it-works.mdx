@@ -1,0 +1,83 @@
+---
+title: How It Works
+---
+
+StepKit provides one unified API for durable workflows that works across multiple providers and storages. Write your workflow once, run it anywhere. 
+
+
+---
+
+## What is Durable Execution?
+
+Developers often experience the lack of durability firsthand through long hours spent debugging or going through logs due to issues like network failures, timeouts, outages, or something else. 
+
+Durable execution is a fault-tolerant approach to how code executes. Through automatic retries and state persistence network failures, timeouts, and outages no longer cause code to stop running. Durable execution, durable functions, and durable workflows all refer to the category of a fault-tolerant approach to code execution
+
+There are many available solutions for workflows but each is a platform specific API. This is why StepKit exists.
+
+---
+
+## Workflows in StepKit
+
+StepKit workflows are built on clearly defined step methods. Steps receive an ID that serves as an explicit identifier for step state. This ID allows for refactoring, logging, and updating without interrupting currently running workflows. 
+
+Traditional imperative code executes line by line. StepKit explicitly defines each unit of work as a step, giving the backend driver the information it needs to manage state, retries, and recovery.
+
+```typescript
+// Traditional approach
+async function processOrder(order) {
+  await validatePayment(order);
+  await createShipment(order);
+  await sendConfirmation(order);
+}
+
+// StepKit approach - durable execution
+  await step.run("validate-payment", () => validatePayment(order));
+  await step.run("create-shipment", () => createShipment(order));
+  await step.run("send-confirmation", () => sendConfirmation(order));
+```
+
+If `create-shipment` fails, when the workflow resumes - `validate-payment` won't run again, and only the failed step will retry. No issues with operations running mutiple times, data issues, and so on.
+
+---
+
+## One API, any backend
+
+StepKit provides one unified API that works across multiple backends. Write your workflow once, run it anywhere.
+
+Multiple orchestration drivers means your workflows become portable across:
+
+- **[Inngest](/docs/learn/driver-guides/inngest-driver)** - Production-ready orchestration with built-in observability
+- **[In-Memory](/docs/learn/driver-guides/in-memory-driver)** - Local development and testing without external dependencies
+- **[File System](/docs/learn/driver-guides/file-system-driver)** - Local development and testing with filesystem storage
+
+As application needs evolve, your workflows remain unchanged while giving you flexibility.
+
+---
+
+## Built for developers
+
+As developers, we want simple and clear APIs. StepKit is built to optimize time to deploy workflow and start getting the benefits of durable functions and observability. 
+
+### Type-safety
+
+Declarative API's bring typesafety to workflows and steps. Workflows receive an `inputSchema` that adds typesaftey to event data.
+
+```typescript
+
+export const workflow = client.workflow(
+    {
+        id: "process-order"
+        inputSchema: z.object({
+            orderId: z.string();
+            amount: z.number();
+            customer: z.object({ email: string });
+        });
+    }, 
+    async ({ input }, step) => {
+  // Types flow through each step. input.data is typed
+    const payment = await step.run("process-payment", async () => {
+        return { transactionId: "tx_123", amount: input.data.order.amount };
+    });
+});
+```

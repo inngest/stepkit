@@ -1,0 +1,261 @@
+---
+title: Your first StepKit workflow
+description: Building a progressive onboarding workflow with StepKit
+---
+
+import { GithubIcon } from "lucide-react";
+
+Let's build a realistic user onboarding workflow that sends emails over several days based on user behavior. This is the kind of drip campaign you'd see in SaaS products—welcome emails, feature introductions, and feedback requests that adapt to how users engage with your product.
+
+In this tutorial, we will leverage StepKit's in-memory driver to power a workflow that:
+
+- **Sends a welcome email immediately** when a user signs up
+- Checks if they completed account setup **after 24 hours**
+- Sends feature tips **on day 3** (only if they're engaged but not a power user)
+- Requests feedback **on day 7** (skips if they've gone inactive)
+
+The entire workflow runs automatically and adapts based on real user behavior.
+
+<Card
+  href="https://github.com/inngest/stepkit/tree/main/examples/progressive-onboarding#readme"
+  title="Example available on GitHub"
+  icon={<GithubIcon />}
+>
+  Open this User Onboarding workflow example on GitHub while reading the
+  tutorial.
+</Card>
+
+## Setting up the workflow
+
+First, let's create our workflow definition. In StepKit, workflows are defined using a client and a workflow function:
+
+```tsx
+import { z } from "zod";
+import { client } from "./client";
+
+export const progressiveOnboardingWorkflow = client.workflow(
+  {
+    id: "progressive-onboarding",
+    inputSchema: z.object({
+      userId: z.string(),
+      email: z.email(),
+      userName: z.string(),
+    }),
+  },
+  async ({ input }, step) => {
+    const { userId, email, userName } = input.data;
+    // Workflow steps go here...
+  }
+);
+```
+
+**The `inputSchema` field** uses Zod to define what data the workflow expects. This gives you both compile-time TypeScript types and runtime validation. If someone tries to start this workflow without an email or with an invalid email format, it'll fail fast with a clear error.
+
+## Step 1: Send the welcome email
+
+Every workflow action in StepKit happens inside a `step.run()`:
+
+```tsx
+await step.run("send-welcome-email", async () => {
+  console.log("📅 Day 1: Sending welcome email...");
+  const template = emailTemplates.welcome(userName);
+  await sendEmail(email, template);
+  return { sent: true, timestamp: new Date() };
+});
+```
+
+**Why `step.run()`?** Each step is independently retryable and resumable. If sending the email fails, StepKit can retry just this step without re-running everything before it. The step ID (`"send-welcome-email"`) must be unique within the workflow—it's how StepKit tracks what's been completed.
+
+The return value gets saved, so you can reference it later in the workflow if needed.
+
+## Step 2: Wait for 24 hours
+
+Now we need to wait before checking if the user completed their account setup:
+
+```tsx
+await step.run("wait-for-day-1-check", async () => {
+  // In production: new Date(Date.now() + 24 * 60 * 60 * 1000)
+  const checkTime = new Date(Date.now() + 3000); // 3 seconds for demo
+  console.log(
+    `⏰ Scheduling account setup check for: ${checkTime.toISOString()}`
+  );
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  return { checkTime };
+});
+```
+
+**Time-based delays** work by calculating a future timestamp and using `setTimeout` (in-memory) or scheduling mechanisms (in production with Inngest). In production, you'd use the actual multi-day delays. The workflow will pause and resume automatically when the time comes.
+
+## Step 3: Conditional logic based on user behavior
+
+Check if the user completed account setup:
+
+```tsx
+const setupStatus = await step.run("check-account-setup", async () => {
+  console.log("\\n📅 Day 1 (24h later): Checking account setup...");
+  const isComplete = await checkAccountSetup(userId);
+  return { complete: isComplete };
+});
+
+// Send reminder if setup not complete
+if (!setupStatus.complete) {
+  await step.run("send-setup-reminder", async () => {
+    console.log("📧 Sending account setup reminder...");
+    const template = emailTemplates.accountSetup(userName);
+    await sendEmail(email, template);
+    return { sent: true };
+  });
+}
+```
+
+**Conditional workflow paths** are just regular JavaScript `if` statements. The key is that each branch still uses `step.run()`. This ensures that if you send a reminder email and the workflow crashes, it won't send it again when it resumes—StepKit knows that the step has already been completed.
+
+## Step 4: Follow-ups based on user activity
+
+After waiting until day 3, check how active the user has been:
+
+```tsx
+await step.run("wait-for-day-3", async () => {
+  const day3Time = new Date(Date.now() + 3000);
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  return { scheduledFor: day3Time };
+});
+
+const userActivity = await step.run("get-user-activity", async () => {
+  const activity = await getUserActivity(userId);
+  return activity;
+});
+
+// Different paths based on activity level
+if (userActivity.featuresUsed > 0 && userActivity.featuresUsed < 5) {
+  await step.run("send-feature-introduction", async () => {
+    const template = emailTemplates.featureIntroduction(
+      userName,
+      userActivity.featuresUsed
+    );
+    await sendEmail(email, template);
+    return { sent: true };
+  });
+} else if (userActivity.featuresUsed === 0) {
+  await step.run("send-inactive-nudge", async () => {
+    const template = emailTemplates.inactiveUserNudge(userName);
+    await sendEmail(email, template);
+    return { sent: true };
+  });
+} else {
+  await step.run("skip-feature-intro", async () => {
+    console.log("⏭️  Skipping feature introduction (user already active)");
+    return { skipped: true, reason: "power-user" };
+  });
+}
+```
+
+**Why wrap the skip in `step.run()`?** Even when you're not doing anything, it's valuable to record the decision. This helps with observability—you can see in your workflow execution logs that the feature intro was intentionally skipped because the user was already a power user.
+
+## Step 5: Final check on Day 7
+
+After another delay, check if the user is still active before requesting feedback:
+
+```tsx
+await step.run("wait-for-day-7", async () => {
+  const day7Time = new Date(Date.now() + 3000);
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+  return { scheduledFor: day7Time };
+});
+
+const isActive = await step.run("check-if-still-active", async () => {
+  const active = await checkUserActive(userId);
+  return { active };
+});
+
+if (isActive.active) {
+  await step.run("send-feedback-request", async () => {
+    const template = emailTemplates.feedbackRequest(userName, 7);
+    await sendEmail(email, template);
+    return { sent: true };
+  });
+} else {
+  await step.run("skip-feedback-request", async () => {
+    console.log("⏭️  Skipping feedback request (user is inactive)");
+    return { skipped: true, reason: "inactive" };
+  });
+}
+```
+
+## Final step: Generate a summary
+
+Finally, generate a summary of what happened:
+
+```tsx
+const summary = await step.run("generate-summary", async () => {
+  const finalActivity = await getUserActivity(userId);
+
+  const summary = {
+    userId,
+    userName,
+    email,
+    completedAt: new Date(),
+    finalActivity: {
+      accountSetupCompleted: setupStatus.complete,
+      featuresUsed: finalActivity.featuresUsed,
+      isActive: finalActivity.isActive,
+    },
+    emailsSent: {
+      welcome: true,
+      setupReminder: !setupStatus.complete,
+      featureIntro:
+        userActivity.featuresUsed > 0 && userActivity.featuresUsed < 5,
+      feedback: isActive.active,
+    },
+  };
+
+  console.log("\\n📊 Onboarding Summary:");
+  console.log(JSON.stringify(summary, null, 2));
+
+  return summary;
+});
+
+return summary;
+```
+
+**The workflow's return value** is whatever you return from the workflow function. This result is available when you invoke the workflow and can be stored in your database, sent to analytics, or used to trigger other workflows.
+
+## Running the workflow
+
+To execute this workflow, simply invoke it with user data:
+
+```tsx
+import { client } from "./client";
+import { progressiveOnboardingWorkflow } from "./workflows";
+
+const result = await client.invoke(progressiveOnboardingWorkflow, {
+  userId: "user_001",
+  email: "alice@example.com",
+  userName: "Alice",
+});
+
+console.log(result);
+```
+
+**In production with Inngest**, workflows run in the background. The `invoke` call would return immediately with a run ID, and the workflow would execute asynchronously over the actual 7-day period. With the in-memory driver (used in this example), it runs synchronously and completes in about 9 seconds since we shortened the delays for demo purposes.
+
+## Key takeaways
+
+**Input validation**: Use `inputSchema` with Zod for type-safe, validated workflow inputs.
+
+**Atomic steps**: Wrap each action in `step.run()` with a unique ID. This makes your workflow resilient to failures and easy to debug.
+
+**Time-based delays**: Calculate future timestamps and use delays to schedule workflow resumption. This works for hours, days, or even months.
+
+**Conditional logic**: Use regular JavaScript conditionals, but always wrap actions in `step.run()` to maintain workflow state consistency.
+
+**Observability**: Even "do nothing" branches benefit from being wrapped in `step.run()` for visibility into workflow decisions.
+
+## Next steps
+
+Try modifying the workflow:
+
+- Add more touchpoints (day 14, day 30)
+- Change the activity thresholds for different email paths
+- Add A/B testing by randomly assigning variants
+- Integrate with real email providers and analytics platforms
