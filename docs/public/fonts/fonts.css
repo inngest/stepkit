@@ -1,0 +1,61 @@
+/*
+ * Legal Disclaimer for Web licence
+ *
+ * Licence to use self-hosted webfonts for displaying dynamic text on specified website domains. Our package includes WOFF and WOFF2 font formats.
+ *
+ * Should the license page views limit be exceeded the license holder will be required to contact Lineto.com for an upgrade.
+ *
+ * It is strictly prohibited to rename the font and to download or use these fonts in any other media.
+ *
+ * These Web fonts are licensed exclusively for the use on the following domain(s) and their subdomains:
+ *
+ * www.inngest.com (monthly pageviews: < 1M)
+ *
+ */
+
+/* Notes: Only complete fonts are used, subset fonts contain far fewer characters */
+
+/* Circular Mono */
+@font-face {
+  font-family: "CircularXXMono";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/CircularXXMonoWeb-Regular.woff2") format("woff2"),
+    url("/fonts/CircularXXMonoWeb-Regular.woff") format("woff");
+}
+
+/* Whyte */
+@font-face {
+  font-family: "Whyte";
+  font-style: normal;
+  font-weight: 300;
+  src: url("/fonts/ABCWhyte-Light.woff2") format("woff2"),
+    url("/fonts/ABCWhyte-Light.woff") format("woff");
+}
+
+/* Whyte Inktrap */
+@font-face {
+  font-family: "Whyte Inktrap";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/ABCWhyteInktrap-Regular.woff2") format("woff2"),
+    url("/fonts/ABCWhyteInktrap-Regular.woff") format("woff");
+}
+
+/* Whyte Mono */
+@font-face {
+  font-family: "WhyteMono";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/ABCWhyteMono-Regular.woff2") format("woff2"),
+    url("/fonts/ABCWhyteMono-Regular.woff") format("woff");
+}
+
+/* Whyte Inktrap Variable */
+@font-face {
+  font-family: "WhyteInktrapVariable";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/ABCWhyteInktrapVariable-Regular.woff2") format("woff2"),
+    url("/fonts/ABCWhyteInktrapVariable-Regular.woff") format("woff");
+}

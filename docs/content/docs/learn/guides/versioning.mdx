@@ -1,0 +1,76 @@
+---
+title: Versioning Workflows
+---
+
+Workflows will change and be refactored over time. StepKit provides two primary versioning strategies for altering workflows. The underlying mechanism that makes this possible is determinism through explicit step IDs.
+
+## How versioning works
+
+StepKit's API uses explicit step IDs. Each step's ID is hashed and stored. When a workflow resumes, completed steps are skipped. Their results return from storage.
+
+This means workflows running for days or months can evolve as your code changes.
+
+## Determinism
+
+Every step has a unique ID. When a workflow resumes, StepKit checks which steps have completed:
+
+1. Hash the step ID
+2. Look up the hash in workflow state
+3. If found, return the memoized result and skip execution
+4. If not found, execute the step
+
+After each step completes, the workflow restarts from the beginning with updated state. This continues until the workflow completes.
+
+## Strategies for changing workflows
+
+### Adding new steps
+
+Adding new steps is safe. New steps execute when discovered.
+
+```typescript
+// Original workflow
+const workflow = client.workflow(
+  { id: "process-order" },
+  async ({ input }, step) => {
+    await step.run("fetch-order", async () => fetchOrder());
+    await step.run("charge-customer", async () => charge());
+    await step.run("fulfill-order", async () => fulfill());
+  }
+);
+
+// Adding a new step
+const workflow = client.workflow(
+  { id: "process-order" },
+  async ({ input }, step) => {
+    await step.run("fetch-order", async () => fetchOrder());
+    await step.run("validate-inventory", async () => validate()); // New step
+    await step.run("charge-customer", async () => charge());
+    await step.run("fulfill-order", async () => fulfill());
+  }
+);
+```
+
+Currently running workflows will execute the new `validate-inventory` step when they resume.
+
+<Callout type="warn">
+Ensure the new step can run out-of-order and doesn't reference undefined variables.
+</Callout>
+
+### Forcing steps to re-run
+
+Change a step's ID to force re-execution:
+
+```typescript
+// Original
+await step.run("charge-customer", async () => charge());
+
+// Force re-run by changing ID
+await step.run("charge-customer-v2", async () => charge());
+```
+
+The hash changes, so the step's state isn't found. The step re-executes.
+
+## Conclusion
+
+StepKit's use of explicit step IDs make versioning workflows easy and safe.   
+

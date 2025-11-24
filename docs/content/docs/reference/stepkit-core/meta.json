@@ -1,0 +1,4 @@
+{
+    "title": "@stepkit/core",
+    "pages": ["stepkit-client", "workflow", "step-run", "step-sleep", "step-waitForSignal"]
+}

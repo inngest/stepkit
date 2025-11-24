@@ -1,0 +1,63 @@
+---
+title: In-Memory Driver
+---
+
+The In-Memory driver runs workflows in memory. No persistence. When the process stops, workflow state disappears.
+
+<Callout>Best for: Testing, development, and rapid prototyping.</Callout>
+
+## Installation
+
+```bash
+npm install @stepkit/local
+```
+
+## Usage
+
+```typescript
+import { InMemoryClient } from "@stepkit/local";
+import { z } from "zod";
+
+const client = new InMemoryClient();
+
+const workflow = client.workflow(
+  {
+    id: "test-workflow",
+    inputSchema: z.object({ userId: z.string() }),
+  },
+  async ({ input }, step) => {
+    const user = await step.run("get-user", async () => {
+      return await db.users.get(input.data.userId);
+    });
+    
+    return user;
+  }
+);
+
+// Invoke the workflow
+const result = await client.startWorkflow(workflow, { userId: "123" });
+```
+
+## How it works
+
+The In-Memory driver orchestrates workflows using in-process queues and memory-based state storage. Everything runs in your application's memory. Fast, simple, ephemeral.
+
+When you stop the process, all workflow state is lost. This is a feature, not a bug—it keeps tests clean and fast.
+
+## Stopping the client
+
+The In-Memory driver starts background processes. Stop them when your application shuts down:
+
+```typescript
+const client = new InMemoryClient();
+
+// ... use workflows ...
+
+// Clean shutdown
+client.stop();
+```
+
+## Related
+
+- [Filesystem Driver](/docs/learn/driver-guides/filesystem-driver) - For local development with persistence
+- [Inngest Driver](/docs/learn/driver-guides/inngest-driver) - For production deployments

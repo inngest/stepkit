@@ -1,0 +1,86 @@
+---
+title: step.waitForSignal()
+---
+
+Pause workflow execution until a signal is received or a timeout is reached. Signals enable cross-workflow communication, human-in-the-loop processes, and external event handling.
+
+## Signature
+
+```typescript
+step.waitForSignal<T>(
+  stepId: string,
+  opts: {
+    signal: string;
+    timeout: number | Date;
+    schema?: StandardSchemaV1<T>;
+  }
+): Promise<{ data: T; signal: string } | null>
+```
+
+## Parameters
+
+| Name | Type | Description |
+|------|------|-------------|
+| `stepId` | `string` | Unique identifier for this step. Used for state persistence. |
+| `opts.signal` | `string` | The signal name to wait for. Acts as a channel identifier. |
+| `opts.timeout` | `number \| Date` | Maximum wait time. Number in milliseconds, or a Date for absolute time. |
+| `opts.schema` | `StandardSchemaV1<T>` | **Optional.** Schema for validating signal data (Zod, Valibot, ArkType, etc.). |
+
+## Returns
+
+Returns a promise that resolves to:
+- `{ data: T, signal: string }` - When the signal is received within the timeout
+- `null` - When the timeout is reached without receiving a signal
+
+Use the return value to branch your workflow logic based on whether the signal arrived.
+
+## Examples
+
+**Wait for approval:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "document-approval" },
+  async ({ input }, step) => {
+    
+    // Wait for approval signal
+    const result = await step.waitForSignal("wait-for-approval", {
+      signal: `document-123-approval`,
+      timeout: 7 * 24 * 60 * 60 * 1000, // 7 days
+      schema: z.object({ 
+        approved: z.boolean(),
+        userId: z.string() 
+      }),
+    });
+    
+    if (result === null) {
+      // Timeout - no approval received
+      return { status: "expired" };
+    }
+    
+    if (result.data.approved) {
+      await step.run("approve-document", async () => {
+        return await db.documents.approve(document.id);
+      });
+      return { status: "approved", by: result.data.userId };
+    }
+    
+    return { status: "rejected" };
+  }
+);
+```
+
+## Sending Signals
+
+Signals are sent using `client.sendSignal()`:
+
+```typescript
+const result = await client.sendSignal({
+  signal: "document-123-approval",
+  data: { approved: true, userId: "user_456" },
+});
+
+console.log(result.runId); // The workflow run that received the signal
+```
+
+The signal is delivered to the first waiting workflow that matches the signal name. If no workflow is waiting, the signal is ignored.

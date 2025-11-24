@@ -1,0 +1,102 @@
+---
+title: Steps
+---
+
+Steps bring to life the expectations you have for your code. Steps are the powerful building blocks that add the durability to your critical processes.
+
+Steps are a simple API that gives durability to your functions: 
+
+- Pause code execution and resume after specific time
+- Retry parts of code for visibility and reliabilty
+- Pause code execution and resume after a signal is received
+- Wait for an incoming webhook
+
+---
+
+## Breaking your work into durable steps
+
+Applications have many functions handling different concerns or processes. If an application only did one thing it would be easy to maintain. But applications scale quickly, and code observability quickly erodes. 
+
+Steps are checkpoints for your code. Like in a game, when something fails, you restart from the last completed step (checkpoint), not the beginning. The code that already ran stays complete, doesn't re-execute, and keeps its state. 
+
+### When code fails
+
+```typescript
+// ❌ Without steps - no durability
+async function onboarding() {
+  await createUser();
+  await sendEmail();
+  await updateAnalytics();
+  await notifySlack();
+};
+```
+
+If the code above fails at any point within the `onboarding` function, all the previous functions are rerun. This leads to a long list of conditional logic through each function to handle the variety of cases when a function could have already run and should not run again. 
+
+The initial temptation when converting to using steps is to make into one large step.
+
+```typescript
+await step.run('onboarding' async () => {
+  await createUser();
+  await sendEmail();
+  await updateAnalytics();
+  await notifySlack();
+})
+```
+
+However, this will have the same issue the regular function. The `"onboarding"` step is not durable as expected because it is still running all four functions in the onboarding flow with no separation between them. This can lead to the creation of duplicated users or terminal errors which prevent the workflow from completing.
+
+### Independent steps for maximum durability
+
+The correct way to make the onboarding flow durable is to convert each function within the workflow into a step. For each function we will use `step.run()`. `step.run()` is the primary step method that adds retries on failure, memoized results, and can contain any operation you need to run.  
+
+```typescript
+// ✅ With separate steps - durability at each stage
+await step.run("create-user", async () => createUser());
+await step.run("send-email", async () => sendEmail());
+await step.run("update-analytics", async () => updateAnalytics());
+await step.run("notify-slack", async () => notifySlack());
+```
+
+Now if any part of the workflow fails the functions that succeeded will not rerun and the problem function can be retried and updated to fix issues. Then the step can be rerun and completed. 
+
+### Pausing a workflow 
+
+The workflow is now segmented into durable steps which is great. But now we want to add a logic that waits for a specified period of time before further actions are taken. 
+
+In the onboarding workflow the requirement is now to wait for seven days and if the users hasn't taken action on the email, send a follow up email. `step.sleep()` gives the ability for the workflow to pause and resume after a set amount of time. 
+
+```typescript
+// other onboarding code
+// Wait 7 days, then send follow-up if user hasn't taken action
+await step.sleep("wait-7-days", 7 * 24 * 3600);
+
+await step.run("send-followup-if-inactive", async () => {
+  const userCompleted = await checkIfUserCompletedOnboarding();
+  if (!userCompleted) {
+    await sendFollowUpEmail();
+  }
+});
+```
+
+### Waiting for a signal
+
+Along with pausing for a specified duration, workflows can also wait for a signal to be received before continuing.
+
+In the onboarding workflow the requirement is now to wait for the user to complete the onboarding process before sending the follow-up email. `step.waitForSignal()` gives the ability for the workflow to pause and resume after a signal is received.
+
+```typescript
+// other onboarding code
+// Wait for a signal to be received, then send follow-up if user hasn't taken action
+const result = await step.waitForSignal("wait-for-signal", {
+  signal: "user-completed-onboarding",
+  timeout: 7 * 24 * 3600,
+});
+
+if (result === null) {
+  await step.run("send-followup-if-inactive", async () => {
+    await sendFollowUpEmail();
+  });
+}
+```
+`step.run()`, `step.sleep()`, and `step.waitForSignal()` allow for flexible and clear complex workflow orchestration. 
