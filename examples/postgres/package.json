@@ -1,0 +1,27 @@
+{
+  "name": "examples/postgres",
+  "version": "0.0.0",
+  "main": "./src/main.ts",
+  "types": "./src/main.ts",
+  "scripts": {
+    "dev": "tsx main.ts",
+    "db:start": "docker run --name stepkit-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=stepkit_dev -p 5432:5432 postgres:16",
+    "db:stop": "docker stop stepkit-postgres",
+    "db:remove": "docker rm stepkit-postgres",
+    "db:logs": "docker logs stepkit-postgres",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@stepkit/core": "*",
+    "@stepkit/local": "*",
+    "pg": "^8.11.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

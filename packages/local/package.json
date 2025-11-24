@@ -33,9 +33,11 @@
   },
   "dependencies": {
     "@stepkit/core": "*",
-    "@stepkit/sdk-tools": "*"
+    "@stepkit/sdk-tools": "*",
+    "pg": "^8.11.0"
   },
   "devDependencies": {
+    "@types/pg": "^8.11.0",
     "dpdm": "^3.14.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.5",
