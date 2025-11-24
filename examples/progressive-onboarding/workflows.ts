@@ -37,12 +37,11 @@ export const progressiveOnboardingWorkflow = client.workflow(
   async ({ input }, step) => {
     const { userId, email, userName } = input.data;
 
-    console.log(
-      `\n🚀 Starting progressive onboarding for ${userName} (${userId})\n`
-    );
-
     // Initialize user activity tracking
     await step.run("initialize-user-activity", async () => {
+      console.log(
+        `\n🚀 Starting progressive onboarding for ${userName} (${userId})\n`
+      );
       initUserActivity(userId);
       // logActivity(userId, "User activity tracker initialized");
       return { initialized: true };
@@ -60,16 +59,9 @@ export const progressiveOnboardingWorkflow = client.workflow(
     });
 
     // Wait 24 hours before checking account setup
-    await step.run("wait-for-day-1-check", async () => {
-      // Note: For demo purposes, we're using seconds instead of 24 hours
-      // In production, this would be: new Date(Date.now() + 24 * 60 * 60 * 1000)
-      const checkTime = new Date(Date.now() + 3000); // 3 seconds
-      console.log(
-        `⏰ Scheduling account setup check for: ${checkTime.toISOString()}`
-      );
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      return { checkTime };
-    });
+    // Note: For demo purposes, we're using seconds instead of 24 hours
+    // In production, this would be: 24 * 3600
+    await step.sleep("wait-for-day-1-check", 3000);
 
     // ═══════════════════════════════════════════════════════════
     // DAY 1 (24h later): Check Account Setup
@@ -96,14 +88,9 @@ export const progressiveOnboardingWorkflow = client.workflow(
     }
 
     // Wait until day 3
-    await step.run("wait-for-day-3", async () => {
-      // Note: For demo purposes, we're using seconds instead of 3 days
-      // In production, this would be: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
-      const day3Time = new Date(Date.now() + 3000); // 3 seconds
-      console.log(`\n⏰ Scheduling day 3 check for: ${day3Time.toISOString()}`);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      return { scheduledFor: day3Time };
-    });
+    // Note: For demo purposes, we're using seconds instead of 3 days
+    // In production, this would be: 3 * 24 * 3600
+    await step.sleep("wait-for-day-3", 3000);
 
     // ═══════════════════════════════════════════════════════════
     // DAY 3: Feature Introduction (Conditional)
@@ -151,14 +138,9 @@ export const progressiveOnboardingWorkflow = client.workflow(
     }
 
     // Wait until day 7
-    await step.run("wait-for-day-7", async () => {
-      // Note: For demo purposes, we're using seconds instead of 7 days
-      // In production, this would be: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      const day7Time = new Date(Date.now() + 3000); // 3 seconds
-      console.log(`\n⏰ Scheduling day 7 check for: ${day7Time.toISOString()}`);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      return { scheduledFor: day7Time };
-    });
+    // Note: For demo purposes, we're using seconds instead of 7 days
+    // In production, this would be: 7 * 24 * 3600
+    await step.sleep("wait-for-day-7", 3000);
 
     // ═══════════════════════════════════════════════════════════
     // DAY 7: Feedback Request (Skip if Inactive)
