@@ -32,8 +32,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@stepkit/core": "workspace:*",
-    "@stepkit/sdk-tools": "workspace:*"
+    "@stepkit/core": "*",
+    "@stepkit/sdk-tools": "*"
   },
   "devDependencies": {
     "dpdm": "^3.14.0",

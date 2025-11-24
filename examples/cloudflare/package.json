@@ -7,7 +7,7 @@
     "start": "tsx ./src/main.ts"
   },
   "dependencies": {
-    "@stepkit/cloudflare": "workspace:*",
+    "@stepkit/cloudflare": "*",
     "zod": "^4.1.12"
   },
   "devDependencies": {

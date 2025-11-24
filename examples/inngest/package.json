@@ -11,8 +11,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@stepkit/core": "workspace:*",
-    "@stepkit/inngest": "workspace:*",
+    "@stepkit/core": "*",
+    "@stepkit/inngest": "*",
     "express": "^4.18.0",
     "inngest": "^3.44.5",
     "zod": "^4.1.12"

@@ -11,8 +11,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@stepkit/core": "workspace:*",
-    "@stepkit/sdk-tools": "workspace:*"
+    "@stepkit/core": "*",
+    "@stepkit/sdk-tools": "*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250417.0",

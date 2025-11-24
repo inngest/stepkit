@@ -12,7 +12,7 @@
     "format:check": "prettier --check .",
     "lint": "pnpm --no-bail -r lint",
     "lint:fix": "pnpm --no-bail -r lint:fix",
-    "precommit": "pnpm format:check; pnpm lint; pnpm type-check; pnpm test; pnpm dpdm",
+    "precommit": "pnpm format:check && pnpm lint && pnpm type-check && pnpm test && pnpm dpdm",
     "test": "pnpm --no-bail -r test",
     "type-check": "pnpm --no-bail -r type-check",
     "changeset": "changeset",
