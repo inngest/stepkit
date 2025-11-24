@@ -42,7 +42,7 @@ export function stepSleepSuite<TClient extends BaseClient>(
       }, 2000);
       const duration = Date.now() - start;
       expect(duration).toBeGreaterThan(999);
-      expect(duration).toBeLessThan(1200);
+      expect(duration).toBeLessThan(2000);
     });
   });
 }

@@ -15,20 +15,20 @@ import { ProductionDriver } from "./executionDriver";
 import { PostgresQueue } from "./queue";
 import { PostgresStateDriver } from "./stateDriver";
 
-export type ProductionClientOptions = {
+export type PostgresClientOptions = {
+  autoMigrate?: boolean;
   connectionString: string;
   poolConfig?: pg.PoolConfig;
   queuePollInterval?: number;
-  autoMigrate?: boolean;
 };
 
 const defaultMaxAttempts = 4;
 
 export class PostgresClient extends BaseClient {
-  private db: DatabaseConnection;
+  db: DatabaseConnection;
   private orc: Orchestrator;
 
-  constructor(options: ProductionClientOptions) {
+  constructor(options: PostgresClientOptions) {
     super();
 
     const dbConfig: DatabaseConfig = {

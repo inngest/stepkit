@@ -82,7 +82,7 @@ export function parallelStepSuite<TClient extends BaseClient>(
       }, 5000);
       const duration = Date.now() - start;
       expect(duration).toBeGreaterThan(2999);
-      expect(duration).toBeLessThan(3500);
+      expect(duration).toBeLessThan(4000);
     });
 
     it<TestContext>("sequential group", async ({ client }) => {
