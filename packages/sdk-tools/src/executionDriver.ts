@@ -160,10 +160,15 @@ export abstract class BaseExecutionDriver<
     this.state = state;
   }
 
-  async execute<TInput extends InputDefault, TOutput>(
-    workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
-    ctx: Context<TInput, TCtxExt>
-  ): Promise<OpResult[]> {
+  async execute<TInput extends InputDefault, TOutput>({
+    ctx,
+    targetHashedOpId,
+    workflow,
+  }: {
+    ctx: Context<TInput, TCtxExt>;
+    targetHashedOpId?: string | undefined;
+    workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>;
+  }): Promise<OpResult[]> {
     if (workflow.inputSchema !== undefined) {
       const result = await workflow.inputSchema["~standard"].validate(
         ctx.input.data
@@ -192,7 +197,8 @@ export abstract class BaseExecutionDriver<
       ctx,
       getStep: (reportOp) => this.getStep(reportOp),
       hashId: this.hashId,
-      onStepsFound: (ops) => this.onStepsFound(workflow, ctx, ops),
+      onStepsFound: (ops) =>
+        this.onStepsFound(workflow, ctx, ops, targetHashedOpId),
       onWorkflowResult: (op) => this.onWorkflowResult(workflow, ctx, op),
       workflow,
     });
@@ -203,11 +209,18 @@ export abstract class BaseExecutionDriver<
   onStepsFound = async <TInput extends InputDefault>(
     workflow: Workflow<TInput, unknown, TWorkflowCfgExt, TCtxExt, TStepExt>,
     ctx: Context<TInput, TCtxExt>,
-    ops: OpFound[]
+    ops: OpFound[],
+    targetHashedOpId: string | undefined
   ): Promise<ControlFlow> => {
     const newOps = await handleExistingOps(this.state, ctx, ops);
 
-    return await createOpResults(this.state, workflow, ctx, newOps);
+    return await createOpResults(
+      this.state,
+      workflow,
+      ctx,
+      newOps,
+      targetHashedOpId
+    );
   };
 
   onWorkflowResult = async <TInput extends InputDefault>(
@@ -241,6 +254,8 @@ export async function handleExistingOps(
       if (item.result.status === "success") {
         // Op already succeeded, so return its output
         op.promise.resolve(item.result.output);
+      } else if (item.result.status === "plan") {
+        newOps.push(op);
       } else {
         // Op already failed, so throw its error
         op.promise.reject(fromJsonError(item.result.error));
@@ -297,19 +312,32 @@ export async function createOpResults<
   state: StateDriver,
   workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>,
   ctx: Context<TInput, TCtxExt>,
-  ops: OpFound<OpConfig, TOutput>[]
+  ops: OpFound<OpConfig, TOutput>[],
+  targetHashedOpId: string | undefined
 ): Promise<ControlFlow> {
   const opResults: OpResult[] = [];
   for (const op of ops) {
     const opResult: OpResult = {
       config: op.config,
       opId: op.id,
-      result: { status: "success", output: undefined },
+      result: { status: "plan" },
       runId: ctx.runId,
       workflowId: workflow.id,
     };
 
-    if (op.handler !== undefined) {
+    let disableHandler = false;
+    if (ops.length > 1 && targetHashedOpId === undefined) {
+      // Multiple ops without targeting an individual op
+      disableHandler = true;
+    } else if (
+      targetHashedOpId !== undefined &&
+      op.id.hashed !== targetHashedOpId
+    ) {
+      // Another op is targeted
+      disableHandler = true;
+    }
+
+    if (op.handler !== undefined && !disableHandler) {
       try {
         insideStep.set(op.id.id);
 

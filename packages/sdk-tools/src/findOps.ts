@@ -63,12 +63,13 @@ export async function findOps<
   ): Promise<TOutput> {
     const index = (idCounter[op.id.id] ?? -1) + 1;
     idCounter[op.id.id] = index;
+    const hashedId = hashId(op.id.id, index);
 
     foundOps.push({
       ...op,
       id: {
         ...op.id,
-        hashed: hashId(op.id.id, index),
+        hashed: hashedId,
         index,
       },
     });

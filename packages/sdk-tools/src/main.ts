@@ -16,7 +16,7 @@ import { isOpResult, OpMode, type OpConfigs, type OpResults } from "./ops";
 import { singleFlight } from "./promises";
 import type { StateDriver } from "./stateDriver";
 import { StdOpCode, type OpResult } from "./types";
-import { executeUntilDone, stdHashId } from "./utils";
+import { stdHashId } from "./utils";
 
 export * from "@stepkit/core";
 export type * from "@stepkit/core/implementer";
@@ -38,7 +38,6 @@ export {
   createOpFound,
   createStdStep,
   disableRetries,
-  executeUntilDone,
   fromJsonError,
   getStepKitErrorProps,
   isOpResult,

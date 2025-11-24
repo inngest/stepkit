@@ -12,6 +12,12 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "baseUrl": ".",
-    "customConditions": ["source"]
+    "customConditions": ["source"],
+    "paths": {
+      "@stepkit/core": ["packages/core/src/main.ts"],
+      "@stepkit/inngest": ["packages/inngest/src/main.ts"],
+      "@stepkit/local": ["packages/local/src/main.ts"],
+      "@stepkit/sdk-tools": ["packages/sdk-tools/src/main.ts"]
+    }
   }
 }

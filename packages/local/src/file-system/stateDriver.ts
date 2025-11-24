@@ -1,9 +1,4 @@
-import {
-  OpMode,
-  singleFlight,
-  type Context,
-  type OpResult,
-} from "@stepkit/sdk-tools";
+import { singleFlight, type Context, type OpResult } from "@stepkit/sdk-tools";
 
 import { UnreachableError } from "../common/errors";
 import type {
@@ -169,21 +164,11 @@ export class FileSystemStateDriver implements LocalStateDriver {
     { runId, hashedOpId }: { runId: string; hashedOpId: string },
     op: OpResult
   ): Promise<void> {
-    if (op.config.mode === OpMode.scheduled) {
-      // Don't store because future work will be scheduled via the queue
-      return;
-    }
-
     // Note: Using sync operations for incrementOpAttempt and getMaxAttempts
     const run = await this.getRun(runId);
     if (run === undefined) {
       // Log instead of error since parallel steps can hit this line
       console.error("unreachable: run not found");
-      return;
-    }
-
-    if ((await this.getOp({ runId, hashedOpId })) !== undefined) {
-      // Already written
       return;
     }
 

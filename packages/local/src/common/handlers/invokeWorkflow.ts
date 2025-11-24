@@ -1,7 +1,6 @@
 import {
   InvokeTimeoutError,
   isOpResult,
-  OpMode,
   toJsonError,
   type OpResults,
 } from "@stepkit/sdk-tools";
@@ -22,11 +21,12 @@ export const invokeWorkflowHandlers: OpHandlers = {
     }
     handled = true;
 
+    const existingOp = await stateDriver.getOp({
+      hashedOpId: action.opResult.opId.hashed,
+      runId: queueItem.runId,
+    });
     const isEnded =
-      (await stateDriver.getOp({
-        hashedOpId: action.opResult.opId.hashed,
-        runId: queueItem.runId,
-      })) !== undefined;
+      existingOp !== undefined && existingOp.result.status !== "plan";
     if (isEnded) {
       return {
         // Don't allow execution because this timeout was invalidated
@@ -115,10 +115,7 @@ async function timeoutInvokeWorkflowOp({
   });
 
   const opResult: OpResults["invokeWorkflow"] = {
-    config: {
-      ...waitingInvoke.op.config,
-      mode: OpMode.immediate,
-    },
+    config: waitingInvoke.op.config,
     opId: waitingInvoke.op.opId,
     result: {
       status: "error",
