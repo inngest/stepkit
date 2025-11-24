@@ -24,16 +24,16 @@ StepKit's steps bring:
 
 - 🦾 **Durability**: write unbreakable code that automatically retries without any state loss
 - 🕑 **Suspend and Resume**: write code that can pause for weeks without using compute
-- 📊 **Observability**: each workflow step becomes live traces with detailed logs and metadata
+- 📊 **Observability**: each workflow step becomes a live trace with detailed logs and metadata
 - 🪝 **Native webhooks and _"Human in the Loop"_**: make your workflow wait for an external event
 
-Visit the [step.run documentation](http://www.step.run/docs) for guides and examples.
+Visit the [step.run documentation](https://www.step.run/docs) for guides and examples.
 
 ## Get started
 
 1. Install StepKit with your preferred driver
 
-_Inngest, Cloudflare, Netlify for local dev and deployment or In-Memory/FileSystem for testing_
+_Inngest, Cloudflare, Netlify for local dev and deployment, or In-Memory/FileSystem for testing_
 
 ```bash
 npm i @stepkit/inngest
@@ -95,7 +95,7 @@ Please take a moment to review our [Code of Conduct](./CODE_OF_CONDUCT.md) to un
 
 ## Contributing
 
-If you're new to contributing, you will find all the essential information (_architecture overview, etc_) in the ["Welcome to the StepKit Community" discussion thread](#) before getting started.
+If you're new to contributing, you will find all the essential information (_architecture overview, etc_) in the ["Welcome to the StepKit Community" discussion thread](https://github.com/inngest/stepkit/discussions) before getting started.
 
 We encourage you to open issues and submit pull requests!
 
