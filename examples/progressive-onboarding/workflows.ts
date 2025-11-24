@@ -88,7 +88,7 @@ export const progressiveOnboardingWorkflow = client.workflow(
     }
 
     // Wait until day 3
-    // Note: For demo purposes, we're using seconds instead of 3 days
+    // Note: For demo purposes, we're using seconds instead of 2 days
     // In production, this would be: 3 * 24 * 3600
     await step.sleep("wait-for-day-3", 3000);
 
@@ -138,7 +138,7 @@ export const progressiveOnboardingWorkflow = client.workflow(
     }
 
     // Wait until day 7
-    // Note: For demo purposes, we're using seconds instead of 7 days
+    // Note: For demo purposes, we're using seconds instead of 4 days
     // In production, this would be: 7 * 24 * 3600
     await step.sleep("wait-for-day-7", 3000);
 
