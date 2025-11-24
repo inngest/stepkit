@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "node16",
     "lib": ["ES2022"],
     "declaration": true,
     "strict": true,
@@ -9,13 +8,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node16",
+    "module": "Preserve",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "baseUrl": ".",
-    "paths": {
-      "@stepkit/core": ["packages/core/src/main.ts"],
-      "@stepkit/inngest": ["packages/inngest/src/index.ts"],
-      "@stepkit/local": ["packages/local/src/main.ts"]
-    }
+    "customConditions": ["source"]
   }
 }

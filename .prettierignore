@@ -5,6 +5,12 @@ coverage/
 pnpm-lock.yaml
 *.min.js
 
+# Config files
+.changeset/config.json
+.github/workflows/*.yml
+**/tsconfig.build.json
+**/vitest.config.ts
+
 # Only format js, json, ts, yml, and yaml files
 *.md
 *.css

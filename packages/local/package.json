@@ -1,15 +1,34 @@
 {
   "name": "@stepkit/local",
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "type": "module",
   "main": "./src/main.ts",
+  "module": "./src/main.ts",
   "types": "./src/main.ts",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "exports": {
+    ".": {
+      "source": "./src/main.ts",
+      "import": {
+        "types": "./dist/main.d.ts",
+        "default": "./dist/main.js"
+      },
+      "require": {
+        "types": "./dist/main.d.cts",
+        "default": "./dist/main.cjs"
+      }
+    }
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsdown --config tsdown.config.ts && node ../../scripts/distPackage.js .",
     "dpdm": "dpdm --exit-code circular:1 src/main.ts",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "release": "pnpm run test && pnpm run build && cross-env DIST_DIR=dist node ../../scripts/release/publish.js",
+    "test": "vitest run --reporter=tree",
+    "test:watch": "vitest --watch --reporter=tree",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

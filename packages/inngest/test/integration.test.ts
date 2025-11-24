@@ -59,7 +59,7 @@ it("multiple steps", async () => {
       getName: 1,
       bottom: 1,
     });
-  });
+  }, 2000);
 });
 
 it("NonRetryableError", async () => {

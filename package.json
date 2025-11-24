@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "pnpm --filter '@stepkit/core' --filter '@stepkit/sdk-tools' --filter '@stepkit/local' --filter '@stepkit/inngest' build",
     "dpdm": "pnpm --no-bail -r dpdm",
     "examples:in-memory": "pnpm -C examples/in-memory dev",
     "examples:inngest": "pnpm -C examples/inngest dev",
@@ -13,17 +14,27 @@
     "lint:fix": "pnpm --no-bail -r lint:fix",
     "precommit": "pnpm format:check; pnpm lint; pnpm type-check; pnpm test; pnpm dpdm",
     "test": "pnpm --no-bail -r test",
-    "type-check": "pnpm --no-bail -r type-check"
+    "type-check": "pnpm --no-bail -r type-check",
+    "changeset": "changeset",
+    "release:version": "changeset version",
+    "release:publish": "pnpm --filter '@stepkit/core' --filter '@stepkit/sdk-tools' --filter '@stepkit/local' --filter '@stepkit/inngest' release",
+    "release:tag": "node scripts/release/tag.js",
+    "release:all": "pnpm run build && pnpm run release:publish && pnpm run release:tag"
   },
   "devDependencies": {
+    "@actions/exec": "^1.1.1",
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.29.7",
     "@eslint/js": "9.39.1",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@types/node": "^24.9.2",
+    "cross-env": "^7.0.3",
     "eslint": "9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vitest": "^0.5.4",
     "prettier": "^3.6.2",
     "prettier-plugin-organize-imports": "^4.3.0",
+    "tsdown": "^0.16.5",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
     "vitest": "^4.0.5"
