@@ -276,14 +276,14 @@ function Home() {
 
       <div className="bg-[#E2E2E2] text-[#242424]">
 
-        <div className="max-w-[1400px] mx-auto space-y-16 pb-16 sm:px-10 ">
+        <div className="max-w-[1400px] mx-auto space-y-16 pb-16 px-6 sm:px-10">
 
           {/* Testimonial */}
           <SectionRule name="What developers say" border={false} className="py-14" />
 
-          <blockquote className="text-3xl leading-relaxed font-light font-mono">
-            “LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT, SED DO EIUSMOD TEMPOR INCIDIDUNT UT LABORE ET
-            DOLORE MAGNA ALIQUA. UT ENIM AD MINIM VENIAM.”
+          <blockquote className="text-xl sm:text-2xl md:text-3xl leading-relaxed font-light font-mono">
+            "LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT, SED DO EIUSMOD TEMPOR INCIDIDUNT UT LABORE ET
+            DOLORE MAGNA ALIQUA. UT ENIM AD MINIM VENIAM."
           </blockquote>
 
           {/*
@@ -297,9 +297,9 @@ function Home() {
           <SectionRule name="About StepKit" className="pt-8" />
 
           {/* About StepKit */}
-          <section className="bg-[#E2E2E2] text-[#242424] pt-8">
+          <section className="bg-[#E2E2E2] text-[#242424] pt-8 -mx-6 sm:-mx-10 px-6 sm:px-10">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-24 ">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
               <div className="space-y-6">
                 <p className="leading-relaxed">
                   StepKit is an open source SDK built on top of the explicit step standard. This format was pioneered by
@@ -360,7 +360,7 @@ client.workflow({ id: "research-agent" }, async (ctx, step) => {
 
           {/* Why StepKit */}
           <section className="px-0 py-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-24 pl-52">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-24 sm:px-10 md:pl-52 md:pr-0">
               {[
                 {
                   id: '001',
@@ -429,7 +429,7 @@ client.workflow({ id: "research-agent" }, async (ctx, step) => {
 
 
       <div className="bg-[#181818] text-white">
-        <div className="relative max-w-[1400px] mx-auto pt-8 pb-32 sm:px-10 overflow-hidden">
+        <div className="relative max-w-[1400px] mx-auto pt-8 pb-32 px-6 sm:px-10 overflow-hidden">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-[url('/img/connect.svg')] bg-no-repeat bg-right bg-contain opacity-50"
@@ -450,7 +450,7 @@ client.workflow({ id: "research-agent" }, async (ctx, step) => {
       </div>
 
       <div className="bg-[#E2E2E2] text-[#242424]">
-        <div className="max-w-[1400px] mx-auto pt-8 pb-4 sm:px-10">
+        <div className="max-w-[1400px] mx-auto pt-8 pb-4 px-6 sm:px-10">
           <SectionRule name="Build reliable workflows" border={false} className="py-14" />
 
           <p className="text-base leading-relaxed md:max-w-[33%]">
@@ -476,14 +476,14 @@ isActive
               );
             })}
 
-            <div className="w-full pt-16 grid grid-cols-1 md:grid-cols-2 gap-24 items-start">
+            <div className="w-full pt-16 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-24 items-start">
               <div className="space-y-4">
-                <h2 className="text-2xl font-semibold uppercase tracking-wide mb-8">
+                <h2 className="text-xl sm:text-2xl font-semibold uppercase tracking-wide mb-4 sm:mb-8">
                   {selectedFeature.id} — {selectedFeature.label}
                 </h2>
                 <p className="text-sm leading-relaxed text-[#242424]">{selectedFeature.description}</p>
               </div>
-              <pre className="bg-[#0c0c0c] text-white text-xs font-mono p-4 rounded border border-[#24242440] whitespace-pre-wrap overflow-auto min-h-[20lh]">
+              <pre className="bg-[#0c0c0c] text-white text-xs font-mono p-4 rounded border border-[#24242440] whitespace-pre-wrap overflow-x-auto min-h-[20lh]">
                 <code>{selectedFeature.code}</code>
               </pre>
             </div>
@@ -493,7 +493,7 @@ isActive
       </div>
 
       <div className="bg-[#0c0c0c]">
-        <marquee className="text-4xl pt-6 pb-5 opacity-30 text-[#FEFEFE] font-mono">
+        <marquee className="text-2xl sm:text-3xl md:text-4xl pt-6 pb-5 opacity-30 text-[#FEFEFE] font-mono">
           <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> GET STARTED QUICKLY&nbsp;
           <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> GET STARTED QUICKLY&nbsp;
           <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> GET STARTED QUICKLY&nbsp;
@@ -505,11 +505,11 @@ isActive
       </div>
 
       <div className="bg-[#2C9B63] text-[#242424] pt-8">
-        <div className="max-w-[1400px] mx-auto space-y-16 pb-16 sm:px-10">
+        <div className="max-w-[1400px] mx-auto space-y-16 pb-16 px-6 sm:px-10">
           <SectionRule name="How it works" className="py-14" />
 
           <section className="px-0">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-24 pl-52">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-24 sm:px-10 md:pl-52 md:pr-0">
 
               {howItWorksSteps.map((step, index) => (
                 <div key={step.title} className="space-y-6">
@@ -532,7 +532,7 @@ isActive
                 </div>
               ))}
 
-              <div className="text-8xl opacity-25 leading-[1.3]">
+              <div className="text-5xl sm:text-6xl md:text-8xl opacity-25 leading-[1.3]">
                 <a href="https://www.github.com/stepkit/stepkit" className="underline">
                   GIT
                   HUB <br />
@@ -546,47 +546,47 @@ isActive
       </div>
 
       <div className="bg-[#181818] text-white">
-        <div className="relative max-w-[1400px] mx-auto pt-8 pb-32 sm:px-10 overflow-hidden">
+        <div className="relative max-w-[1400px] mx-auto pt-8 pb-32 px-6 sm:px-10 overflow-hidden">
           {/* Testimonial */}
           <SectionRule name="Why we built StepKit" border={false} className="relative z-10 py-14" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-24 ">
-            <div className="relative z-10 space-y-4 max-w-[50%]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
+            <div className="relative z-10 space-y-4 max-w-full md:max-w-[80%]">
               <p className="mt-8">Code is being written and re-written faster than ever. </p>
               <p className="mt-8">Other workflows weren't built to expect this pace of change.</p>
             </div>
             <div className="relative z-10 space-y-4">
 
-              <div className="grid grid-cols-2 pt-6 pb-10 border-t-[0.5px] border-t-[#484848]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 pb-10 border-t-[0.5px] border-t-[#484848]">
                 <div className="flex align-top">
-                  <span>[ 01 ] →</span>
-                  <h2 className="inline-block text-4xl ml-6">BUILD</h2>
+                  <span className="text-sm sm:text-base">[ 01 ] →</span>
+                  <h2 className="inline-block text-2xl sm:text-3xl md:text-4xl ml-4 sm:ml-6">BUILD</h2>
                 </div>
-                <p className="opacity-50">Choose any orchestration provider or language</p>
+                <p className="opacity-50 text-sm sm:text-base">Choose any orchestration provider or language</p>
               </div>
 
-              <div className="grid grid-cols-2 pt-6 pb-10 border-t-[0.5px] border-t-[#484848]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 pb-10 border-t-[0.5px] border-t-[#484848]">
                 <div className="flex align-top">
-                  <span>[ 02 ] →</span>
-                  <h2 className="inline-block text-4xl ml-6">ITERATE</h2>
+                  <span className="text-sm sm:text-base">[ 02 ] →</span>
+                  <h2 className="inline-block text-2xl sm:text-3xl md:text-4xl ml-4 sm:ml-6">ITERATE</h2>
                 </div>
-                <p className="opacity-50">Deploy durable workflows anywhere, in seconds</p>
+                <p className="opacity-50 text-sm sm:text-base">Deploy durable workflows anywhere, in seconds</p>
               </div>
 
-              <div className="grid grid-cols-2 pt-6 pb-10 border-y-[0.5px] border-y-[#484848]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 pb-10 border-y-[0.5px] border-y-[#484848]">
                 <div className="flex align-top">
-                  <span>[ 03 ] →</span>
-                  <h2 className="inline-block text-4xl ml-6">EXTEND</h2>
+                  <span className="text-sm sm:text-base">[ 03 ] →</span>
+                  <h2 className="inline-block text-2xl sm:text-3xl md:text-4xl ml-4 sm:ml-6">EXTEND</h2>
                 </div>
-                <p className="opacity-50">Suspend and resume long running workflows</p>
+                <p className="opacity-50 text-sm sm:text-base">Suspend and resume long running workflows</p>
               </div>
 
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-24 pt-32">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 pt-16 md:pt-32">
             <div className="relative z-10 space-y-4">
-              <h2>StepKit</h2>
+              <h2 className="text-xl sm:text-2xl">StepKit</h2>
 
               <div className="opacity-70">
                 <p className="text-sm">For an increasingly AI-dependent world, flexibility and iteration is paramount. We built StepKit to give developers  the peace  of mind they need to deploy quickly, refactor fearlessly, and  most importantly—change languages, or re-write entire workflows without breaking or migrating code. No language lock-in. No vendor lock-in.</p>
@@ -598,9 +598,53 @@ isActive
         </div>
       </div>
 
+      {/*
       <div className="bg-[#2C9B63] text-[#242424] pt-8">
         <div className="max-w-[1400px] mx-auto space-y-16 pb-16 sm:px-10">
           <SectionRule name="FAQs" border={false}  className="pt-8" />
+        </div>
+      </div>
+      */}
+
+      <div className="bg-[#181818] text-white">
+        <div className="relative max-w-[1400px] mx-auto pt-8 pb-32 px-6 sm:px-10 overflow-hidden">
+
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-16 md:pt-32">
+            <p className="font-mono text-sm sm:text-base">USE STEP KIT [ TODAY ]</p>
+            <a
+              href="https://www.npmjs.com/package/stepkit"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center py-2 px-4 sm:px-6 border border-[#2C9B63] text-[#2C9B63] hover:opacity-90 transition-opacity cursor-pointer font-mono text-xs sm:text-sm whitespace-nowrap"
+            >
+              npm i inngest/stepkit@latest
+            </a>
+          </div>
+
+          <div className="pt-8 md:pt-16 flex justify-center md:justify-start">
+            <a
+              href="/docs"
+              className="inline-flex items-center py-2 px-4 sm:px-6 border bg-[#080808] border-[#080808] text-[#818181] hover:opacity-90 transition-opacity cursor-pointer font-mono text-sm"
+            >
+              Get started [→]
+            </a>
+          </div>
+
+          <div className="mt-8 py-6 border-t-[1px] border-t-[#555555]">
+            <span className="text-xs sm:text-sm opacity-50 font-mono uppercase">©2025 Inngest. |   Inngest.com</span>
+
+            <svg width="180" height="31" viewBox="0 0 180 31" fill="none" xmlns="http://www.w3.org/2000/svg" className="mt-6 max-w-full h-auto">
+              <path d="M5.18621 0.541016H0V30.1675H5.18621V0.541016Z" fill="#FEFEFE"/>
+              <path d="M110.97 24.6777C109.97 24.6777 107.213 24.1429 107.88 20.3163C108.136 19.015 109.612 15.4796 107.838 10.3457C107.397 9.09196 107.266 5.97245 110.911 5.97245H124.873V0.505859H102.926L102.967 30.1383H125.344V24.6777H110.982H110.976H110.97Z" fill="#FEFEFE"/>
+              <path d="M118.003 12.6758H114.865C113.371 12.6758 112.156 13.8998 112.156 15.4031C112.156 16.9064 113.365 18.1305 114.865 18.1305H118.003C119.498 18.1305 120.713 16.9064 120.713 15.4031C120.713 13.8998 119.504 12.6758 118.003 12.6758Z" fill="#FEFEFE"/>
+              <path d="M58.5595 0.541099L58.7143 10.8741C58.7143 12.9063 58.8513 14.9503 59.9468 16.5962C62.2929 20.1376 59.3157 22.4787 57.2376 20.1376L42.3995 0.535156H35.6711L35.683 21.0824C35.683 21.9202 34.9983 23.0611 33.5335 22.966C31.509 22.8412 31.8782 18.7769 28.7105 15.0394C28.639 14.9562 17.7188 0.541099 17.7188 0.541099H11.2227V30.1676H16.8852V21.1715C16.8852 18.8601 16.9269 15.8178 15.7777 14.1957C13.8664 11.498 15.2835 9.48966 16.9686 9.70357C17.7486 9.85806 18.4036 10.7434 18.4036 10.7434L33.0452 30.1617H41.292V20.0841C41.4468 15.901 40.0237 13.3698 39.9106 13.0429C39.4461 11.6585 39.8451 10.6781 40.5775 10.2621C41.2682 9.86995 42.2089 9.87589 42.9175 10.678C43.3998 11.2306 57.3805 30.1557 57.3805 30.1557H64.2221V0.54704H58.5535L58.5595 0.541099Z" fill="#FEFEFE"/>
+              <path d="M144.758 12.984C142.96 12.5681 140.507 12.0927 138.119 11.5104C134.344 10.5954 133.945 5.48529 141.15 5.49123C146.973 5.49123 149.76 9.98928 149.76 9.98928L152.945 5.48529C152.945 5.48529 148.795 -0.0704272 141.245 0.0246439C131.057 0.161309 129.771 6.06165 129.706 8.28394C129.7 8.52162 129.384 13.4237 134.302 15.9669C136.315 17.0126 140.435 17.6544 142.537 18.0644C144.151 18.3852 145.3 18.819 145.854 19.3122C148.271 21.4513 147.128 25.9137 140.941 25.4383C134.773 24.963 131.861 20.2332 131.861 20.2332L128.574 24.8501C128.574 24.8501 132.022 30.388 140.739 30.8098C153.416 31.4219 156.226 19.639 150.057 15.1053C149.414 14.6359 147.825 13.6911 144.758 12.9781V12.984Z" fill="#FEFEFE"/>
+              <path d="M179.878 5.75119V0.540107H173.947C171.72 0.557933 170.768 1.05111 170.22 1.29473C169.16 1.7998 168.094 2.40588 165.951 1.34227C165.439 1.12242 164.182 0.510398 162.069 0.540107H156.18V5.75713H163.367C164.385 5.75713 165.206 6.57712 165.212 7.59319L165.242 30.1666H170.78L170.75 7.59913C170.75 6.58306 171.572 5.75713 172.596 5.75713H179.878V5.75119Z" fill="#FEFEFE"/>
+              <path d="M82.6961 13.7021V18.3428H91.0322C90.1926 24.2193 84.8397 25.1938 83.3154 25.1938C78.7067 25.1938 74.0802 22.3655 74.0802 15.3837C74.0802 12.4187 76.0392 5.59731 83.3392 5.59731C85.2863 5.59731 88.5016 5.8231 92.36 9.4774L96.0695 5.18731C94.5631 3.64241 90.4665 0 83.3392 0C74.9198 0 68.1914 6.04889 68.1914 15.348C68.1914 24.6472 74.366 30.7911 83.3094 30.7911C89.5912 30.7911 93.4258 26.2693 93.4258 24.2015V30.1197H98.0702V13.7853L82.6902 13.6962L82.6961 13.7021Z" fill="#FEFEFE"/>
+            </svg>
+
+          </div>
+
         </div>
       </div>
 
