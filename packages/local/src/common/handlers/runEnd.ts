@@ -2,7 +2,6 @@ import {
   disableRetries,
   fromJsonError,
   getStepKitErrorProps,
-  OpMode,
   StdOpCode,
   type OpResult,
   type OpResults,
@@ -40,6 +39,9 @@ function shouldEndRun(op: OpResult, queueItem: ExecQueueData): boolean {
       return true;
     }
     // Step was successful
+    return false;
+  }
+  if (op.result.status === "plan") {
     return false;
   }
 
@@ -91,10 +93,7 @@ async function resumeWaitingInvoke({
   }
 
   const opResult: OpResults["invokeWorkflow"] = {
-    config: {
-      ...waitingInvoke.op.config,
-      mode: OpMode.immediate,
-    },
+    config: waitingInvoke.op.config,
     opId: waitingInvoke.op.opId,
     result: op.result,
     runId: waitingInvoke.parentRun.runId,

@@ -76,7 +76,7 @@ export function parallelStepSuite<TClient extends BaseClient>(
 
         expect(outputs).toEqual({
           a: "A",
-          parallel: ["P1", "P2", undefined, undefined],
+          parallel: ["P1", "P2", null, null],
           b: "B",
         });
       }, 5000);

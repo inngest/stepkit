@@ -1,4 +1,4 @@
-import { isOpResult, OpMode } from "@stepkit/sdk-tools";
+import { isOpResult } from "@stepkit/sdk-tools";
 
 import { nextAttempt, type OpHandlers } from "./common";
 
@@ -18,9 +18,9 @@ export const sleepHandlers: OpHandlers = {
       },
       {
         ...action.opResult,
-        config: {
-          ...action.opResult.config,
-          mode: OpMode.immediate,
+        result: {
+          status: "success",
+          output: null,
         },
       }
     );

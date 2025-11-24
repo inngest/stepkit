@@ -1,4 +1,4 @@
-import { OpMode, type OpResult } from "@stepkit/sdk-tools";
+import { type OpResult } from "@stepkit/sdk-tools";
 
 import { UnreachableError } from "../common/errors";
 import type {
@@ -177,11 +177,6 @@ export class InMemoryStateDriver implements LocalStateDriver {
     { hashedOpId, runId }: { hashedOpId: string; runId: string },
     op: OpResult
   ): Promise<void> {
-    if (op.config.mode === OpMode.scheduled) {
-      // Don't store because future work will be scheduled via the queue
-      return;
-    }
-
     if (op.result.status === "error") {
       const opAttempt = await this.incrementOpAttempt(runId, hashedOpId);
       const maxAttempts = await this.getMaxAttempts(runId);

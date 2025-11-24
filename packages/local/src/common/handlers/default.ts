@@ -1,3 +1,4 @@
+import type { ExecQueueData } from "../queue";
 import { nextAttempt, type OpHandlers } from "./common";
 
 export const defaultHandlers: OpHandlers = {
@@ -6,9 +7,17 @@ export const defaultHandlers: OpHandlers = {
   },
 
   opResult: async ({ execQueue, op, queueItem }) => {
+    let action: ExecQueueData["action"] = { code: "discover" };
+    if (op.result.status === "plan") {
+      action = {
+        code: "targetOp",
+        hashedOpId: op.opId.hashed,
+      };
+    }
+
     await execQueue.add({
       data: {
-        action: { code: "discover" },
+        action,
         attempt: nextAttempt(op, queueItem),
         maxAttempts: queueItem.maxAttempts,
         runId: queueItem.runId,

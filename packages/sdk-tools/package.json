@@ -24,8 +24,8 @@
   "scripts": {
     "build": "tsdown --config tsdown.config.ts && node ../../scripts/distPackage.js .",
     "dpdm": "dpdm --exit-code circular:1 src/main.ts",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "release": "pnpm run test && pnpm run build && cross-env DIST_DIR=dist node ../../scripts/release/publish.js",
     "test": "NODE_OPTIONS='--expose-gc' vitest run --reporter=tree",
     "test:watch": "NODE_OPTIONS='--expose-gc' vitest --watch --reporter=tree",
