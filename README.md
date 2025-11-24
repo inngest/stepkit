@@ -5,9 +5,6 @@
     </picture>
 </p>
 <p align="center">
-    StepKit is an open source and extensible framework to build durable workflows running on multiple platforms and clouds.
-</p>
-<p align="center">
     <a href="https://www.step.run/docs">Documentation</a>
     <span>&nbsp;·&nbsp;</span>
     <a href="https://www.step.run/blog">Blog</a>
@@ -95,7 +92,7 @@ Please take a moment to review our [Code of Conduct](./CODE_OF_CONDUCT.md) to un
 
 ## Contributing
 
-If you're new to contributing, you will find all the essential information (_architecture overview, etc_) in the ["Welcome to the StepKit Community" discussion thread](https://github.com/inngest/stepkit/discussions) before getting started.
+If you're new to contributing, you will find all the essential information (_architecture overview, etc_) in the ["Welcome to the StepKit Community!" discussion thread](https://github.com/inngest/stepkit/discussions/45) before getting started.
 
 We encourage you to open issues and submit pull requests!
 
