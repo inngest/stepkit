@@ -5,9 +5,9 @@
     </picture>
 </p>
 <p align="center">
-    <a href="https://www.step.run/docs">Documentation</a>
+    <a href="https://step.run/docs">Documentation</a>
     <span>&nbsp;·&nbsp;</span>
-    <a href="https://www.step.run/blog">Blog</a>
+    <a href="https://step.run/blog">Blog</a>
     <span>&nbsp;·&nbsp;</span>
     <a href="https://github.com/inngest/stepkit/discussions">Community</a>
     <span>&nbsp;·&nbsp;</span>
@@ -24,7 +24,7 @@ StepKit's steps bring:
 - 📊 **Observability**: each workflow step becomes a live trace with detailed logs and metadata
 - 🪝 **Native webhooks and _"Human in the Loop"_**: make your workflow wait for an external event
 
-Visit the [step.run documentation](https://www.step.run/docs) for guides and examples.
+Visit the [step.run documentation](https://step.run/docs) for guides and examples.
 
 ## Get started
 
