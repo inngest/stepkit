@@ -97,8 +97,8 @@ const session = await step.run('create-checkout', async () => {
 });
 
 // Suspend until webhook received
-const payment = await step.waitForEvent('wait-for-payment', {
-  event: 'stripe/checkout.completed',
+const payment = await step.waitForSignal('wait-for-payment', {
+  signal: 'stripe/checkout.completed',
   timeout: '1h'
 });
 
@@ -453,8 +453,8 @@ function Home() {
   }
 
   // Suspend and wait for human approval
-  const decision = await step.waitForEvent("await-approval", {
-    event: "pr/review.approved",
+  const decision = await step.waitForSignal("await-approval", {
+    signal: "pr/review.approved",
     timeout: "24h"
   });
 

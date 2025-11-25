@@ -24,11 +24,12 @@ export function Header({ activeItem }: HeaderProps) {
         <span>Docs</span>
       </a>
 
-      <a href="#" class="h-full border-t-4 border-white pt-2 flex items-center justify-end text-right space-x-2 hover:opacity-70">
+      <a href="/docs/learn/examples/ai-rag-workflow" class="h-full border-t-4 border-white pt-2 flex items-center justify-end text-right space-x-2 hover:opacity-70">
         <svg class="w-2 h-2 fill-white" viewBox="0 0 10 10"><rect width="10" height="10" /></svg>
         <span>Examples</span>
       </a>
 
+      {/*
       <a href="#" class="h-full border-t-4 border-white pt-2 flex items-center justify-end text-right space-x-2 hover:opacity-70">
         <svg class="w-2 h-2 fill-white" viewBox="0 0 10 10"><rect width="10" height="10" /></svg>
         <span>Blog</span>
@@ -38,8 +39,9 @@ export function Header({ activeItem }: HeaderProps) {
         <svg class="w-2 h-2 fill-white" viewBox="0 0 10 10"><rect width="10" height="10" /></svg>
         <span>About</span>
       </a>
+      */}
 
-      <div class="h-full flex items-start justify-end space-x-3">
+      <div class="col-span-3 h-full flex items-start justify-end space-x-3">
         {/*<a href="#" class="px-2 py-1 border border-white text-[9px] md:text-[10px] tracking-normal hover:bg-white hover:text-black">STEP_RUN-LATEST</a>*/}
         <a href="https://www.github.com/stepkit/stepkit" class="w-6 h-6 flex items-center justify-end text-right h-[36px] w-[36px]">
           <GithubIcon />
