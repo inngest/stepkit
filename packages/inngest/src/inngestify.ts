@@ -17,7 +17,7 @@ import {
 } from "@stepkit/sdk-tools";
 
 import {
-  type InngestClient,
+  type Client,
   type ReceivedEvent,
   type SentEvent,
   type StepExt,
@@ -25,7 +25,7 @@ import {
 import { isNullish, isRecord } from "./utils";
 
 export function inngestify(
-  client: InngestClient,
+  client: Client,
   workflows: Workflow<any, any, ExtDefault, ExtDefault, StepExt>[]
 ): ServeHandlerOptions {
   const functions = workflows.map((workflow) => {

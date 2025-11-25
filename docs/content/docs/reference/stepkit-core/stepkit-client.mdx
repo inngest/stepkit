@@ -1,0 +1,67 @@
+---
+title: StepKit Client
+---
+
+The StepKit Client is the entry point for creating and managing workflows. It provides methods to define workflows and invoke them with input data.
+
+## Client Interface
+
+```typescript
+type Client<TWorkflowCfgExt, TCtxExt, TStepExt> = {
+  workflow: (opts, handler) => Workflow;
+  startWorkflow: (workflow, input) => Promise<StartData>;
+}
+```
+
+## Methods
+
+| Method | Description |
+|--------|-------------|
+| `workflow(opts, handler)` | Creates a new workflow with the given configuration and handler function. Returns a `Workflow` instance. See [Workflow](/docs/reference/stepkit-core/workflow). |
+| `startWorkflow(workflow, input)` | Starts a workflow execution with the provided input. Returns a `Promise<StartData>` with run identifiers. |
+
+## Type Parameters
+
+The Client interface accepts three optional type parameters for extending functionality:
+
+| Parameter | Description |
+|-----------|-------------|
+| `TWorkflowCfgExt` | Workflow configuration extensions. Allows adding driver-specific options to the workflow configuration (e.g., concurrency settings, rate limits). |
+| `TCtxExt` | Context extensions. Adds custom properties to the workflow context object available in handlers. |
+| `TStepExt` | Step extensions. Adds custom step methods beyond the core `run()`, `sleep()`, and `waitForSignal()` methods. |
+
+## Creating a Client
+
+Clients are typically provided by orchestration drivers. Import the class from the driver and create a new instance:
+
+```typescript
+import { Client } from "@stepkit/inngest";
+
+const client = new Client({ id: "my-app" });
+```
+
+## Driver-Specific Extensions
+
+Different orchestration drivers can extend the client with additional capabilities:
+
+```typescript
+// Example: Driver with custom workflow configuration
+const workflow = client.workflow(
+  {
+    id: "rate-limited-workflow",
+    ext: {
+      concurrency: {
+        limit: 10,
+        key: "userId",
+      },
+    },
+  },
+  async ({ input }, step) => {
+    // Access custom context extensions
+    console.log(input.ext.customField);
+    
+    // Use custom step extensions
+    await step.ext.customMethod("step-id");
+  }
+);
+```

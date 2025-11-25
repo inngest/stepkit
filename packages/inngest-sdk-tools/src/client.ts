@@ -16,7 +16,7 @@ export type StepExt = {
   sleepUntil: (stepId: string, wakeAt: Date) => Promise<void>;
 };
 
-export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
+export class Client extends BaseClient<ExtDefault, ExtDefault, StepExt> {
   readonly id: string;
 
   constructor({ id }: { id: string }) {

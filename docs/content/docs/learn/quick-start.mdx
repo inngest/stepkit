@@ -1,0 +1,215 @@
+---
+title: Quick Start
+description: Build your first durable workflow with StepKit in minutes
+---
+
+# Getting Started
+
+This guide will walk you through getting started with StepKit to build and deploy durable workflows.
+
+---
+
+## Installation
+
+Install StepKit's core package along with a driver. For this guide, we'll use the [in-memory driver](/docs/learn/driver-guides/in-memory-driver), which is perfect for development and testing.
+
+```bash tab="npm"
+npm install @stepkit/core @stepkit/local
+```
+
+```bash tab="pnpm"
+pnpm add @stepkit/core @stepkit/local
+```
+
+```bash tab="bun"
+bun add @stepkit/core @stepkit/local
+```
+
+```bash tab="yarn"
+yarn add @stepkit/core @stepkit/local
+```
+
+---
+
+## Create a Client
+
+Create a file to initialize your StepKit client, which will be used to create workflows.
+
+```typescript title="client.ts"
+import { InMemoryClient } from "@stepkit/local";
+
+export const client = new InMemoryClient();
+```
+
+---
+
+## Build Your First Workflow
+
+Let's create a workflow that processes an order. This workflow will:
+1. Reserve inventory
+2. Process payment
+3. Wait before sending a confirmation
+4. Send an order confirmation email
+
+Create a new file for your workflow:
+
+```typescript title="workflows/process-order.ts"
+import { z } from "zod";
+import { client } from "./client";
+
+export const processOrder = client.workflow(
+  {
+    id: "process-order",
+    
+    // Type-safe inputs & runtime validation
+    inputSchema: z.object({
+      orderId: z.string(),
+      items: z.array(z.string()),
+      email: z.string().email(),
+      amount: z.number(),
+    }),
+  },
+  async ({ input }, step) => {
+    // Step 1: Reserve inventory
+    const inventory = await step.run("reserve-inventory", async () => {
+      console.log(`Reserving items: ${ctx.input.items.join(", ")}`);
+      
+      // Simulate inventory check
+      const available = ctx.input.items.every(() => Math.random() > 0.1);
+      
+      if (!available) {
+        throw new Error("Item out of stock - will retry");
+      }
+      
+      return { reserved: true, items: ctx.input.items };
+    });
+
+    // Step 2: Process payment
+    const payment = await step.run("process-payment", async () => {
+      console.log(`Processing payment of $${ctx.input.amount}`);
+      
+      // Simulate payment processing
+      const paymentId = crypto.randomUUID();
+      
+      return {
+        id: paymentId,
+        amount: ctx.input.amount,
+        status: "completed",
+      };
+    });
+
+    // Step 3: Wait 30 seconds before confirmation
+    // This doesn't consume any resources while waiting!
+    await step.sleep("wait-before-confirm", 30000);
+
+    // Step 4: Send confirmation email
+    await step.run("send-confirmation", async () => {
+      console.log(`Sending order confirmation to ${ctx.input.email}`);
+      console.log(`Order ${ctx.input.orderId} completed!`);
+      
+      return { emailSent: true };
+    });
+
+    // Return the final result
+    return {
+      orderId: ctx.input.orderId,
+      paymentId: payment.id,
+      status: "completed",
+      items: inventory.items,
+    };
+  }
+);
+```
+
+### Understanding This Code
+
+**Workflows** are durable functions that orchestrate your business logic:
+- We pass an `inputSchema` that provides runtime validation and statically types the workflow's input (the workflow arguments)
+- Each `step.run()` creates a checkpoint - if your workflow fails, it resumes from the last successful step
+- `step.sleep()` pauses execution without consuming resources
+
+**Steps** are atomic, retryable operations:
+- If a step throws an error, it automatically retries with exponential backoff
+- Each step runs exactly once successfully - results are cached
+- Steps are similar to any function of your application; they can use all the available dependencies and use the same runtime to perform async operations, database calls, or API requests.
+
+---
+
+## Run Your Workflow
+
+Now let's invoke the workflow. Create a file to test it:
+
+```typescript title="main.ts"
+import { client } from "./client";
+import { processOrder } from "./workflows/process-order";
+
+async function main() {
+  console.log("Starting order processing workflow...\n");
+
+  const result = await client.startWorkflow(processOrder, {
+    orderId: "ORDER-123",
+    items: ["laptop", "mouse", "keyboard"],
+    email: "customer@example.com",
+    amount: 1299.99,
+  });
+
+  console.log("\n✅ Workflow completed!");
+  console.log("Result:", result);
+}
+
+void main();
+```
+
+Run it with:
+
+```bash
+npx tsx main.ts
+# or if using Node.js directly
+node --loader ts-node/esm main.ts
+```
+
+You'll see each step execute in sequence, with a 30-second pause before the confirmation step.
+
+---
+
+## Using in Your Application
+
+StepKit workflows can also be integrated into your application's back-end (ex: API):
+
+### API Endpoint (Express)
+
+```typescript title="routes/orders.ts"
+import express from "express";
+import { client } from "./client";
+import { processOrder } from "./workflows/process-order";
+
+const app = express();
+
+app.post("/api/orders", async (req, res) => {
+  // Start the workflow asynchronously
+  const result = await client.startWorkflow(processOrder, req.body);
+  
+  res.json({
+    message: "Order processing started",
+    orderId: result.orderId,
+  });
+});
+```
+
+---
+
+## Next Steps
+
+Now that you've built your first workflow, explore more concepts:
+
+- **Learn**: Dive deeper into [Concepts](/docs/learn/concepts/steps) to understand workflows, steps, and orchestration
+- **Drivers**: Explore different [Driver Guides](/docs/learn/driver-guides/in-memory) for your deployment needs
+{/* - **Patterns**: Check out common patterns like parallel execution, long-running workflows, and event handling */}
+
+{/* **Key Takeaways**:
+- ✅ Workflows are durable and resume from checkpoints
+- ✅ Steps are atomic and automatically retry on failure  
+- ✅ State is persisted between steps
+- ✅ Sleep without consuming resources
+- ✅ Deploy anywhere your code runs */}
+

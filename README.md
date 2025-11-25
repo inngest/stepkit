@@ -5,9 +5,7 @@
     </picture>
 </p>
 <p align="center">
-    <a href="https://www.step.run/docs">Documentation</a>
-    <span>&nbsp;·&nbsp;</span>
-    <a href="https://www.step.run/blog">Blog</a>
+    <a href="https://step.run/docs">Documentation</a>
     <span>&nbsp;·&nbsp;</span>
     <a href="https://github.com/inngest/stepkit/discussions">Community</a>
     <span>&nbsp;·&nbsp;</span>
@@ -24,7 +22,7 @@ StepKit's steps bring:
 - 📊 **Observability**: each workflow step becomes a live trace with detailed logs and metadata
 - 🪝 **Native webhooks and _"Human in the Loop"_**: make your workflow wait for an external event
 
-Visit the [step.run documentation](https://www.step.run/docs) for guides and examples.
+Visit the [step.run documentation](https://step.run/docs) for guides and examples.
 
 ## Get started
 
@@ -36,7 +34,6 @@ _Inngest, Cloudflare, Netlify for local dev and deployment, or In-Memory/FileSys
 npm i @stepkit/inngest
 
 # npm i @stepkit/cloudflare
-# npm i @stepkit/netlify
 # npm i @stepkit/local
 ```
 
@@ -44,11 +41,13 @@ npm i @stepkit/inngest
 
 ```ts
 import { z } from "zod";
-import { InngestClient } from "@stepkit/inngest";
+import { Client } from "@stepkit/inngest";
+// import { Client } from "@stepkit/cloudflare";
+// import { FileSystemClient as Client } from "@stepkit/local";
 
 import { emailTemplates, sendEmail } from "./email-service";
 
-export const client = new InngestClient({ id: "readme-example" });
+export const client = new Client({ id: "readme-example" });
 
 export const onboardingWorkflow = client.workflow(
   {

@@ -1,0 +1,85 @@
+---
+title: File System Driver
+---
+
+The Filesystem driver stores workflow state on your local disk. Workflows survive process restarts. You can inspect state files directly to see how durable execution works.
+
+<Callout>Best for: Local development and learning.</Callout>
+
+## Installation
+
+```bash
+npm install @stepkit/local
+```
+
+## Usage
+
+```typescript
+import { FileSystemClient } from "@stepkit/local";
+import { z } from "zod";
+
+const client = new FileSystemClient({ baseDir: "./.stepkit" });
+
+const workflow = client.workflow(
+  {
+    id: "persistent-workflow",
+    inputSchema: z.object({ orderId: z.string() }),
+  },
+  async ({ input }, step) => {
+    const order = await step.run("fetch-order", async () => {
+      return await db.orders.get(input.data.orderId);
+    });
+    
+    await step.sleep("wait-5-seconds", 5000);
+    
+    await step.run("process-order", async () => {
+      return await processOrder(order);
+    });
+    
+    return order;
+  }
+);
+
+// Invoke the workflow
+const result = await client.startWorkflow(workflow, { orderId: "order_123" });
+```
+
+## Configuration
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `baseDir` | `string` | `"./.stepkit"` | Directory where workflow state files are stored. |
+
+## How it works
+
+The Filesystem driver stores workflow state as JSON files in the specified directory. Each workflow run gets its own state file. When a workflow resumes, it reads the state file to skip completed steps.
+
+You can open these files to see exactly what's stored—great for understanding durable execution.
+
+## Inspecting state
+
+State files are stored in `{baseDir}/state/`. Look inside to see:
+- Completed step results
+- Current workflow position
+- Pending sleeps and scheduled executions
+
+This transparency makes the Filesystem driver excellent for learning and debugging.
+
+## Stopping the client
+
+The Filesystem driver starts background processes. Stop them when your application shuts down:
+
+```typescript
+const client = new FileSystemClient();
+
+// ... use workflows ...
+
+// Clean shutdown
+client.stop();
+```
+
+## Related
+
+- [In-Memory Driver](/docs/learn/driver-guides/in-memory-driver) - For testing without persistence
+- [Inngest Driver](/docs/learn/driver-guides/inngest-driver) - For production deployments
+

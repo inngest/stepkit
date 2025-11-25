@@ -1,0 +1,85 @@
+---
+title: step.ext.sendEvent()
+---
+
+Send one or more events from within a workflow. This is an Inngest-specific step extension that allows workflows to trigger other workflows or notify external systems.
+
+## Signature
+
+```typescript
+step.ext.sendEvent(stepId: string, event: SentEvent): Promise<{ ids: string[] }>
+```
+
+## Parameters
+
+| Name | Type | Description |
+|------|------|-------------|
+| `stepId` | `string` | Unique identifier for this step. Used for state persistence. |
+| `event` | `SentEvent` | The event to send. See [SentEvent](#sentevent) below. |
+
+### SentEvent
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `name` | `string` | **Required.** The event name. Used to identify which workflows should be triggered. |
+| `data` | `Record<string, unknown>` | **Optional.** Event payload. Must be JSON-serializable. |
+| `id` | `string` | **Optional.** Custom event ID. If not provided, one will be generated automatically. |
+| `ts` | `number` | **Optional.** Event timestamp in milliseconds. Defaults to current time. |
+| `v` | `string` | **Optional.** Event version identifier. |
+
+## Returns
+
+Returns a promise that resolves to an object containing:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `ids` | `string[]` | Array of event IDs that were sent. |
+
+## Examples
+
+**Send event to trigger another workflow:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "process-order" },
+  async ({ input }, step) => {
+    const order = await step.run("create-order", async () => {
+      return await db.orders.create(input.data);
+    });
+    
+    // Trigger warehouse workflow
+    await step.ext.sendEvent("notify-warehouse", {
+      name: "order.created",
+      data: { orderId: order.id, items: order.items },
+    });
+    
+    return order;
+  }
+);
+```
+
+**Send multiple related events:**
+
+```typescript
+const workflow = client.workflow(
+  { id: "user-signup" },
+  async ({ input }, step) => {
+    const user = await step.run("create-user", async () => {
+      return await db.users.create({ email: input.data.email });
+    });
+    
+    // Notify multiple systems
+    await step.ext.sendEvent("notify-crm", {
+      name: "user.created",
+      data: { userId: user.id, email: user.email },
+    });
+    
+    await step.ext.sendEvent("start-onboarding", {
+      name: "onboarding.start",
+      data: { userId: user.id },
+    });
+    
+    return user;
+  }
+);
+```

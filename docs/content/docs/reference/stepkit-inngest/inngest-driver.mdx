@@ -1,0 +1,99 @@
+---
+title: Inngest Driver
+---
+
+The Inngest Driver allows you to run StepKit workflows on the Inngest platform, providing production-ready orchestration with event-driven triggers, observability, and automatic retries.
+
+## Installation
+
+```bash
+npm install @stepkit/inngest inngest
+```
+
+## Client
+
+Create an Inngest client to define workflows:
+
+```typescript
+import { Client } from "@stepkit/inngest";
+
+const client = new Client({ id: "my-app" });
+```
+
+### Parameters
+
+| Name | Type | Description |
+|------|------|-------------|
+| `id` | `string` | Unique identifier for your Inngest application. |
+
+## Creating Workflows
+
+Use the client to create workflows with Inngest-specific step extensions:
+
+```typescript
+import { z } from "zod";
+
+const workflow = client.workflow(
+  {
+    id: "process-order",
+    inputSchema: z.object({ orderId: z.string() }),
+  },
+  async ({ input }, step) => {
+    const order = await step.run("fetch-order", async () => {
+      return await db.orders.get(input.data.orderId);
+    });
+    
+    // Inngest-specific: Send event to another workflow
+    await step.ext.sendEvent("notify-warehouse", {
+      name: "order.created",
+      data: { orderId: order.id },
+    });
+    
+    return order;
+  }
+);
+```
+
+## inngestify()
+
+Convert StepKit workflows into Inngest functions for deployment:
+
+```typescript
+import { inngestify, Client } from "@stepkit/inngest";
+import { serve } from "inngest/next";
+
+const client = new Client({ id: "my-app" });
+
+const workflow1 = client.workflow(/* ... */);
+const workflow2 = client.workflow(/* ... */);
+
+// Serve in Nextjs API routes
+export const { GET, POST, PUT } = serve(
+  inngestify(client, [workflow1, workflow2])
+);
+```
+
+### Parameters
+
+| Name | Type | Description |
+|------|------|-------------|
+| `client` | `Client` | The Inngest client instance. |
+| `workflows` | `Workflow[]` | Array of workflows to convert into Inngest functions. |
+
+### Returns
+
+Returns a `ServeHandlerOptions` object that can be passed to Inngest's `serve()` function.
+
+## Step Extensions
+
+The Inngest driver adds the following step methods via `step.ext`:
+
+| Method | Description |
+|--------|-------------|
+| `sendEvent(stepId, event)` | Send an event to trigger other workflows. See [step.ext.sendEvent()](/docs/reference/stepkit-inngest/step-ext-send-event). |
+| `sleepUntil(stepId, wakeAt)` | Sleep until a specific date and time. See [step.ext.sleepUntil()](/docs/reference/stepkit-inngest/step-ext-sleep-until). |
+| `waitForEvent(stepId, opts)` | Pause workflow until an event is received. See [step.ext.waitForEvent()](/docs/reference/stepkit-inngest/step-ext-wait-for-event). |
+
+## Related
+
+- [Inngest Documentation](https://inngest.com/docs) - Full Inngest platform documentation

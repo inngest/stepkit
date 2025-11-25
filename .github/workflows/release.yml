@@ -48,5 +48,5 @@ jobs:
           publish: pnpm run release:all
           title: 'Release @latest'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.CHANGESET_GITHUB_TOKEN }}
           NODE_ENV: test

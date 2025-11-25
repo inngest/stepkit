@@ -10,11 +10,11 @@ import z from "zod";
 import { NonRetryableError } from "@stepkit/core";
 import type { Context } from "@stepkit/sdk-tools";
 
-import { InngestClient, inngestify } from "../src/main";
+import { Client, inngestify } from "../src/main";
 import { sleep } from "../src/utils";
 
 it("multiple steps", async () => {
-  const client = new InngestClient({ id: crypto.randomUUID(), mode: "dev" });
+  const client = new Client({ id: crypto.randomUUID(), mode: "dev" });
   const eventName = `event-${crypto.randomUUID()}`;
   const counters = {
     top: 0,
@@ -63,7 +63,7 @@ it("multiple steps", async () => {
 });
 
 it("NonRetryableError", async () => {
-  const client = new InngestClient({ id: crypto.randomUUID(), mode: "dev" });
+  const client = new Client({ id: crypto.randomUUID(), mode: "dev" });
   const eventName = `event-${crypto.randomUUID()}`;
   const counters = {
     top: 0,
@@ -117,7 +117,7 @@ it("NonRetryableError", async () => {
 });
 
 it("startWorkflow", async () => {
-  const client = new InngestClient({ id: crypto.randomUUID(), mode: "dev" });
+  const client = new Client({ id: crypto.randomUUID(), mode: "dev" });
   const eventName = `event-${crypto.randomUUID()}`;
   let receivedCtx: Context | undefined;
   const workflow = client.workflow(
@@ -142,7 +142,7 @@ it("startWorkflow", async () => {
 });
 
 async function startServer(
-  client: InngestClient,
+  client: Client,
   workflows: Parameters<typeof inngestify>[1]
 ): Promise<() => void> {
   // Start the server with a random port
@@ -164,7 +164,7 @@ async function startServer(
 }
 
 it("step.waitForSignal", async () => {
-  const client = new InngestClient({ id: crypto.randomUUID(), mode: "dev" });
+  const client = new Client({ id: crypto.randomUUID(), mode: "dev" });
   const eventName = `event-${crypto.randomUUID()}`;
   const signal = `signal-${crypto.randomUUID()}`;
   const counters = {

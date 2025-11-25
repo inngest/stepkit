@@ -1,0 +1,122 @@
+---
+title: Inngest Driver
+---
+
+The Inngest driver turns your StepKit code into production-ready workflows.
+
+<Callout>Recommended for production deployments and for a better local development experience using the Inngest Dev Server.</Callout>
+
+![Inngest Dev Server - See every step execution in real-time](/content/docs/learn/driver-guides/inngest-driver/dev-server-demo-2025-01-15.gif)
+
+The Inngest Dev Server gives you complete visibility into your workflows during development. Inspect, test, debug, and deploy workflows with confidence.
+
+## Installation
+
+```bash
+npm install @stepkit/inngest inngest
+```
+
+## Usage
+
+```typescript
+import { Client } from "@stepkit/inngest";
+import { inngestify } from "@stepkit/inngest";
+import { serve } from "inngest/next";
+import { z } from "zod";
+
+const client = new Client({ id: "my-app" });
+
+const workflow = client.workflow(
+  {
+    id: "process-order",
+    inputSchema: z.object({ orderId: z.string() }),
+  },
+  async ({ input }, step) => {
+    const order = await step.run("fetch-order", async () => {
+      return await db.orders.get(input.data.orderId);
+    });
+    
+    await step.run("process-payment", async () => {
+      return await processPayment(order);
+    });
+    
+    // Inngest-specific: Send event to another workflow
+    await step.ext.sendEvent("notify-warehouse", {
+      name: "order.processed",
+      data: { orderId: order.id },
+    });
+    
+    return order;
+  }
+);
+
+// Serve the StepKit workflow as a Nextjs API route
+export const { GET, POST, PUT } = serve(
+  inngestify(client, [workflow])
+);
+```
+
+## Configuration
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `id` | `string` | Unique identifier for your Inngest application. |
+| `mode` | `"cloud" \| "dev"` | Defaults to `"cloud"`. Use `"dev"` for local development. |
+
+## How it works
+
+The Inngest driver translates StepKit workflows into Inngest functions. Each workflow runs on Inngest's infrastructure or DevServer, handling:
+
+- Event routing and triggers
+- State persistence across steps
+- Automatic retries with exponential backoff
+- Observability and execution history
+- Deployment and scaling
+
+## Inngest-specific features
+
+The Inngest driver extends StepKit with platform-specific capabilities:
+
+### Send events between workflows
+
+```typescript
+await step.ext.sendEvent("trigger-another-workflow", {
+  name: "order.completed",
+  data: { orderId: "123" },
+});
+```
+
+### Wait for external events
+
+```typescript
+const approval = await step.ext.waitForEvent("wait-for-approval", {
+  event: "document.approved",
+  timeout: "7d",
+});
+```
+
+See [Inngest Driver Reference](/docs/reference/stepkit-inngest/inngest-driver) for complete API documentation.
+
+## Development mode
+
+Run Inngest locally during development:
+
+```bash
+npx inngest-cli@latest dev
+```
+
+```typescript
+const client = new Client({ id: "my-app", mode: "dev" });
+```
+
+The Dev Server provides a local UI for testing and debugging workflows at `http://localhost:8288`.
+
+## Deployment
+
+Deploy workflows to Inngest by deploying your application. Inngest automatically discovers functions at your app's `/api/inngest` endpoint.
+
+No additional configuration needed—just deploy your Next.js, Remix, or Express app.
+
+## Related
+
+- [Inngest Documentation](https://inngest.com/docs) - Full platform documentation

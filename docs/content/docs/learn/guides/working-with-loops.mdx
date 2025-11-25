@@ -1,0 +1,106 @@
+---
+title: Working with Loops
+---
+
+Workflow steps can be used to create durable loops effortlessly. This page covers some patterns and best practices.
+
+## Loop iterations as steps
+
+Each loop iteration should be a separate step. This ensures proper checkpointing and retry behavior.
+
+In our [AI RAG workflow example](/docs/learn/examples/ai-rag-workflow), we fetch ingredient alternatives for detected allergens. Here's how to handle that loop correctly:
+
+The **wrong approach** is to put the loop inside a single step.
+
+```typescript
+// ❌ All iterations in one step
+const alternatives = await step.run("fetch-alternatives", async () => {
+  const allAlternatives = [];
+  
+  for (const allergen of detectedAllergens) {
+    const results = await api.searchIngredients(allergen);
+    allAlternatives.push(...results);
+  }
+  
+  return allAlternatives;
+});
+```
+
+If the API call fails on the third allergen, the entire step retries—including the first two API calls.
+
+The **correct approach** is to put each iteration as a separate step.
+
+```typescript
+// ✅ Each iteration is a step
+const alternatives = [];
+
+for (let i = 0; i < detectedAllergens.length; i++) {
+  const allergen = detectedAllergens[i];
+  
+  const results = await step.run(`fetch-alternatives-${allergen}`, async () => {
+    return await api.searchIngredients(allergen);
+  });
+  
+  alternatives.push(...results);
+}
+```
+
+Now if the third API call fails, only that step retries. The first two results stay cached.
+
+<Callout type="info">
+**How workflows execute**
+
+Each step within a workflow runs separately. Workflows restart from the beginning after each step completes. Previously completed steps return their memoized results and skip re-execution. This continues until the workflow finishes.
+
+Code outside of steps runs every time the workflow restarts. Code inside steps runs once.
+
+Learn more about [how workflows execute](/docs/learn/concepts/how-it-works).
+</Callout>
+
+## Simple example: Processing a batch
+
+Here's a basic loop that processes multiple items:
+
+```typescript
+const workflow = client.workflow(
+  { id: "send-notifications" },
+  async ({ input }, step) => {
+    const users = input.data.users;
+    const results = [];
+
+    for (const user of users) {
+      const result = await step.run(`notify-${user.id}`, async () => {
+        await emailService.send({
+          to: user.email,
+          subject: "Update",
+          body: "You have a new message",
+        });
+        return { userId: user.id, sent: true };
+      });
+      
+      results.push(result);
+    }
+
+    return { notified: results.length };
+  }
+);
+```
+
+Each email send is a separate step. If sending to user 5 fails, users 1-4 don't re-send.
+
+## Best practices
+
+### 1. Each loop iteration should be a separate step.
+
+Due to the workflow execution model, code outside of steps runs every time the workflow restarts and code inside steps runs once. Outside of workflows, loops maintain their state across iterations. However, inside of a workflows, since the workflow restarts after each step, the loop will start from the beginning. 
+
+This is why each loop iteration should be a separate step. The step ID will reflect that the given loop iteration has already been completed and will continue through the loop. 
+
+### 2. Put all non-deterministic code inside steps.
+
+Non-deterministic code is code that can fail or produce different results each time it is run. This includes API calls, database queries, file system operations, random number generation, current timestamps, and any operation that can fail. This prevents these operations from being executed multiple times when the workflow reexecutes.
+
+
+
+
+

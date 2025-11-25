@@ -1,0 +1,78 @@
+---
+title: Workflow Options
+---
+
+The Inngest driver supports all standard StepKit workflow configuration options. 
+
+## Standard Configuration
+
+When creating workflows with the Inngest driver, use the standard configuration options:
+
+```typescript
+import { Client } from "@stepkit/inngest";
+import { z } from "zod";
+import { cronTrigger, eventTrigger } from "@stepkit/sdk-tools";
+
+const client = new Client({ id: "my-app" });
+
+const workflow = client.workflow(
+  {
+    // Unique workflow identifier
+    id: "my-workflow",
+    
+    // Optional: Input schema validation
+    inputSchema: z.object({
+      userId: z.string(),
+      action: z.string(),
+    }),
+    
+    // Optional: Event or cron triggers
+    triggers: [
+      eventTrigger("user.created"),
+      cronTrigger("0 9 * * *"),
+    ],
+    
+    // Optional: Maximum retry attempts
+    maxAttempts: 3,
+  },
+  async ({ input }, step) => {
+    // Workflow logic
+  }
+);
+```
+
+## Configuration Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `id` | `string` | **Required.** Unique identifier for the workflow. |
+| `inputSchema` | `StandardSchemaV1` | **Optional.** Schema for input validation (Zod, Valibot, ArkType, etc.). |
+| `triggers` | `Trigger[]` | **Optional.** Array of cron or event triggers. Defaults to invoke-only if not specified. |
+| `maxAttempts` | `number` | **Optional.** Maximum number of retry attempts on failure. |
+
+## Triggers
+
+The Inngest driver supports both event-based and cron-based triggers:
+
+```typescript
+import { cronTrigger, eventTrigger } from "@stepkit/sdk-tools";
+
+const workflow = client.workflow(
+  {
+    id: "multi-trigger-workflow",
+    triggers: [
+      // Trigger on specific events
+      eventTrigger("order.created"),
+      eventTrigger("order.updated"),
+      
+      // Trigger on schedule (daily at 2 AM)
+      cronTrigger("0 2 * * *"),
+    ],
+  },
+  async ({ input }, step) => {
+    // Workflow runs when any trigger fires
+  }
+);
+```
+
+If no triggers are specified, the workflow can only be invoked programmatically via `client.startWorkflow()`.

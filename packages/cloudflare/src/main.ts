@@ -1,4 +1,4 @@
-import { CloudflareClient } from "./client";
+import { Client } from "./client";
 import { toCloudflare } from "./toCloudflare";
 
-export { CloudflareClient, toCloudflare };
+export { Client, toCloudflare };
