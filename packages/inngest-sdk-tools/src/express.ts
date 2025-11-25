@@ -4,14 +4,14 @@ import type express from "express";
 import type { Workflow } from "@stepkit/core";
 import type { ExtDefault } from "@stepkit/sdk-tools";
 
-import type { InngestClient } from "./client";
+import type { Client } from "./client";
 import { execute } from "./execute";
 import type { StepExt } from "./executionDriver";
 import { sync } from "./sync";
 import { commRequestSchema } from "./types";
 
 export function serve(
-  client: InngestClient,
+  client: Client,
   workflows: Workflow<any, any, ExtDefault, ExtDefault, StepExt>[],
   {
     app,

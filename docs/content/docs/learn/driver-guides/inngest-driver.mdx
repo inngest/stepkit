@@ -19,12 +19,12 @@ npm install @stepkit/inngest inngest
 ## Usage
 
 ```typescript
-import { InngestClient } from "@stepkit/inngest";
+import { Client } from "@stepkit/inngest";
 import { inngestify } from "@stepkit/inngest";
 import { serve } from "inngest/next";
 import { z } from "zod";
 
-const client = new InngestClient({ id: "my-app" });
+const client = new Client({ id: "my-app" });
 
 const workflow = client.workflow(
   {
@@ -106,7 +106,7 @@ npx inngest-cli@latest dev
 ```
 
 ```typescript
-const client = new InngestClient({ id: "my-app", mode: "dev" });
+const client = new Client({ id: "my-app", mode: "dev" });
 ```
 
 The Dev Server provides a local UI for testing and debugging workflows at `http://localhost:8288`.

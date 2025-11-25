@@ -6,7 +6,7 @@ import {
   type Workflow,
 } from "@stepkit/sdk-tools";
 
-export class CloudflareClient extends BaseClient {
+export class Client extends BaseClient {
   async invoke<TInput extends InputDefault>(
     workflow: Workflow<TInput, any>,
     input: TInput

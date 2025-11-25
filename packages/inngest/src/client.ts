@@ -38,7 +38,7 @@ export type StepExt = {
   ) => Promise<ReceivedEvent | null>;
 };
 
-export class InngestClient extends BaseClient<ExtDefault, ExtDefault, StepExt> {
+export class Client extends BaseClient<ExtDefault, ExtDefault, StepExt> {
   private readonly api: API;
   private readonly hasEventKey: boolean;
   private readonly hasSigningKey: boolean;

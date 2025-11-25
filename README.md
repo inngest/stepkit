@@ -36,7 +36,6 @@ _Inngest, Cloudflare, Netlify for local dev and deployment, or In-Memory/FileSys
 npm i @stepkit/inngest
 
 # npm i @stepkit/cloudflare
-# npm i @stepkit/netlify
 # npm i @stepkit/local
 ```
 
@@ -44,11 +43,13 @@ npm i @stepkit/inngest
 
 ```ts
 import { z } from "zod";
-import { InngestClient } from "@stepkit/inngest";
+import { Client } from "@stepkit/inngest";
+// import { Client } from "@stepkit/cloudflare";
+// import { FileSystemClient as Client } from "@stepkit/local";
 
 import { emailTemplates, sendEmail } from "./email-service";
 
-export const client = new InngestClient({ id: "readme-example" });
+export const client = new Client({ id: "readme-example" });
 
 export const onboardingWorkflow = client.workflow(
   {

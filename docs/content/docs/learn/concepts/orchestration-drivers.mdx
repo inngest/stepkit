@@ -45,9 +45,9 @@ const client = new FileSystemClient({ baseDir: "./.stepkit" });
 Production-grade orchestration on the Inngest platform. Handles event-driven triggers, observability, retries, and deployment at scale. **Recommended for production.**
 
 ```typescript
-import { InngestClient } from "@stepkit/inngest";
+import { Client } from "@stepkit/inngest";
 
-const client = new InngestClient({ id: "my-app" });
+const client = new Client({ id: "my-app" });
 ```
 
 **Use for:** Production deployments, event-driven workflows, team collaboration
