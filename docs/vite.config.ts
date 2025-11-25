@@ -7,9 +7,6 @@ import mdx from 'fumadocs-mdx/vite';
 import { nitro } from 'nitro/vite';
 
 export default defineConfig({
-  server: {
-    port: 3000,
-  },
   plugins: [
     mdx(await import('./source.config')),
     tailwindcss(),
@@ -23,14 +20,9 @@ export default defineConfig({
         prerender: {
           enabled: true,
         },
-        // if you have any hidden paths that's not visible on UI, you can add them explicitly.
-        // pages: [
-        //   {
-        //     // path: '/docs/test',
-        //   },
-        // ],
       },
     }),
     react(),
+    nitro(),
   ],
 });

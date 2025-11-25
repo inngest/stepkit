@@ -1,10 +1,10 @@
-# Open Workflow SDK Documentation
+# StepKit SDK Documentation
 
-Official documentation site for Open Workflow SDK - bringing Inngest's reliability to the open source community.
+Official documentation site for StepKit SDK - bringing Inngest's reliability to the open source community.
 
-## About Open Workflow SDK
+## About StepKit SDK
 
-Open Workflow SDK makes any TypeScript function durable, reliable, and observable. Built on Inngest's battle-tested reliability patterns, now open source and vendor-agnostic.
+StepKit SDK makes any TypeScript function durable, reliable, and observable. Built on Inngest's battle-tested reliability patterns, now open source and vendor-agnostic.
 
 **Key Features:**
 - 🔄 Automatic retries and error handling
@@ -52,8 +52,7 @@ We welcome contributions! Please see our contributing guidelines for more inform
 
 ## Links
 
-- [Documentation](https://workflow-sdk.dev) (coming soon)
-- [GitHub Repository](https://github.com/inngest/open-workflow-sdk)
+- [Documentation](https://step.run)
+- [GitHub Repository](https://github.com/inngest/stepkit)
 - [Inngest](https://inngest.com)
 - [Community Discord](https://inngest.com/discord)
-# workflow-docs
