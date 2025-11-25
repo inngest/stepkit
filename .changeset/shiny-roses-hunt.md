@@ -1,10 +1,9 @@
 ---
-"@stepkit/cloudflare": patch
-"@stepkit/core": patch
-"@stepkit/inngest": patch
-"@stepkit/inngest-sdk-tools": patch
-"@stepkit/local": patch
-"@stepkit/sdk-tools": patch
+"@stepkit/cloudflare": minor
+"@stepkit/core": minor
+"@stepkit/inngest": minor
+"@stepkit/inngest-sdk-tools": minor
+"@stepkit/sdk-tools": minor
 ---
 
 Drivers now exports `Client`
