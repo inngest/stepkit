@@ -324,7 +324,7 @@ function Home() {
           <div className="absolute inset-0 bg-gradient-to-br from-[#181818]/70 via-transparent to-[#181818]/40" aria-hidden="true" />
 
           <div className="relative z-10 max-w-[1400px] mx-auto px-6 sm:px-10">
-            <div className="pt-16 pb-28 max-w-4xl">
+            <div className="pt-20 pb-32 max-w-4xl">
               <h1 className="text-4xl sm:text-5xl mb-8 leading-tight font-light font-mono">
                 THE [ OPEN ]
                 <br />
@@ -354,6 +354,7 @@ function Home() {
               </div>
             </div>
 
+            {/*
             <div className="w-full py-8 flex flex-wrap gap-8 justify-end text-right uppercase tracking-[0.3em] text-xs opacity-70">
               <span>netlify</span>
               <span>inngest</span>
@@ -361,6 +362,7 @@ function Home() {
               <span>turbostack</span>
               <span>convex</span>
             </div>
+            */}
           </div>
         </section>
       </div>
