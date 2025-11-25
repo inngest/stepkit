@@ -7,8 +7,6 @@
 <p align="center">
     <a href="https://step.run/docs">Documentation</a>
     <span>&nbsp;·&nbsp;</span>
-    <a href="https://step.run/blog">Blog</a>
-    <span>&nbsp;·&nbsp;</span>
     <a href="https://github.com/inngest/stepkit/discussions">Community</a>
     <span>&nbsp;·&nbsp;</span>
     <a href="https://github.com/inngest/stepkit/discussions/categories/roadmap">Roadmap / RFCs</a>
