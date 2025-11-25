@@ -345,11 +345,11 @@ function Home() {
                 </Link>
                 <a
                   className="inline-flex justify-center items-center py-2 px-4 border border-[#2C9B63] text-[#2C9B63] hover:opacity-90 transition-opacity cursor-pointer"
-                  href="https://www.npmjs.com/package/stepkit"
-                  target="_blank"
-                  rel="noreferrer"
+                  href="/docs/learn/quick-start"
+                  // target="_blank"
+                  // rel="noreferrer"
                 >
-                  NPM I STEPRUN @ LATEST [→]
+                  INSTALL
                 </a>
               </div>
             </div>
