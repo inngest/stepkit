@@ -7,30 +7,18 @@ import mdx from 'fumadocs-mdx/vite';
 import { nitro } from 'nitro/vite';
 
 export default defineConfig({
-  server: {
-    port: 3000,
-  },
   plugins: [
     mdx(await import('./source.config')),
     tailwindcss(),
     tsConfigPaths({
       projects: ['./tsconfig.json'],
     }),
-    tanstackStart({
-      spa: {
-        enabled: true,
-        // Tanstack Router will automatically crawl your pages
-        prerender: {
-          enabled: true,
-        },
-        // if you have any hidden paths that's not visible on UI, you can add them explicitly.
-        // pages: [
-        //   {
-        //     // path: '/docs/test',
-        //   },
-        // ],
-      },
-    }),
+    tanstackStart(),
     react(),
+    nitro({
+      config: {
+        preset: 'vercel'
+      } 
+    }),
   ],
 });
