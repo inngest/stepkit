@@ -480,41 +480,38 @@ function Home() {
                   id: '001',
                   title: (
                     <>
-                      PLATFORM &<br />LANGUAGE AGNOSTIC
+                      PLATFORM, LANGUAGE &amp; ARCHITECTURE AGNOSTIC
                     </>
                   ),
                   icon: <PlatformLanguageIcon />,
                   body:
-                  'Write (and re-write) functions using multiple languages, or migrate platforms entirely without ' +
-                    'impacting long running functions — using the same step format. No vendor lock-in, no language lock-in.',
+                  'Write (and re-write) functions that maintain durability through code, language, and platform changes without impacting long running functions. ' +
+                    'Use with different architecture patterns including event-driven, queue-based, or RPC.',
                 },
                 {
                   id: '002',
                   title: (
                     <>
-                      FASTER FIXES,
+                      Simple, unified
                       <br />
-                      FEARLESS REFACTORING
+                      explicit DX
                     </>
                   ),
                   icon: <RefactoringIcon />,
-                  body:
-                  'Steps create traces with the same IDs, so you can see what is broken and why. Update code, test ' +
-                    'locally with mocked steps, and ship to production without breaking or migrating code.',
+                  body: 'A simple step design eliminates infrastructure complexity, no matter how code changes. Steps create traces with the same IDs as steps, making it incredibly easy to debug, test, and mock steps without breaking or migrating long-running code.'
                 },
                 {
                   id: '003',
                   title: (
                     <>
-                      EXTENSIBLE
+                      OPEN &amp;
                       <br />
-                      CORE & MIDDLEWARE
+                      EXTENISBLE
                     </>
                   ),
                   icon: <ExtensibleIcon />,
                   body:
-                  'Extend workflows with custom middleware for logging, tracing, metrics, and security features. ' +
-                    'Explore new extensions and fit into your existing stack from day one.',
+                  'StepKit is designed to be extensible, with pluggable drivers for different orchestration backends. Drivers enable StepKit to work on top of existing orchestration platforms and also enable developers to write their own.'
                 },
               ].map((card) => (
                   <div key={card.id} className="space-y-4">
@@ -525,7 +522,7 @@ function Home() {
 
                     <p className="text-xs border-t-[1.5px] border-t-[#242424] py-2 mt-8 font-mono">{card.id}</p>
 
-                    <h3 className="text-xl leading-snug font-mono">{card.title}</h3>
+                    <h3 className="text-xl leading-snug font-mono uppercase">{card.title}</h3>
                     <p className="text-sm leading-relaxed">{card.body}</p>
                     <Link
                       to="/docs/$"
