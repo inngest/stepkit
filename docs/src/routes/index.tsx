@@ -436,19 +436,34 @@ function Home() {
                   customStyle={{ lineHeight: '1.8' }}
                   codeTagProps={{ style: { fontSize: '0.7rem' } }}
                 >
-                  {`import { Client } from "@stepkit/inngest";
-
-const client = new Client();
-
-client.workflow({ id: "research-agent" }, async (ctx, step) => {
-  const msg = await step.run("call-llm", async () => {
-    // Run any code in a step.
+                  {`client.workflow({ id: "ai-code-review" }, async ({ input }, step) => {
+  // AI analyzes the pull request
+  const analysis = await step.run("ai-analyze-pr", async () => {
+    return await llm.chat({
+      model: "claude-3-5-sonnet",
+      prompt: \`Review PR #\${input.prNumber} for security issues\`
+    });
   });
 
-  await step.run("call-tool", async () => {
-    // Chain steps together without worrying about
-    // state, retries, or durability.
+  // Run security scan based on AI findings
+  if (analysis.hasConcerns) {
+    await step.run("security-scan", async () => {
+      return await snyk.scan(input.repo, analysis.files);
+    });
+  }
+
+  // Suspend and wait for human approval
+  const decision = await step.waitForEvent("await-approval", {
+    event: "pr/review.approved",
+    timeout: "24h"
   });
+
+  // Auto-merge if approved
+  if (decision.approved) {
+    await step.run("merge-pr", async () => {
+      await github.mergePR(input.prNumber);
+    });
+  }
 });`}
                 </SyntaxHighlighter>
               </div>
