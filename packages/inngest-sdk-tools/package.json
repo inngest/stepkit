@@ -1,6 +1,6 @@
 {
   "name": "@stepkit/inngest-sdk-tools",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "main": "./src/main.ts",
   "types": "./src/main.ts",
   "exports": {
