@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS waiting_signals (
 
 -- Event queue table: stores incoming events to be processed
 CREATE TABLE IF NOT EXISTS event_queue (
-  id SERIAL PRIMARY KEY,
+  id VARCHAR(255) PRIMARY KEY,
   time BIGINT NOT NULL,
   data JSONB NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()

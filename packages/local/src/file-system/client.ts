@@ -47,8 +47,8 @@ export class FileSystemClient extends BaseClient {
     this.orc.start();
   }
 
-  stop(): void {
-    this.orc.stop();
+  async stop(): Promise<void> {
+    await this.orc.stop();
   }
 
   async invoke<TInput extends InputDefault, TOutput>(

@@ -17,7 +17,7 @@ stepInvokeWorkflowSuite(
     });
   },
   async (client) => {
-    client.stop();
+    await client.stop();
     // Give the file system time to finish any pending writes
     await sleep(100);
     await fs.rm(client.baseDir, { recursive: true, force: true });
@@ -31,7 +31,7 @@ stepRunSuite(
     });
   },
   async (client) => {
-    client.stop();
+    await client.stop();
     // Give the file system time to finish any pending writes
     await sleep(100);
     await fs.rm(client.baseDir, { recursive: true, force: true });
@@ -45,7 +45,7 @@ stepSleepSuite(
     });
   },
   async (client) => {
-    client.stop();
+    await client.stop();
     // Give the file system time to finish any pending writes
     await sleep(100);
     await fs.rm(client.baseDir, { recursive: true, force: true });
@@ -59,7 +59,7 @@ stepWaitForSignalSuite(
     });
   },
   async (client) => {
-    client.stop();
+    await client.stop();
     // Give the file system time to finish any pending writes
     await sleep(100);
     await fs.rm(client.baseDir, { recursive: true, force: true });
@@ -73,7 +73,7 @@ parallelStepSuite(
     });
   },
   async (client) => {
-    client.stop();
+    await client.stop();
     // Give the file system time to finish any pending writes
     await sleep(100);
     await fs.rm(client.baseDir, { recursive: true, force: true });

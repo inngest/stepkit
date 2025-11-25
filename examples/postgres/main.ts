@@ -17,7 +17,7 @@ async function main() {
 
   // Clean up
   console.log("Shutting down...");
-  client.stop();
+  await client.stop();
   await client.close();
   console.log("✓ Client closed successfully");
 }

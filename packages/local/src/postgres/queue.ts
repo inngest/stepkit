@@ -5,7 +5,6 @@ import type { QueueItem, SortedQueue } from "../common/queue";
 type QueueType = "event" | "exec";
 
 export class PostgresQueue<T> implements SortedQueue<T> {
-  private stopHandler: (() => void) | null = null;
   private pollInterval: number;
 
   constructor(

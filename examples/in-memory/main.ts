@@ -4,7 +4,7 @@ import { workflow } from "./workflows";
 async function main() {
   await client.startWorkflow(workflow, { name: "Alice" });
   console.log(await client.invoke(workflow, { name: "Alice" }));
-  client.stop();
+  await client.stop();
 }
 
 void main();

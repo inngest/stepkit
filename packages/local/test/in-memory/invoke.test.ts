@@ -11,8 +11,8 @@ describe("invoke", () => {
     client = new InMemoryClient();
   });
 
-  afterEach(() => {
-    client.stop();
+  afterEach(async () => {
+    await client.stop();
   });
 
   it("invalid input", async () => {

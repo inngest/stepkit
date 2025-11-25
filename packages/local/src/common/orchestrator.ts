@@ -23,6 +23,7 @@ export class Orchestrator {
   private eventQueue: SortedQueue<EventQueueData>;
   private execDriver: BaseExecutionDriver;
   private execQueue: SortedQueue<ExecQueueData>;
+  private pendingExecItems = 0;
   private stateDriver: LocalStateDriver;
   private stops: (() => void)[];
   private workflows: Map<string, Workflow<any, any>>;
@@ -58,9 +59,13 @@ export class Orchestrator {
     );
   }
 
-  stop(): void {
+  async stop(): Promise<void> {
     for (const stop of this.stops) {
       stop();
+    }
+
+    while (this.pendingExecItems > 0) {
+      await sleep(10);
     }
   }
 
@@ -91,46 +96,52 @@ export class Orchestrator {
    * items if necessary
    */
   private async handleExecQueue(exec: ExecQueueData): Promise<void> {
-    const run = await this.stateDriver.getRun(exec.runId);
-    if (run === undefined) {
-      throw new UnreachableError("run not found");
-    }
+    this.pendingExecItems++;
 
-    const workflow = this.workflows.get(run.workflowId);
-    if (workflow === undefined) {
-      throw new UnreachableError("workflow not found");
-    }
-    const allowExecution = await execQueueItemPreExecution({
-      queueItem: exec,
-      stateDriver: this.stateDriver,
-    });
-    if (!allowExecution) {
-      return;
-    }
+    try {
+      const run = await this.stateDriver.getRun(exec.runId);
+      if (run === undefined) {
+        throw new UnreachableError("run not found");
+      }
 
-    let targetHashedOpId: string | undefined;
-    if (exec.action.code === "targetOp") {
-      targetHashedOpId = exec.action.hashedOpId;
-    }
-
-    const ops = await this.execDriver.execute({
-      ctx: run.ctx,
-      targetHashedOpId,
-      workflow,
-    });
-    if (ops.length === 0) {
-      throw new UnreachableError("no ops found");
-    }
-
-    for (const op of ops) {
-      await handleOpResult({
-        execQueue: this.execQueue,
-        op,
+      const workflow = this.workflows.get(run.workflowId);
+      if (workflow === undefined) {
+        throw new UnreachableError("workflow not found");
+      }
+      const allowExecution = await execQueueItemPreExecution({
         queueItem: exec,
         stateDriver: this.stateDriver,
-        workflowId: run.workflowId,
-        workflows: this.workflows,
       });
+      if (!allowExecution) {
+        return;
+      }
+
+      let targetHashedOpId: string | undefined;
+      if (exec.action.code === "targetOp") {
+        targetHashedOpId = exec.action.hashedOpId;
+      }
+
+      const ops = await this.execDriver.execute({
+        ctx: run.ctx,
+        targetHashedOpId,
+        workflow,
+      });
+      if (ops.length === 0) {
+        throw new UnreachableError("no ops found");
+      }
+
+      for (const op of ops) {
+        await handleOpResult({
+          execQueue: this.execQueue,
+          op,
+          queueItem: exec,
+          stateDriver: this.stateDriver,
+          workflowId: run.workflowId,
+          workflows: this.workflows,
+        });
+      }
+    } finally {
+      this.pendingExecItems--;
     }
   }
 
@@ -157,7 +168,6 @@ export class Orchestrator {
       }
 
       const run = await this.stateDriver.getRun(runId);
-      // console.log("run", run);
       if (run === undefined) {
         throw new UnreachableError("run not found");
       }

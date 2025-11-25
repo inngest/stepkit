@@ -41,7 +41,6 @@ stepInvokeWorkflowSuite(
     return client;
   },
   async (client) => {
-    client.stop();
     await client.close();
   }
 );
@@ -56,7 +55,6 @@ stepRunSuite(
     return client;
   },
   async (client) => {
-    client.stop();
     await client.close();
   }
 );
@@ -70,7 +68,6 @@ stepSleepSuite(
     return client;
   },
   async (client) => {
-    client.stop();
     await client.close();
   }
 );
@@ -85,7 +82,6 @@ stepWaitForSignalSuite(
     return client;
   },
   async (client) => {
-    client.stop();
     await client.close();
   }
 );
@@ -100,7 +96,6 @@ parallelStepSuite(
     return client;
   },
   async (client) => {
-    client.stop();
     await client.close();
   }
 );
