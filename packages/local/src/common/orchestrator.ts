@@ -123,6 +123,7 @@ export class Orchestrator {
 
       const ops = await this.execDriver.execute({
         ctx: run.ctx,
+        forcedMode: run.forcedOpMode,
         targetHashedOpId,
         workflow,
       });

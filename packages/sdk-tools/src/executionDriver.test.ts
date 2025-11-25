@@ -21,11 +21,6 @@ import {
 import type { OpResult } from "./types";
 
 class StateDriver {
-  private ops: Map<string, OpResult>;
-  constructor() {
-    this.ops = new Map();
-  }
-
   async getOp(_id: {
     runId: string;
     hashedOpId: string;
@@ -543,6 +538,64 @@ describe("parallel steps", () => {
       },
     ] satisfies OpResult[]);
   });
+});
+
+it("forced mode", async () => {
+  // The op mode can be forced to a specific value. This takes precedence over
+  // the mode reported by the step. This is useful for parallel steps, where
+  // steps after parallel steps must always be planned before running
+
+  const driver = new ExecutionDriver(new StateDriver());
+  const client = new MyClient();
+  const workflow = client.workflow({ id: "workflow" }, async (_, step) => {
+    return step.run("foo", async () => {
+      return "Hello";
+    });
+  });
+
+  const expectedOp: OpResult = {
+    config: {
+      code: "step.run",
+      mode: OpMode.immediate,
+    },
+    opId: {
+      hashed: "187c5953271798be6a3b9c99a4ddf69f3ac19889",
+      id: "foo",
+      index: 0,
+    },
+    result: {
+      output: "Hello",
+      status: "success",
+    },
+    runId: "test-run-id",
+    workflowId: "workflow",
+  };
+
+  let ops = await driver.execute({
+    ctx,
+    workflow,
+  });
+  expect(ops).toHaveLength(1);
+  expect(ops).toStrictEqual([expectedOp] satisfies OpResult[]);
+
+  ops = await driver.execute({
+    ctx,
+    forcedMode: OpMode.scheduled,
+    workflow,
+  });
+  expect(ops).toHaveLength(1);
+  expect(ops).toStrictEqual([
+    {
+      ...expectedOp,
+      config: {
+        ...expectedOp.config,
+        mode: OpMode.scheduled,
+      },
+      result: {
+        status: "plan",
+      },
+    },
+  ] satisfies OpResult[]);
 });
 
 it("custom step", async () => {

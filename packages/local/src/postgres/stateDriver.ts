@@ -1,6 +1,6 @@
 import type pg from "pg";
 
-import { singleFlight, type OpResult } from "@stepkit/sdk-tools";
+import { singleFlight, type OpMode, type OpResult } from "@stepkit/sdk-tools";
 
 import { UnreachableError } from "../common/errors";
 import type {
@@ -192,39 +192,59 @@ export class PostgresStateDriver implements LocalStateDriver {
   }
 
   async getRun(runId: string): Promise<Run | undefined> {
-    const result = await this.pool.query<{
-      workflow_id: string;
-      ctx: any;
-      max_attempts: number;
-      op_attempts: Record<string, number>;
-      result: any;
-    }>(
-      `SELECT workflow_id, ctx, max_attempts, op_attempts, result FROM runs WHERE run_id = $1`,
-      [runId]
-    );
+    try {
+      const result = await this.pool.query<{
+        ctx: Run["ctx"];
+        forced_op_mode: Run["forcedOpMode"];
+        max_attempts: number;
+        op_attempts: Record<string, number>;
+        result: Run["result"];
+        workflow_id: string;
+      }>(
+        `SELECT workflow_id, ctx, max_attempts, op_attempts, result, forced_op_mode
+      FROM runs
+      WHERE run_id = $1`,
+        [runId]
+      );
 
-    if (result.rows.length === 0) {
-      return undefined;
+      if (result.rows.length === 0) {
+        return undefined;
+      }
+
+      const row = result.rows[0];
+      if (row === undefined) {
+        return undefined;
+      }
+
+      return {
+        ctx: row.ctx,
+        forcedOpMode: row.forced_op_mode,
+        maxAttempts: row.max_attempts,
+        opAttempts: row.op_attempts,
+        result: nullToUndefined(row.result),
+        workflowId: row.workflow_id,
+      };
+    } catch (error) {
+      console.error("error getting run", error);
+      throw error;
     }
-
-    const row = result.rows[0];
-    if (row === undefined) {
-      return undefined;
-    }
-
-    return {
-      ctx: row.ctx,
-      maxAttempts: row.max_attempts,
-      opAttempts: row.op_attempts,
-      result: nullToUndefined(row.result),
-      workflowId: row.workflow_id,
-    };
   }
 
   async endRun(runId: string, op: OpResult): Promise<void> {
     await this.pool.query(
       `UPDATE runs SET result = $1, updated_at = NOW() WHERE run_id = $2`,
       [JSON.stringify(op.result), runId]
+    );
+  }
+
+  async forceOpMode(
+    runId: string,
+    hashedOpId: string,
+    mode: OpMode
+  ): Promise<void> {
+    await this.pool.query(
+      `UPDATE runs SET forced_op_mode = $1 WHERE run_id = $2`,
+      [mode, runId, hashedOpId]
     );
   }
 

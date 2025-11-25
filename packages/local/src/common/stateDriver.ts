@@ -1,5 +1,6 @@
 import type {
   Context,
+  OpMode,
   OpResult,
   OpResults,
   StateDriver,
@@ -7,6 +8,7 @@ import type {
 
 export type Run = {
   ctx: Context<any, any>;
+  forcedOpMode: OpMode | undefined;
   maxAttempts: number;
   opAttempts: Record<string, number>;
   result: OpResult["result"] | undefined;
@@ -54,16 +56,11 @@ export interface LocalStateDriver extends StateDriver {
   waitingInvokes: InvokeManager;
   waitingSignals: SignalManager;
 
-  setOp(
-    { hashedOpId, runId }: { hashedOpId: string; runId: string },
-    op: OpResult
-  ): Promise<void>;
-
   addRun(run: Run): Promise<void>;
   getRun(runId: string): Promise<Run | undefined>;
   endRun(runId: string, op: OpResult): Promise<void>;
 
+  forceOpMode(runId: string, hashedOpId: string, mode: OpMode): Promise<void>;
   incrementOpAttempt(runId: string, hashedOpId: string): Promise<number>;
-
   getMaxAttempts(runId: string): Promise<number>;
 }

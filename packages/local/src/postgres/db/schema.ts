@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS runs (
   ctx JSONB NOT NULL,
   max_attempts INTEGER NOT NULL,
   op_attempts JSONB NOT NULL DEFAULT '{}',
+  forced_op_mode TEXT,
   result JSONB,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()

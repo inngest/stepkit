@@ -34,6 +34,7 @@ export async function findOps<
   TStepExt extends ExtDefault,
 >({
   ctx,
+  forcedMode,
   getStep,
   hashId,
   onStepsFound,
@@ -41,6 +42,7 @@ export async function findOps<
   workflow,
 }: {
   ctx: Context<TInput, TCtxExt>;
+  forcedMode: OpMode | undefined;
   getStep: (reportOp: ReportOp) => Promise<Step<TStepExt>>;
   hashId: HashId;
   onStepsFound: (ops: OpFound[]) => Promise<ControlFlow>;
@@ -67,6 +69,10 @@ export async function findOps<
 
     foundOps.push({
       ...op,
+      config: {
+        ...op.config,
+        mode: forcedMode ?? op.config.mode,
+      },
       id: {
         ...op.id,
         hashed: hashedId,

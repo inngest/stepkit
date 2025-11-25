@@ -33,7 +33,7 @@ import { ensureAsync, stdHashId, type HashId } from "./utils";
 // Used to detect nested steps
 export const insideStep = {
   clear: (): void => {
-    insideStep.storage.disable();
+    insideStep.storage.enterWith(undefined);
   },
   get: (): string | undefined => {
     const value = insideStep.storage.getStore();
@@ -162,10 +162,12 @@ export abstract class BaseExecutionDriver<
 
   async execute<TInput extends InputDefault, TOutput>({
     ctx,
+    forcedMode,
     targetHashedOpId,
     workflow,
   }: {
     ctx: Context<TInput, TCtxExt>;
+    forcedMode?: OpMode | undefined;
     targetHashedOpId?: string | undefined;
     workflow: Workflow<TInput, TOutput, TWorkflowCfgExt, TCtxExt, TStepExt>;
   }): Promise<OpResult[]> {
@@ -195,6 +197,7 @@ export abstract class BaseExecutionDriver<
 
     return findOps({
       ctx,
+      forcedMode,
       getStep: (reportOp) => this.getStep(reportOp),
       hashId: this.hashId,
       onStepsFound: (ops) =>
@@ -325,43 +328,44 @@ export async function createOpResults<
       workflowId: workflow.id,
     };
 
-    let disableHandler = false;
-    if (ops.length > 1 && targetHashedOpId === undefined) {
+    let allowHandler = true;
+    if (op.config.mode === OpMode.scheduled) {
+      allowHandler = false;
+    } else if (ops.length > 1 && targetHashedOpId === undefined) {
       // Multiple ops without targeting an individual op
-      disableHandler = true;
+      allowHandler = false;
     } else if (
       targetHashedOpId !== undefined &&
       op.id.hashed !== targetHashedOpId
     ) {
       // Another op is targeted
-      disableHandler = true;
+      allowHandler = false;
     }
 
-    if (op.handler !== undefined && !disableHandler) {
-      try {
-        insideStep.set(op.id.id);
+    const { handler } = op;
+    if (handler !== undefined && allowHandler) {
+      await insideStep.storage.run(op.id.id, async () => {
+        try {
+          // Use `withIdempotency` to ensure that the same op doesn't have
+          // multiple in-flight calls.
+          //
+          // This was added as a hack to get parallel steps working for local
+          // backends (in-memory and file-system). It's only a solution for
+          // single-instance apps (i.e. no replicas). Production-ready backends
+          // must handle this on their end
+          const output = await singleFlight(
+            `${ctx.runId}:${op.id.hashed}`,
+            handler
+          );
 
-        // Use `withIdempotency` to ensure that the same op doesn't have
-        // multiple in-flight calls.
-        //
-        // This was added as a hack to get parallel steps working for local
-        // backends (in-memory and file-system). It's only a solution for
-        // single-instance apps (i.e. no replicas). Production-ready backends
-        // must handle this on their end
-        const output = await singleFlight(
-          `${ctx.runId}:${op.id.hashed}`,
-          op.handler
-        );
-
-        opResult.result = { status: "success", output };
-      } catch (e) {
-        opResult.result = {
-          status: "error",
-          error: toJsonError(e),
-        };
-      } finally {
-        insideStep.clear();
-      }
+          opResult.result = { status: "success", output };
+        } catch (e) {
+          opResult.result = {
+            status: "error",
+            error: toJsonError(e),
+          };
+        }
+      });
     }
 
     await state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, opResult);

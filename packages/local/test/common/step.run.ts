@@ -141,7 +141,7 @@ export function stepRunSuite<TClient extends BaseClient>(
           catch: 2,
           bottom: 0,
         });
-      });
+      }, 2000);
 
       // Actual type is `Error`, regardless of the type when thrown. This is
       // because of JSON serialization

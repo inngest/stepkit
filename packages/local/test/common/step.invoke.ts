@@ -198,7 +198,7 @@ export function stepInvokeWorkflowSuite<TClient extends BaseClient>(
             bottom: 0,
           },
         });
-      }, 3000);
+      }, 4000);
       expectError(error, {
         message: `invoked run ${childRunId} timed out`,
         name: "InvokeTimeoutError",
