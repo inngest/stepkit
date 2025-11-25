@@ -17,58 +17,148 @@ const workflowFeatures = [
     id: '01',
     label: 'Durable steps',
     description:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sit amet turpis non odio fringilla maximus quis vel mauris.',
-    code: `const result = await step.run('durable-step', async () => {
-// Execute idempotent work here
-return await doImportantWork();
+    'Build workflows using simple steps, with automatic retries, state, and observability built in.',
+    code: `// Payment processing survives failures
+const payment = await step.run('charge-card', async () => {
+  const charge = await stripe.charges.create({
+    amount: 2999,
+    currency: 'usd',
+    customer: customerId
+  });
+  return charge;
+});
+
+// If workflow fails here, charge won't be retried
+await step.run('update-database', async () => {
+  await db.orders.create({
+    userId,
+    paymentId: payment.id,
+    status: 'completed'
+  });
 });`,
   },
   {
     id: '02',
     label: 'Sleep',
     description:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus eget dictum libero, vitae sodales elit.',
-    code: `await step.sleep('wait-for-signal', '30m');
+    'Sleep for minutes, days, or weeks without worrying about timeouts, queueing systems, or jobs.',
+    code: `// Start user's trial
+await step.run('activate-trial', async () => {
+  await db.users.update(userId, {
+    trialStarted: new Date(),
+    trialEndsAt: addDays(new Date(), 14)
+  });
+});
 
-return await step.run('wake-and-work', () => resumeWork());`,
+// Sleep for 10 days - no compute, no costs
+await step.sleep('wait-for-trial-end', '10d');
+
+// Send trial ending reminder
+await step.run('send-trial-reminder', async () => {
+  await sendEmail(userEmail, {
+    subject: 'Your trial ends in 4 days',
+    template: 'trial-ending'
+  });
+});`,
   },
   {
     id: '03',
     label: 'Retries',
     description:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ac massa non ante volutpat porttitor vitae in augue.',
-    code: `await step.run('retry-remote', async () => {
-return fetchWithRetry(targetUrl, { attempts: 5 });
+    'Recover from transient errors, timeouts, and upstream issues automatically with built in retries.',
+    code: `// API call with automatic exponential backoff
+const user = await step.run('fetch-user-profile', async () => {
+  const response = await fetch(\`\${API_URL}/users/\${userId}\`);
+  if (!response.ok) {
+    throw new Error('API request failed - will automatically retry');
+  }
+  return response.json();
+});
+
+// Sync to external system with retries
+await step.run('sync-to-crm', async () => {
+  await salesforce.contacts.update(user.email, {
+    name: user.name,
+    company: user.company
+  });
 });`,
   },
   {
     id: '04',
     label: 'Suspend & Resume',
     description:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer condimentum augue urna, et cursus dui aliquam eget.',
-    code: `await step.suspend('await-callback', async (resume) => {
-queueWebhook(resume);
+    'Pause workflows to wait for webhooks, user actions, or external events, then resume exactly where they left off.',
+    code: `// Create Stripe checkout session
+const session = await step.run('create-checkout', async () => {
+  return await stripe.checkout.sessions.create({
+    line_items: [{ price: priceId, quantity: 1 }],
+    mode: 'payment'
+  });
+});
+
+// Suspend until webhook received
+const payment = await step.waitForEvent('wait-for-payment', {
+  event: 'stripe/checkout.completed',
+  timeout: '1h'
+});
+
+// Continue after payment confirmed
+await step.run('fulfill-order', async () => {
+  await fulfillOrder(payment.orderId);
 });`,
   },
   {
     id: '05',
     label: 'Parallelism',
     description:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum vitae condimentum diam, vitae vulputate mi.',
-    code: `const [a, b] = await Promise.all([
-step.run('task-a', () => fetchA()),
-step.run('task-b', () => fetchB()),
-]);`,
+    'Speed up workflows by running steps in parallel. Each step remains durable, retryable, and observable.',
+    code: `// Fetch data from multiple sources in parallel
+const [user, orders, analytics] = await Promise.all([
+  step.run('fetch-user', async () => {
+    return await db.users.findById(userId);
+  }),
+  step.run('fetch-orders', async () => {
+    return await db.orders.findByUser(userId);
+  }),
+  step.run('fetch-analytics', async () => {
+    return await analytics.getUserMetrics(userId);
+  })
+]);
+
+// Generate report with all data
+await step.run('generate-report', async () => {
+  return generateUserReport({ user, orders, analytics });
+});`,
   },
   {
     id: '06',
-    label: 'Agentic loops',
+    label: 'AI Agents',
     description:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur id viverra massa. Sed ultricies dolor id urna aliquam.',
-    code: `for await (const intent of agent.loop('research-agent')) {
-await step.run('apply-intent', () => perform(intent));
+    'Build reliable AI agents where every action is durable. Agent loops survive failures, LLM timeouts, and rate limits automatically.',
+    code: `// AI agent decides what to do next
+const plan = await step.run('llm-plan', async () => {
+  return await llm.chat({
+    prompt: \`Research topic: \${topic}\`,
+    tools: ['web_search', 'summarize', 'save']
+  });
+});
+
+// Execute each action as a durable step, with full observability
+for (const action of plan.actions) {
+  await step.run(\`action-\${action.id}\`, async () => {
+    if (action.tool === 'web_search') {
+      return await searchWeb(action.query);
+    }
+    if (action.tool === 'summarize') {
+      return await summarize(action.content);
+    }
+    if (action.tool === 'save') {
+      return await saveResults(action.data);
+    }
+  });
 }`,
   },
+  /*
   {
     id: '07',
     label: 'Iteration',
@@ -80,6 +170,7 @@ iteration += 1;
 return runAttempt(iteration);
 });`,
   },
+  */
 ];
 
 const howItWorksSteps = [
@@ -241,7 +332,7 @@ function Home() {
               </h1>
               <p className="max-w-md mb-6 leading-loose">
                 <span className="border border-white px-2 py-1 text-[0.8em] mr-2">STEPKIT</span>
-                is an open source SDK for building production ready workflows that run anywhere.
+                is an open source SDK for building production ready durable workflows that run anywhere.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 font-semibold font-mono">
@@ -279,14 +370,13 @@ function Home() {
         <div className="max-w-[1400px] mx-auto space-y-16 pb-16 px-6 sm:px-10">
 
           {/* Testimonial */}
-          <SectionRule name="What developers say" border={false} className="py-14" />
 
+          {/*
+          <SectionRule name="What developers say" border={false} className="py-14" />
           <blockquote className="text-xl sm:text-2xl md:text-3xl leading-relaxed font-light font-mono">
             "LOREM IPSUM DOLOR SIT AMET, CONSECTETUR ADIPISCING ELIT, SED DO EIUSMOD TEMPOR INCIDIDUNT UT LABORE ET
             DOLORE MAGNA ALIQUA. UT ENIM AD MINIM VENIAM."
           </blockquote>
-
-          {/*
           <div className="flex items-center space-x-4 text-xl">
             <span className="cursor-pointer">←</span>
             <span className="cursor-pointer">→</span>
@@ -294,7 +384,7 @@ function Home() {
           */}
 
 
-          <SectionRule name="About StepKit" className="pt-8" />
+          <SectionRule name="About StepKit" className="pt-14" />
 
           {/* About StepKit */}
           <section className="bg-[#E2E2E2] text-[#242424] pt-8 -mx-6 sm:-mx-10 px-6 sm:px-10">
@@ -312,7 +402,7 @@ function Home() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 mt-8 " unused="border-t-[0.5px] border-t-[#242424] ">
                   <div className="space-y-6">
-                    <p className="uppercase pt-2 font-mono text-sm">This means developers&nbsp;can:</p>
+                    <p className="uppercase pt-2 font-mono text-sm">This means you&nbsp;can:</p>
                   </div>
                   <div className="space-y-6">
                     <ol className="space-y-4 text-sm">
@@ -337,19 +427,26 @@ function Home() {
               
 
               <div className="bg-[#1e1e1e] px-1 text-xs text-white overflow-auto border border-gray-800 rounded">
-                <SyntaxHighlighter language="typescript" style={vscDarkPlus} showLineNumbers customStyle={{ lineHeight: '1.8' }}>
-                  {`import { StepKit } from "@stepkit/core";
-import { InngestDriver } from "@stepkit/inngest";
+                <SyntaxHighlighter
+                  language="typescript"
+                  style={vscDarkPlus}
+                  showLineNumbers
+                  customStyle={{ lineHeight: '1.8' }}
+                  codeTagProps={{ style: { fontSize: '0.7rem' } }}
+                >
+                  {`import { Client } from "@stepkit/inngest";
 
-const client = new StepKit({
-  // Choose your preferred orchestration driver
-  driver: new InngestDriver()
-});
+const client = new Client();
 
 client.workflow({ id: "research-agent" }, async (ctx, step) => {
-  const msg = await step.run("call-llm", async () => {});
+  const msg = await step.run("call-llm", async () => {
+    // Run any code in a step.
+  });
 
-  await step.run("call-tool", async () => {});
+  await step.run("call-tool", async () => {
+    // Chain steps together without worrying about
+    // state, retries, or durability.
+  });
 });`}
                 </SyntaxHighlighter>
               </div>
@@ -451,13 +548,13 @@ client.workflow({ id: "research-agent" }, async (ctx, step) => {
 
       <div className="bg-[#E2E2E2] text-[#242424]">
         <div className="max-w-[1400px] mx-auto pt-8 pb-4 px-6 sm:px-10">
-          <SectionRule name="Build reliable workflows" border={false} className="py-14" />
+          <SectionRule name="Build reliable workflows" border={false} className="pt-14 pb-10" />
 
-          <p className="text-base leading-relaxed md:max-w-[33%]">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus  venenatis nisl ligula, at tempor urna porttitor nec. Pellentesq at tempor urna  porttitor nec. Pellentesq.
+          <p className="text-base leading-relaxed md:max-w-[33%] pb-2">
+            StepKit allows you to effortlessly build reliable workflows without worrying about queues, state, or infrastructure.  It runs on any platform, without requiring bundler or runtime support. 
           </p>
 
-          <div className="flex flex-wrap gap-3 py-8">
+          <div className="flex flex-wrap gap-3 py-12 md:justify-center">
             {workflowFeatures.map((feature) => {
               const isActive = selectedFeature.id === feature.id;
 
@@ -476,16 +573,24 @@ isActive
               );
             })}
 
-            <div className="w-full pt-16 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-24 items-start">
+            <div className="w-full pt-16 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-24 items-start">
               <div className="space-y-4">
                 <h2 className="text-xl sm:text-2xl font-semibold uppercase tracking-wide mb-4 sm:mb-8">
                   {selectedFeature.id} — {selectedFeature.label}
                 </h2>
                 <p className="text-sm leading-relaxed text-[#242424]">{selectedFeature.description}</p>
               </div>
-              <pre className="bg-[#0c0c0c] text-white text-xs font-mono p-4 rounded border border-[#24242440] whitespace-pre-wrap overflow-x-auto min-h-[20lh]">
-                <code>{selectedFeature.code}</code>
-              </pre>
+              <div className="md:col-span-2 bg-[#1e1e1e] px-1 text-xs text-white overflow-auto border border-gray-800 rounded">
+                <SyntaxHighlighter
+                  language="typescript"
+                  style={vscDarkPlus}
+                  showLineNumbers
+                  customStyle={{ lineHeight: '1.8' }}
+                  codeTagProps={{ style: { fontSize: '0.7rem' } }}
+                >
+                  {selectedFeature.code}
+                </SyntaxHighlighter>
+              </div>
             </div>
 
           </div>
@@ -494,13 +599,15 @@ isActive
 
       <div className="bg-[#0c0c0c]">
         <marquee className="text-2xl sm:text-3xl md:text-4xl pt-6 pb-5 opacity-30 text-[#FEFEFE] font-mono">
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> GET STARTED QUICKLY&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> GET STARTED QUICKLY&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> GET STARTED QUICKLY&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> GET STARTED QUICKLY&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> GET STARTED QUICKLY&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> GET STARTED QUICKLY&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> GET STARTED QUICKLY&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> DURABLE&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> OBSERVABLE&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> WORKFLOWS&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> DURABLE&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> OBSERVABLE&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> WORKFLOWS&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> DURABLE&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> OBSERVABLE&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> WORKFLOWS&nbsp;
         </marquee>
       </div>
 
@@ -552,8 +659,8 @@ isActive
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
             <div className="relative z-10 space-y-4 max-w-full md:max-w-[80%]">
-              <p className="mt-8">Code is being written and re-written faster than ever. </p>
-              <p className="mt-8">Other workflows weren't built to expect this pace of change.</p>
+              <p className="">Code is being written and re-written faster than ever. </p>
+              <p className="mt-4">Other workflows weren't built to expect this pace of change.</p>
             </div>
             <div className="relative z-10 space-y-4">
 
