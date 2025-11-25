@@ -644,7 +644,7 @@ it("custom step", async () => {
   ]);
 });
 
-describe.only.concurrent("insideStep", () => {
+describe.concurrent("insideStep", () => {
   it("basic", async () => {
     expect(insideStep.get()).toBeUndefined();
 
