@@ -143,7 +143,7 @@ const plan = await step.run('llm-plan', async () => {
   });
 });
 
-// Execute each action as a durable step, with full observability
+// Execute each action as a durable step, with full observabulity
 for (const action of plan.actions) {
   await step.run(\`action-\${action.id}\`, async () => {
     if (action.tool === 'web_search') {
@@ -599,15 +599,18 @@ isActive
 
       <div className="bg-[#0c0c0c]">
         <marquee className="text-2xl sm:text-3xl md:text-4xl pt-6 pb-5 opacity-30 text-[#FEFEFE] font-mono">
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> DURABLE&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> OBSERVABLE&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> WORKFLOWS&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> DURABLE&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> OBSERVABLE&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> WORKFLOWS&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> DURABLE&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> OBSERVABLE&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> WORKFLOWS&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
         </marquee>
       </div>
 
