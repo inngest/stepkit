@@ -35,9 +35,9 @@ The Client interface accepts three optional type parameters for extending functi
 Clients are typically provided by orchestration drivers. Import the class from the driver and create a new instance:
 
 ```typescript
-import { InngestClient } from "@stepkit/inngest";
+import { Client } from "@stepkit/inngest";
 
-const client = new InngestClient({ id: "my-app" });
+const client = new Client({ id: "my-app" });
 ```
 
 ## Driver-Specific Extensions

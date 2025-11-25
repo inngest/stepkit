@@ -9,11 +9,11 @@ The Inngest driver supports all standard StepKit workflow configuration options.
 When creating workflows with the Inngest driver, use the standard configuration options:
 
 ```typescript
-import { InngestClient } from "@stepkit/inngest";
+import { Client } from "@stepkit/inngest";
 import { z } from "zod";
 import { cronTrigger, eventTrigger } from "@stepkit/sdk-tools";
 
-const client = new InngestClient({ id: "my-app" });
+const client = new Client({ id: "my-app" });
 
 const workflow = client.workflow(
   {

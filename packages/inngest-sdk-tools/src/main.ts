@@ -1,4 +1,4 @@
-import { InngestClient } from "./client";
+import { Client } from "./client";
 import { serve } from "./express";
 
-export { InngestClient, serve };
+export { Client, serve };

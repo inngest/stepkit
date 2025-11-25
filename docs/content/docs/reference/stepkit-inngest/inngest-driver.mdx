@@ -10,14 +10,14 @@ The Inngest Driver allows you to run StepKit workflows on the Inngest platform, 
 npm install @stepkit/inngest inngest
 ```
 
-## InngestClient
+## Client
 
 Create an Inngest client to define workflows:
 
 ```typescript
-import { InngestClient } from "@stepkit/inngest";
+import { Client } from "@stepkit/inngest";
 
-const client = new InngestClient({ id: "my-app" });
+const client = new Client({ id: "my-app" });
 ```
 
 ### Parameters
@@ -59,10 +59,10 @@ const workflow = client.workflow(
 Convert StepKit workflows into Inngest functions for deployment:
 
 ```typescript
-import { inngestify } from "@stepkit/inngest";
+import { inngestify, Client } from "@stepkit/inngest";
 import { serve } from "inngest/next";
 
-const client = new InngestClient({ id: "my-app" });
+const client = new Client({ id: "my-app" });
 
 const workflow1 = client.workflow(/* ... */);
 const workflow2 = client.workflow(/* ... */);
@@ -77,7 +77,7 @@ export const { GET, POST, PUT } = serve(
 
 | Name | Type | Description |
 |------|------|-------------|
-| `client` | `InngestClient` | The Inngest client instance. |
+| `client` | `Client` | The Inngest client instance. |
 | `workflows` | `Workflow[]` | Array of workflows to convert into Inngest functions. |
 
 ### Returns

@@ -1,6 +1,6 @@
 import type { ExtDefault, Workflow } from "@stepkit/sdk-tools";
 
-import type { InngestClient } from "./client";
+import type { Client } from "./client";
 import type { StepExt } from "./executionDriver";
 
 type CronTrigger = {
@@ -38,7 +38,7 @@ type Fn = {
 };
 
 export async function sync(
-  client: InngestClient,
+  client: Client,
   workflows: Workflow<any, any, ExtDefault, ExtDefault, StepExt>[],
   {
     appOrigin,

@@ -1,3 +1,3 @@
-import { InngestClient } from "@stepkit/inngest-sdk-tools";
+import { Client } from "@stepkit/inngest-sdk-tools";
 
-export const client = new InngestClient({ id: "my-app" });
+export const client = new Client({ id: "my-app" });

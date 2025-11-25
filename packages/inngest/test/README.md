@@ -30,11 +30,11 @@ Integration tests should be placed in this directory with the `.test.ts` suffix:
 
 ```typescript
 import { describe, expect, it } from "vitest";
-import { InngestClient } from "../src/main";
+import { Client } from "../src/main";
 
 describe("my integration tests", () => {
   it("should do something with the dev server", async () => {
-    const client = new InngestClient({ id: "test-app" });
+    const client = new Client({ id: "test-app" });
     // Test against the running Dev Server on http://0.0.0.0:8288
   });
 });

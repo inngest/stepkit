@@ -1,3 +1,3 @@
-import { CloudflareClient } from "@stepkit/cloudflare";
+import { Client } from "@stepkit/cloudflare";
 
-export const client = new CloudflareClient();
+export const client = new Client();
