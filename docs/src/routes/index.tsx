@@ -645,7 +645,7 @@ isActive
               ))}
 
               <div className="text-5xl sm:text-6xl md:text-8xl opacity-25 leading-[1.3]">
-                <a href="https://www.github.com/stepkit/stepkit" className="underline">
+                <a href="https://www.github.com/inngest/stepkit" className="underline">
                   GIT
                   HUB <br />
                   <span className="inline-block relative -left-[12px]">[<UpArrow />]</span>
@@ -701,7 +701,7 @@ isActive
               <h2 className="text-xl sm:text-2xl">StepKit</h2>
 
               <div className="opacity-70">
-                <p className="text-sm">For an increasingly AI-dependent world, flexibility and iteration is paramount. We built StepKit to give developers  the peace  of mind they need to deploy quickly, refactor fearlessly, and  most importantly—change languages, or re-write entire workflows without breaking or migrating code. No language lock-in. No vendor lock-in.</p>
+                <p className="text-sm">For an increasingly AI-dependent world, flexibility and iteration is paramount. We built StepKit to give developers  the peace of mind they need to deploy quickly, refactor fearlessly, and  most importantly—change languages, or re-write entire workflows without breaking or migrating code. No language lock-in. No vendor lock-in.</p>
                 <p className="text-sm">One open source foundation for every engineer.</p>
               </div>
             </div>
