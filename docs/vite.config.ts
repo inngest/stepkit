@@ -16,10 +16,6 @@ export default defineConfig({
     tanstackStart({
       spa: {
         enabled: true,
-        // Tanstack Router will automatically crawl your pages
-        prerender: {
-          enabled: true,
-        },
       },
     }),
     react(),
