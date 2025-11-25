@@ -5,10 +5,7 @@
   "types": "./src/main.ts",
   "scripts": {
     "dev": "tsx main.ts",
-    "db:start": "docker run --name stepkit-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=stepkit_dev -p 5432:5432 postgres:16",
-    "db:stop": "docker stop stepkit-postgres",
-    "db:remove": "docker rm stepkit-postgres",
-    "db:logs": "docker logs stepkit-postgres",
+    "db": "docker run --name stepkit-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=stepkit_dev -p 5432:5432 postgres:16",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit"
