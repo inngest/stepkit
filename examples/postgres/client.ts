@@ -1,12 +1,11 @@
-import { ProductionClient } from "@stepkit/local";
+import { PostgresClient } from "@stepkit/local";
 
 // Get connection string from environment or use default for local development
 const connectionString =
-  process.env.DATABASE_URL ||
   "postgresql://postgres:postgres@localhost:5432/stepkit_dev";
 
-export const client = new ProductionClient({
+export const client = new PostgresClient({
+  autoMigrate: true,
   connectionString,
-  queuePollInterval: 100, // Poll every 100ms (default)
-  autoMigrate: true, // Automatically create schema on startup
+  queuePollInterval: 100,
 });

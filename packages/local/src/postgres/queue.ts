@@ -68,41 +68,21 @@ export class PostgresQueue<T> implements SortedQueue<T> {
   }
 
   handle(callback: (item: QueueItem<T>) => unknown): () => void {
-    let currentInterval = this.pollInterval;
-    let timeoutId: NodeJS.Timeout | null = null;
-
-    const poll = async (): Promise<void> => {
-      try {
-        const item = await this.getNext();
-        if (item !== undefined) {
-          // Reset interval on successful dequeue
-          currentInterval = this.pollInterval;
-          await callback(item);
-        } else {
-          // Exponential backoff when queue is empty
-          currentInterval = Math.min(currentInterval * 1.5, 1000);
-        }
-      } catch (error) {
-        console.error(`Error processing ${this.queueType} queue item:`, error);
-      } finally {
-        if (this.stopHandler !== null) {
-          timeoutId = setTimeout(() => void poll(), currentInterval);
-        }
-      }
-    };
-
-    // Start polling
-    void poll();
+    const interval = setInterval(() => {
+      this.getNext()
+        .then((item) => {
+          if (item !== undefined) {
+            callback(item);
+          }
+        })
+        .catch((error: unknown) => {
+          console.error("Error processing queue item:", error);
+        });
+    }, this.pollInterval);
 
     const stop = (): void => {
-      this.stopHandler = null;
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
+      clearInterval(interval);
     };
-
-    this.stopHandler = stop;
     return stop;
   }
 

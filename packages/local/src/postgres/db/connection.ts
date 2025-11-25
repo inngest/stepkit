@@ -39,9 +39,7 @@ export class DatabaseConnection {
             "docker run --name stepkit-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=stepkit_dev -p 5432:5432 -d postgres:16"
         );
       }
-      throw new Error(
-        `Failed to connect to PostgreSQL: ${err.message}`
-      );
+      throw new Error(`Failed to connect to PostgreSQL: ${err.message}`);
     }
 
     if (this.config.autoMigrate !== false) {
@@ -68,7 +66,9 @@ export class DatabaseConnection {
   }
 
   async close(): Promise<void> {
-    await this.pool.end();
+    if (!this.pool.ended) {
+      await this.pool.end();
+    }
     this.initialized = false;
   }
 
