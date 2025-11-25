@@ -19,6 +19,10 @@ export default defineConfig({
       },
     }),
     react(),
-    nitro(),
+    nitro({
+      config: {
+        preset: 'vercel'
+      } 
+    }),
   ],
 });
