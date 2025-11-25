@@ -43,7 +43,7 @@ export function Header({ activeItem }: HeaderProps) {
 
       <div class="col-span-3 h-full flex items-start justify-end space-x-3">
         {/*<a href="#" class="px-2 py-1 border border-white text-[9px] md:text-[10px] tracking-normal hover:bg-white hover:text-black">STEP_RUN-LATEST</a>*/}
-        <a href="https://www.github.com/stepkit/stepkit" class="w-6 h-6 flex items-center justify-end text-right h-[36px] w-[36px]">
+        <a href="https://www.github.com/inngest/stepkit" class="w-6 h-6 flex items-center justify-end text-right h-[36px] w-[36px]">
           <GithubIcon />
         </a>
       </div>
