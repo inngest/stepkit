@@ -330,9 +330,9 @@ function Home() {
                 <br />
                 WORKFLOW SDK
               </h1>
-              <p className="max-w-md mb-6 leading-loose">
+              <p className="max-w-md mb-8 leading-loose">
                 <span className="border border-white px-2 py-1 text-[0.8em] mr-2">STEPKIT</span>
-                is an open source SDK for building production ready durable workflows that run anywhere.
+                is an open source SDK for building production ready durable workflows.  Write code that survives failures, runs anywhere, and never loses progress.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 font-semibold font-mono">
@@ -341,7 +341,7 @@ function Home() {
                   params={{ _splat: '' }}
                   className="inline-flex justify-center items-center border border-[#2C9B63] py-2 px-4 bg-[#2C9B63] text-[#181818] hover:opacity-90 transition-opacity cursor-pointer"
                 >
-                  READ_THE_DOCS [→]
+                  READ THE DOCS [→]
                 </Link>
                 <a
                   className="inline-flex justify-center items-center py-2 px-4 border border-[#2C9B63] text-[#2C9B63] hover:opacity-90 transition-opacity cursor-pointer"
@@ -394,7 +394,7 @@ function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
               <div className="space-y-6">
                 <p className="leading-relaxed">
-                  StepKit is an open source SDK built on top of the explicit step standard. This format was pioneered by
+                  StepKit is an open source SDK built on top of the explicit step standard. This format was pioneered by Inngest
                   as a method for building workflows with the most flexibility and least infrastructure overhead.
                 </p>
                 <p className="leading-relaxed">
@@ -556,7 +556,7 @@ client.workflow({ id: "research-agent" }, async (ctx, step) => {
             StepKit allows you to effortlessly build reliable workflows without worrying about queues, state, or infrastructure.  It runs on any platform, without requiring bundler or runtime support. 
           </p>
 
-          <div className="flex flex-wrap gap-3 py-12 md:justify-center">
+          <div className="flex flex-wrap gap-3 py-12">
             {workflowFeatures.map((feature) => {
               const isActive = selectedFeature.id === feature.id;
 
