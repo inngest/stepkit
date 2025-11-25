@@ -32,9 +32,6 @@ import { ensureAsync, stdHashId, type HashId } from "./utils";
 
 // Used to detect nested steps
 export const insideStep = {
-  clear: (): void => {
-    insideStep.storage.disable();
-  },
   get: (): string | undefined => {
     const value = insideStep.storage.getStore();
     if (value === undefined) {
@@ -45,8 +42,8 @@ export const insideStep = {
     }
     return value;
   },
-  set: (stepId: string): void => {
-    insideStep.storage.enterWith(stepId);
+  run: async (stepId: string, callback: () => Promise<void>): Promise<void> => {
+    await insideStep.storage.run(stepId, callback);
   },
   storage: new AsyncLocalStorage(),
 };
@@ -337,31 +334,30 @@ export async function createOpResults<
       disableHandler = true;
     }
 
-    if (op.handler !== undefined && !disableHandler) {
-      try {
-        insideStep.set(op.id.id);
+    const { handler } = op;
+    if (handler !== undefined && !disableHandler) {
+      await insideStep.run(op.id.id, async () => {
+        try {
+          // Use `withIdempotency` to ensure that the same op doesn't have
+          // multiple in-flight calls.
+          //
+          // This was added as a hack to get parallel steps working for local
+          // backends (in-memory and file-system). It's only a solution for
+          // single-instance apps (i.e. no replicas). Production-ready backends
+          // must handle this on their end
+          const output = await singleFlight(
+            `${ctx.runId}:${op.id.hashed}`,
+            handler
+          );
 
-        // Use `withIdempotency` to ensure that the same op doesn't have
-        // multiple in-flight calls.
-        //
-        // This was added as a hack to get parallel steps working for local
-        // backends (in-memory and file-system). It's only a solution for
-        // single-instance apps (i.e. no replicas). Production-ready backends
-        // must handle this on their end
-        const output = await singleFlight(
-          `${ctx.runId}:${op.id.hashed}`,
-          op.handler
-        );
-
-        opResult.result = { status: "success", output };
-      } catch (e) {
-        opResult.result = {
-          status: "error",
-          error: toJsonError(e),
-        };
-      } finally {
-        insideStep.clear();
-      }
+          opResult.result = { status: "success", output };
+        } catch (e) {
+          opResult.result = {
+            status: "error",
+            error: toJsonError(e),
+          };
+        }
+      });
     }
 
     await state.setOp({ runId: ctx.runId, hashedOpId: op.id.hashed }, opResult);

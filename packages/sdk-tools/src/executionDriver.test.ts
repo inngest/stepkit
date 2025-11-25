@@ -11,6 +11,7 @@ import {
 } from "@stepkit/core/implementer";
 
 import { BaseClient } from "./client";
+import { insideStep } from "./executionDriver";
 import type { ReportOp } from "./findOps";
 import {
   BaseExecutionDriver,
@@ -641,4 +642,40 @@ it("custom step", async () => {
       workflowId: "workflow",
     } satisfies OpResult,
   ]);
+});
+
+describe.concurrent("insideStep", () => {
+  it("basic", async () => {
+    expect(insideStep.get()).toBeUndefined();
+
+    await insideStep.run("a", async () => {
+      await insideStep.run("b", async () => {
+        // Value is always the parent
+        expect(insideStep.get()).toBe("b");
+      });
+      expect(insideStep.get()).toBe("a");
+    });
+
+    expect(insideStep.get()).toBeUndefined();
+  });
+
+  it("in parallel", async () => {
+    // Works with a bunch in parallel
+
+    expect(insideStep.get()).toBeUndefined();
+
+    const promises = [];
+    for (let i = 0; i < 100; i++) {
+      promises.push(
+        insideStep.run(`${i}`, async () => {
+          expect(insideStep.get()).toBe(`${i}`);
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          expect(insideStep.get()).toBe(`${i}`);
+        })
+      );
+    }
+
+    await Promise.all(promises);
+    expect(insideStep.get()).toBeUndefined();
+  });
 });
