@@ -36,7 +36,6 @@ _Inngest, Cloudflare, Netlify for local dev and deployment, or In-Memory/FileSys
 npm i @stepkit/inngest
 
 # npm i @stepkit/cloudflare
-# npm i @stepkit/netlify
 # npm i @stepkit/local
 ```
 
