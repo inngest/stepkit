@@ -1,1 +1,0 @@
-I want to create a more production-ready backend for StepKit. The logic in `packages/local` is pretty good, but I want a real queue and a real way to persist state. You can create another subdirectory in `packages/local` for this, since some of the stuff in `packages/local/common` may be useful for this production-ready backend.
