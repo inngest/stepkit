@@ -11,16 +11,16 @@ export function SectionRule({ name, className = "", border = true }) {
           <Content name={name} />
         </div>
       ) : (
-          <Content name={name} />
-        )
+        <Content name={name} />
+      )
       }
     </div>
   );
 }
 
 const Content = ({ name }) => (
-  <p className="uppercase flex items-center gap-2 leading-none relative font-mono">
-    <span className="text-xl mt-[-4px] mr-1">■</span>
+  <p className="uppercase flex items-center gap-2 leading-none relative" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 400, fontVariationSettings: '"wght" 400, "MONO" 1, "INKT" 1' }}>
+    <span className="text-xl mr-1">■</span>
     {name}
   </p>
 )
