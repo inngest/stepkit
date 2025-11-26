@@ -731,12 +731,12 @@ function Home() {
                 <br />
                 <p className="text-sm">One open source foundation for every engineer.</p>
               </div>
-              <div className="flex flex-col md:flex-row items-center gap-4 mt-16 md:mt-16 md:gap-[2rem]">
+              <div className="flex flex-col md:flex-row items-center gap-4 mt-16 md:mt-16">
                 <a
                   href="/docs"
                   className="inline-flex items-center justify-center w-full md:w-auto py-2 px-4 sm:px-6 border bg-[#080808] border-[#080808] text-[#818181] hover:opacity-90 transition-opacity cursor-pointer font-mono text-sm uppercase"
                 >
-                  Get started [→]
+                  Get started  [+]
                 </a>
                 <a
                   href="/docs/learn/quick-start"
