@@ -670,8 +670,8 @@ function Home() {
                 </div>
               ))}
 
-              <div className="text-4xl sm:text-6xl md:text-8xl leading-[1.15]">
-                <a href="https://www.github.com/inngest/stepkit" className="opacity-25 underline hover:opacity-50 transition-opacity" style={{ textDecorationThickness: '5px' }}>
+              <div className="text-4xl sm:text-6xl md:text-8xl leading-[1.15]" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 350, fontVariationSettings: '"wght" 350, "MONO" 0, "INKT" 1' }}>
+                <a href="https://www.github.com/inngest/stepkit" className="opacity-25 underline hover:opacity-100 transition-opacity" style={{ textDecorationThickness: '5px' }}>
                   GIT
                   HUB <br />
                   <span className="inline-block relative -left-[12px]">[<UpArrow />]</span>
