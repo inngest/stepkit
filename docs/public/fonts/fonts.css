@@ -59,3 +59,12 @@
   src: url("/fonts/ABCWhyteInktrapVariable-Regular.woff2") format("woff2"),
     url("/fonts/ABCWhyteInktrapVariable-Regular.woff") format("woff");
 }
+
+/* Whyte Variable */
+@font-face {
+  font-family: "WhyteVariable";
+  font-style: normal;
+  font-weight: 100 900;
+  src: url("/fonts/ABCWhyteVariable.woff2") format("woff2"),
+    url("/fonts/ABCWhyteVariable.woff") format("woff");
+}

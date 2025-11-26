@@ -11,8 +11,8 @@ export function SectionRule({ name, className = "", border = true }) {
           <Content name={name} />
         </div>
       ) : (
-          <Content name={name} />
-        )
+        <Content name={name} />
+      )
       }
     </div>
   );
