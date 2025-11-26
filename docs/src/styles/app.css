@@ -85,7 +85,9 @@
   font-size: 110%;
 }
 
-h1, h2, .font-inktrap {
+h1,
+h2,
+.font-inktrap {
   font-family: "Whyte Inktrap", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif;
   font-weight: 400;
 }
@@ -132,6 +134,7 @@ h1, h2, .font-inktrap {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -147,4 +150,24 @@ h1, h2, .font-inktrap {
 
 #nd-home-layout {
   padding-top: 0 !important;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-content {
+  display: inline-block;
+  animation: marquee 30s linear infinite;
 }
