@@ -1,5 +1,11 @@
 # @stepkit/sdk-tools
 
+## 0.1.1
+
+### Patch Changes
+
+- [#57](https://github.com/inngest/stepkit/pull/57) [`432c9f7`](https://github.com/inngest/stepkit/commit/432c9f7ebbb8e83dd1b5d8697149f250213a4ef4) Thanks [@amh4r](https://github.com/amh4r)! - Fix nested step check bleeding state
+
 ## 0.1.0
 
 ### Minor Changes
