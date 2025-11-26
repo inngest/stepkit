@@ -522,7 +522,7 @@ function Home() {
 
                   <p className="text-xs border-t-[2px] border-t-[#242424] py-2 mt-8 font-mono">{card.id}</p>
 
-                  <h3 className="text-xl leading-snug font-mono uppercase border-t-[0.25px] border-t-[#242424] p-2">{card.title}</h3>
+                  <h3 className="text-xl leading-snug font-mono uppercase border-t-[0.25px] border-t-[#242424] pt-2">{card.title}</h3>
                   <p className="text-sm leading-relaxed">{card.body}</p>
                   <Link
                     to="/docs/$"
@@ -530,7 +530,7 @@ function Home() {
                     className="text-xs underline transition-colors"
                     style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 400, fontVariationSettings: '"wght" 400, "MONO" 1, "INKT" 1' }}
                   >
-                    READ DOCS <img src="/img/arrow.svg" alt="" className="inline h-3 w-auto ml-1" />
+                    READ DOCS <img src="/img/arrow.svg" alt="" className="inline h-3 w-auto ml-0.5" />
                   </Link>
                 </div>
               ))}
@@ -568,7 +568,7 @@ function Home() {
             StepKit allows you to effortlessly build reliable workflows without worrying about queues, state, or infrastructure.  It runs on any platform, without requiring bundler or runtime support.
           </p>
 
-          <div className="flex flex-wrap gap-3 py-12">
+          <div className="flex flex-wrap gap-3 py-12 border-t-[0.25px] border-t-[#242424] mt-6 w-full justify-around">
             {workflowFeatures.map((feature) => {
               const isActive = selectedFeature.id === feature.id;
 
@@ -586,9 +586,9 @@ function Home() {
               );
             })}
 
-            <div className="w-full pt-16 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-24 items-start">
-              <div className="space-y-4">
-                <h2 className="text-xl sm:text-2xl font-semibold uppercase tracking-wide mb-4 sm:mb-8">
+            <div className="w-full pt-8 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-24 items-start">
+              <div className="space-y-4 border-t-[0.25px] border-t-[#242424]">
+                <h2 className="text-xl sm:text-2xl font-semibold uppercase pt-4 tracking-wide mb-4 sm:mb-8">
                   {selectedFeature.id} — {selectedFeature.label}
                 </h2>
                 <p className="text-sm leading-relaxed text-[#242424]">{selectedFeature.description}</p>
@@ -611,20 +611,35 @@ function Home() {
       </div>
 
       <div className="bg-[#0c0c0c]">
-        <marquee className="text-2xl sm:text-3xl md:text-4xl pt-6 pb-5 opacity-30 text-[#FEFEFE] font-mono">
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
-          <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
-        </marquee>
+        <div className="marquee-container text-2xl sm:text-3xl md:text-4xl pt-6 pb-5 opacity-30 text-[#FEFEFE] font-mono">
+          <div className="marquee-content">
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+            {/* Duplicate content for seamless loop */}
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> BUILD&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> ITERATE&nbsp;
+            <span className="relative -top-[3px] inline-block leading-none">&nbsp;■&nbsp;</span> EXTEND&nbsp;
+          </div>
+        </div>
       </div>
 
       <div className="bg-[#2C9B63] text-[#242424] pt-8">
