@@ -4,12 +4,12 @@ import { serve } from "inngest/express";
 import { inngestify } from "@stepkit/inngest";
 
 import { client } from "./client";
-import { otherWorkflow, workflow } from "./workflows";
+import { processOrder } from "./workflows";
 
 const app = express();
 app.use(express.json());
 
-app.use("/api/inngest", serve(inngestify(client, [workflow, otherWorkflow])));
+app.use("/api/inngest", serve(inngestify(client, [processOrder])));
 
 const PORT = process.env.PORT ?? 3000;
 
