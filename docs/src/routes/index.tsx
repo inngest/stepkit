@@ -653,7 +653,7 @@ function Home() {
                 <div key={step.title} className="space-y-6">
                   <div className="h-[200px] flex items-center">{step.icon}</div>
 
-                  <span className="border-t-[2px] border-t-[#242424] block pt-4 mt-6 text-ss uppercase tracking-[0.15em]" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 400, fontVariationSettings: '"wght" 400, "MONO" 1, "INKT" 1' }}>
+                  <span className="border-t-[2px] border-t-[#242424] block pt-4 mt-6 text-ss uppercase tracking-[0.05em]" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 400, fontVariationSettings: '"wght" 400, "MONO" 1, "INKT" 1' }}>
                     STEP — {String(index + 1).padStart(2, '0')}
                   </span>
                   <h3 className="uppercase text-xl pb-4 font-mono border-t-[0.25px] border-t-[#242424] pt-2">
@@ -670,9 +670,9 @@ function Home() {
                 </div>
               ))}
 
-              <div className="text-4xl sm:text-6xl md:text-8xl leading-[1.15]" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 350, fontVariationSettings: '"wght" 350, "MONO" 0, "INKT" 1' }}>
+              <div className="text-[5rem] sm:text-12xl md:text-8xl leading-[1] sm:leading-[1.15]" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 350, fontVariationSettings: '"wght" 350, "MONO" 0, "INKT" 1' }}>
                 <a href="https://www.github.com/inngest/stepkit" className="opacity-25 underline hover:opacity-100 transition-opacity" style={{ textDecorationThickness: '5px' }}>
-                  GIT
+                  GIT <br />
                   HUB <br />
                   <span className="inline-block relative -left-[12px]">[<UpArrow />]</span>
                 </a>
@@ -683,40 +683,40 @@ function Home() {
         </div>
       </div>
 
-      <div className="bg-[#181818] text-white">
-        <div className="relative max-w-[1400px] mx-auto pt-8 pb-32 px-6 sm:px-10 overflow-hidden">
+      <div className="bg-[#242424] text-white">
+        <div className="relative max-w-[1400px] mx-auto pt-8 pb-24 px-6 sm:px-10 overflow-hidden">
           {/* Testimonial */}
           <SectionRule name="Why we built StepKit" border={false} className="relative z-10 py-14" />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-0 md:items-start">
             <div className="relative z-10 space-y-4 max-w-full md:max-w-[80%]">
-              <p className="">Code is being written and re-written faster than ever. </p>
-              <p className="mt-4">Other workflows weren't built to expect this pace of change.</p>
+              <p className="">Code is being written and re-written <br /> faster than ever. </p>
+              <p className="mt-4">Other workflows weren't built to <br /> expect this pace of change.</p>
             </div>
-            <div className="relative z-10 space-y-4">
+            <div className="relative z-10 space-y-4 md:-mt-[4.5rem]">
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 pb-10 border-t-[0.5px] border-t-[#484848]">
-                <div className="flex align-top">
-                  <span className="text-sm sm:text-base">[ 01 ] →</span>
-                  <h2 className="inline-block text-2xl sm:text-3xl md:text-4xl ml-4 sm:ml-6">BUILD</h2>
+              <div className="grid grid-cols-5 gap-4 pt-6 pb-10" style={{ boxShadow: 'inset 0 0.5px 0 0 rgba(255, 255, 255, 0.75)' }}>
+                <div className="flex align-top col-span-3">
+                  <span className="text-sm sm:text-base">[ &nbsp; 01 &nbsp;] &nbsp; &nbsp; →</span>
+                  <h2 className="inline-block mt-[-16px] ml-4 sm:ml-6 text-[2rem] md:text-[3rem]" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 350, fontVariationSettings: '"wght" 350, "MONO" 1, "INKT" 1' }}>BUILD</h2>
                 </div>
-                <p className="opacity-50 text-sm sm:text-base">Choose any orchestration provider or language</p>
+                <p className="opacity-50 text-sm sm:text-base col-span-2">Choose any orchestration provider or language</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 pb-10 border-t-[0.5px] border-t-[#484848]">
-                <div className="flex align-top">
-                  <span className="text-sm sm:text-base">[ 02 ] →</span>
-                  <h2 className="inline-block text-2xl sm:text-3xl md:text-4xl ml-4 sm:ml-6">ITERATE</h2>
+              <div className="grid grid-cols-5 gap-4 pt-6 pb-10" style={{ boxShadow: 'inset 0 0.5px 0 0 rgba(255, 255, 255, 0.75)' }}>
+                <div className="flex align-top col-span-3">
+                  <span className="text-sm sm:text-base">[ &nbsp; 02 &nbsp;] &nbsp; &nbsp; →</span>
+                  <h2 className="inline-block mt-[-16px] ml-4 sm:ml-6 text-[2rem] md:text-[3rem]" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 350, fontVariationSettings: '"wght" 350, "MONO" 1, "INKT" 1' }}>ITERATE</h2>
                 </div>
-                <p className="opacity-50 text-sm sm:text-base">Deploy durable workflows anywhere, in seconds</p>
+                <p className="opacity-50 text-sm sm:text-base col-span-2">Deploy durable workflows anywhere, in seconds</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 pb-10 border-y-[0.5px] border-y-[#484848]">
-                <div className="flex align-top">
-                  <span className="text-sm sm:text-base">[ 03 ] →</span>
-                  <h2 className="inline-block text-2xl sm:text-3xl md:text-4xl ml-4 sm:ml-6">EXTEND</h2>
+              <div className="grid grid-cols-5 gap-4 pt-6 pb-10" style={{ boxShadow: 'inset 0 0.5px 0 0 rgba(255, 255, 255, 0.75), inset 0 -0.5px 0 0 rgba(255, 255, 255, 0.75)' }}>
+                <div className="flex align-top col-span-3">
+                  <span className="text-sm sm:text-base">[ &nbsp; 03 &nbsp;] &nbsp; &nbsp; →</span>
+                  <h2 className="inline-block mt-[-16px] ml-4 sm:ml-6 text-[2rem] md:text-[3rem]" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 350, fontVariationSettings: '"wght" 350, "MONO" 1, "INKT" 1' }}>EXTEND</h2>
                 </div>
-                <p className="opacity-50 text-sm sm:text-base">Suspend and resume long running workflows</p>
+                <p className="opacity-50 text-sm col-span-2 sm:text-base">Suspend and resume long running workflows</p>
               </div>
 
             </div>
@@ -724,15 +724,32 @@ function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 pt-16 md:pt-32">
             <div className="relative z-10 space-y-4">
-              <h2 className="text-xl sm:text-2xl">StepKit</h2>
+              <img src="/img/Stepkit_Footer.svg" alt="StepKit" className="w-auto" style={{ height: '5.6rem', opacity: 0.30 }} />
 
-              <div className="opacity-70">
+              <div style={{ color: '#9B9B9B' }}>
                 <p className="text-sm">For an increasingly AI-dependent world, flexibility and iteration is paramount. We built StepKit to give developers  the peace of mind they need to deploy quickly, refactor fearlessly, and  most importantly—change languages, or re-write entire workflows without breaking or migrating code. No language lock-in. No vendor lock-in.</p>
+                <br />
                 <p className="text-sm">One open source foundation for every engineer.</p>
               </div>
+              <div className="flex flex-col md:flex-row items-center gap-4 mt-16 md:mt-16 md:gap-[2rem]">
+                <a
+                  href="/docs"
+                  className="inline-flex items-center justify-center w-full md:w-auto py-2 px-4 sm:px-6 border bg-[#080808] border-[#080808] text-[#818181] hover:opacity-90 transition-opacity cursor-pointer font-mono text-sm uppercase"
+                >
+                  Get started [→]
+                </a>
+                <a
+                  href="/docs/learn/quick-start"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center w-full md:w-auto py-2 px-4 sm:px-6 border border-[#2C9B63] text-[#2C9B63] hover:opacity-90 transition-opacity cursor-pointer font-mono text-sm whitespace-nowrap"
+                >
+                  npm i inngest/stepkit@latest
+                </a>
+              </div>
             </div>
-          </div>
 
+          </div>
         </div>
       </div>
 
@@ -744,34 +761,10 @@ function Home() {
       </div>
       */}
 
-      <div className="bg-[#181818] text-white">
-        <div className="relative max-w-[1400px] mx-auto pt-8 pb-32 px-6 sm:px-10 overflow-hidden">
-
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-16 md:pt-32">
-            <p className="font-mono text-sm sm:text-base">USE STEP KIT [ TODAY ]</p>
-            <a
-              href="https://www.npmjs.com/package/stepkit"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center py-2 px-4 sm:px-6 border border-[#2C9B63] text-[#2C9B63] hover:opacity-90 transition-opacity cursor-pointer font-mono text-xs sm:text-sm whitespace-nowrap"
-            >
-              npm i inngest/stepkit@latest
-            </a>
-          </div>
-
-          <div className="pt-8 md:pt-16 flex justify-center md:justify-start">
-            <a
-              href="/docs"
-              className="inline-flex items-center py-2 px-4 sm:px-6 border bg-[#080808] border-[#080808] text-[#818181] hover:opacity-90 transition-opacity cursor-pointer font-mono text-sm"
-            >
-              Get started [→]
-            </a>
-          </div>
-
-          <div className="mt-8 py-6 border-t-[1px] border-t-[#555555]">
-            <span className="text-xs sm:text-sm opacity-50 font-mono uppercase">©2025 Inngest. |   Inngest.com</span>
-
-            <svg width="180" height="31" viewBox="0 0 180 31" fill="none" xmlns="http://www.w3.org/2000/svg" className="mt-6 max-w-full h-auto">
+      <div className="bg-[#242424] text-white">
+        <div className="relative max-w-[1400px] mx-auto pb-16 px-6 sm:px-10 overflow-hidden">
+          <div className="mt-8 pt-16 py-6 border-t-[1px] border-t-[#555555] flex flex-row justify-between items-end md:items-center gap-4">
+            <svg width="180" height="31" viewBox="0 0 180 31" fill="none" xmlns="http://www.w3.org/2000/svg" className="max-w-full h-auto">
               <path d="M5.18621 0.541016H0V30.1675H5.18621V0.541016Z" fill="#FEFEFE" />
               <path d="M110.97 24.6777C109.97 24.6777 107.213 24.1429 107.88 20.3163C108.136 19.015 109.612 15.4796 107.838 10.3457C107.397 9.09196 107.266 5.97245 110.911 5.97245H124.873V0.505859H102.926L102.967 30.1383H125.344V24.6777H110.982H110.976H110.97Z" fill="#FEFEFE" />
               <path d="M118.003 12.6758H114.865C113.371 12.6758 112.156 13.8998 112.156 15.4031C112.156 16.9064 113.365 18.1305 114.865 18.1305H118.003C119.498 18.1305 120.713 16.9064 120.713 15.4031C120.713 13.8998 119.504 12.6758 118.003 12.6758Z" fill="#FEFEFE" />
@@ -781,6 +774,9 @@ function Home() {
               <path d="M82.6961 13.7021V18.3428H91.0322C90.1926 24.2193 84.8397 25.1938 83.3154 25.1938C78.7067 25.1938 74.0802 22.3655 74.0802 15.3837C74.0802 12.4187 76.0392 5.59731 83.3392 5.59731C85.2863 5.59731 88.5016 5.8231 92.36 9.4774L96.0695 5.18731C94.5631 3.64241 90.4665 0 83.3392 0C74.9198 0 68.1914 6.04889 68.1914 15.348C68.1914 24.6472 74.366 30.7911 83.3094 30.7911C89.5912 30.7911 93.4258 26.2693 93.4258 24.2015V30.1197H98.0702V13.7853L82.6902 13.6962L82.6961 13.7021Z" fill="#FEFEFE" />
             </svg>
 
+            <span className="text-xs sm:text-sm opacity-50 font-mono uppercase whitespace-nowrap">
+              <a href="https://inngest.com" className="underline">Inngest.com</a> | <span className="underline">©2025</span>
+            </span>
           </div>
 
         </div>
@@ -788,7 +784,7 @@ function Home() {
 
 
 
-    </div >
+    </div>
   );
 }
 
