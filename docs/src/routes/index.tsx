@@ -670,8 +670,8 @@ function Home() {
                 </div>
               ))}
 
-              <div className="text-5xl sm:text-6xl md:text-8xl opacity-25 leading-[1.3]">
-                <a href="https://www.github.com/inngest/stepkit" className="underline" style={{ textDecorationThickness: '5px' }}>
+              <div className="text-4xl sm:text-6xl md:text-8xl leading-[1.15]">
+                <a href="https://www.github.com/inngest/stepkit" className="opacity-25 underline hover:opacity-50 transition-opacity" style={{ textDecorationThickness: '5px' }}>
                   GIT
                   HUB <br />
                   <span className="inline-block relative -left-[12px]">[<UpArrow />]</span>
