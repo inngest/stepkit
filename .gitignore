@@ -3,6 +3,7 @@
 node_modules/
 dist/
 *.tgz
+docs/.env*
 
 # TypeScript build artifacts
 *.tsbuildinfo
