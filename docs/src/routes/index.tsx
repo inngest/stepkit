@@ -643,7 +643,7 @@ function Home() {
       </div>
 
       <div className="bg-[#2C9B63] text-[#242424] pt-8">
-        <div className="max-w-[1400px] mx-auto space-y-16 pb-16 px-6 sm:px-10">
+        <div className="max-w-[1400px] mx-auto space-y-16 pb-42 px-6 sm:px-10">
           <SectionRule name="How it works" className="py-14" />
 
           <section className="px-0">
@@ -653,10 +653,10 @@ function Home() {
                 <div key={step.title} className="space-y-6">
                   <div className="h-[200px] flex items-center">{step.icon}</div>
 
-                  <span className="border-t-[1.5px] border-t-[#242424] block pt-4 mt-6 text-xs uppercase tracking-[0.5em] font-mono">
+                  <span className="border-t-[2px] border-t-[#242424] block pt-4 mt-6 text-ss uppercase tracking-[0.15em]" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 400, fontVariationSettings: '"wght" 400, "MONO" 1, "INKT" 1' }}>
                     STEP — {String(index + 1).padStart(2, '0')}
                   </span>
-                  <h3 className="uppercase text-xl pb-4 font-mono">
+                  <h3 className="uppercase text-xl pb-4 font-mono border-t-[0.25px] border-t-[#242424] pt-2">
                     {step.title}
                   </h3>
                   <p>{step.description}</p>
@@ -665,13 +665,13 @@ function Home() {
                     params={{ _splat: '' }}
                     className="inline-flex items-center text-xs uppercase tracking-[0.3em] underline font-mono"
                   >
-                    READ_DOCS →
+                    READ DOCS<img src="/img/arrow.svg" alt="" className="inline h-3 w-auto ml-0.5" />
                   </Link>
                 </div>
               ))}
 
               <div className="text-5xl sm:text-6xl md:text-8xl opacity-25 leading-[1.3]">
-                <a href="https://www.github.com/inngest/stepkit" className="underline">
+                <a href="https://www.github.com/inngest/stepkit" className="underline" style={{ textDecorationThickness: '5px' }}>
                   GIT
                   HUB <br />
                   <span className="inline-block relative -left-[12px]">[<UpArrow />]</span>
