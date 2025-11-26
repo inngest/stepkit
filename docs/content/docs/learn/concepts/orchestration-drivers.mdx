@@ -12,6 +12,20 @@ The same workflow code works across all drivers. Only the client initialization 
 
 ## Available Drivers
 
+### Inngest Driver
+
+Production-grade orchestration on the Inngest platform. Handles event-driven triggers, observability, retries, and deployment at scale. **Recommended for production.**
+
+```typescript
+import { InngestClient } from "@stepkit/inngest";
+
+const client = new InngestClient({ id: "my-app" });
+```
+
+**Use for:** Production deployments, event-driven workflows, team collaboration
+
+[Inngest Driver Guide →](/docs/learn/driver-guides/inngest-driver)
+
 ### In-Memory Driver
 
 Runs workflows entirely in memory with no persistence. Perfect for **testing and development** when you need fast iteration without files or databases.
@@ -40,24 +54,10 @@ const client = new FileSystemClient({ baseDir: "./.stepkit" });
 
 [Filesystem Driver Guide →](/docs/learn/driver-guides/filesystem-driver)
 
-### Inngest Driver
-
-Production-grade orchestration on the Inngest platform. Handles event-driven triggers, observability, retries, and deployment at scale. **Recommended for production.**
-
-```typescript
-import { Client } from "@stepkit/inngest";
-
-const client = new Client({ id: "my-app" });
-```
-
-**Use for:** Production deployments, event-driven workflows, team collaboration
-
-[Inngest Driver Guide →](/docs/learn/driver-guides/inngest-driver)
-
 ## Choosing a driver
 
-- **Building and testing?** Start with In-Memory or Filesystem
-- **Deploying to production?** Use Inngest
+- **Getting started?** Use Inngest for the best development experience and production deployment
+- **Building and testing?** In-Memory or Filesystem work great for local iteration
 - **Need event triggers or long-running workflows?** Use Inngest
 
 The driver is just infrastructure. Your workflow code stays the same.

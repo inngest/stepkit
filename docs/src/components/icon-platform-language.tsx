@@ -5,7 +5,7 @@ interface PlatformLanguageIconProps {
 export function PlatformLanguageIcon({ className }: PlatformLanguageIconProps) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="138" height="160" fill="none" viewBox="0 0 138 160">
-      <g stroke="#242424" stroke-miterlimit="10" stroke-width=".884" clipPath="url(#a)">
+      <g stroke="#242424" strokeMiterlimit="10" strokeWidth=".884" clipPath="url(#a)">
         <path d="M51.602 10.995v19.472l17.217 9.731 17.227-9.731v-19.72L69.076.514z" />
         <path d="m51.602 10.996 17.217 9.987 17.227-10.235M68.82 20.983V40.2M51.602 70.39v19.472l17.217 9.732 17.227-9.732V70.143l-16.97-10.235z" />
         <path d="m51.602 70.391 17.217 9.988 17.227-10.235M68.82 80.379v19.215M51.602 129.539v19.463l17.217 9.731 17.227-9.731v-19.71l-16.97-10.235z" />

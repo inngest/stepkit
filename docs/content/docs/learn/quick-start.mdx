@@ -11,22 +11,22 @@ This guide will walk you through getting started with StepKit to build and deplo
 
 ## Installation
 
-Install StepKit's core package along with a driver. For this guide, we'll use the [in-memory driver](/docs/learn/driver-guides/in-memory-driver), which is perfect for development and testing.
+Install the StepKit Inngest driver. The Inngest driver gives you the best local development experience with built-in observability through the Inngest Dev Server.
 
 ```bash tab="npm"
-npm install @stepkit/core @stepkit/local
+npm install @stepkit/inngest inngest
 ```
 
 ```bash tab="pnpm"
-pnpm add @stepkit/core @stepkit/local
+pnpm add @stepkit/inngest inngest
 ```
 
 ```bash tab="bun"
-bun add @stepkit/core @stepkit/local
+bun add @stepkit/inngest inngest
 ```
 
 ```bash tab="yarn"
-yarn add @stepkit/core @stepkit/local
+yarn add @stepkit/inngest inngest
 ```
 
 ---
@@ -36,9 +36,11 @@ yarn add @stepkit/core @stepkit/local
 Create a file to initialize your StepKit client, which will be used to create workflows.
 
 ```typescript title="client.ts"
-import { InMemoryClient } from "@stepkit/local";
+import { InngestClient } from "@stepkit/inngest";
 
-export const client = new InMemoryClient();
+export const client = new InngestClient({ 
+  id: "my-app",
+});
 ```
 
 ---
@@ -72,47 +74,47 @@ export const processOrder = client.workflow(
   async ({ input }, step) => {
     // Step 1: Reserve inventory
     const inventory = await step.run("reserve-inventory", async () => {
-      console.log(`Reserving items: ${ctx.input.items.join(", ")}`);
+      console.log(`Reserving items: ${input.data.items.join(", ")}`);
       
       // Simulate inventory check
-      const available = ctx.input.items.every(() => Math.random() > 0.1);
+      const available = input.data.items.every(() => Math.random() > 0.1);
       
       if (!available) {
         throw new Error("Item out of stock - will retry");
       }
       
-      return { reserved: true, items: ctx.input.items };
+      return { reserved: true, items: input.data.items };
     });
 
     // Step 2: Process payment
     const payment = await step.run("process-payment", async () => {
-      console.log(`Processing payment of $${ctx.input.amount}`);
+      console.log(`Processing payment of $${input.data.amount}`);
       
       // Simulate payment processing
       const paymentId = crypto.randomUUID();
       
       return {
         id: paymentId,
-        amount: ctx.input.amount,
+        amount: input.data.amount,
         status: "completed",
       };
     });
 
     // Step 3: Wait 30 seconds before confirmation
     // This doesn't consume any resources while waiting!
-    await step.sleep("wait-before-confirm", 30000);
+    await step.sleep("wait-before-confirm", 7000);
 
     // Step 4: Send confirmation email
     await step.run("send-confirmation", async () => {
-      console.log(`Sending order confirmation to ${ctx.input.email}`);
-      console.log(`Order ${ctx.input.orderId} completed!`);
+      console.log(`Sending order confirmation to ${input.data.email}`);
+      console.log(`Order ${input.data.orderId} completed!`);
       
       return { emailSent: true };
     });
 
     // Return the final result
     return {
-      orderId: ctx.input.orderId,
+      orderId: input.data.orderId,
       paymentId: payment.id,
       status: "completed",
       items: inventory.items,
@@ -140,76 +142,87 @@ export const processOrder = client.workflow(
 Now let's invoke the workflow. Create a file to test it:
 
 ```typescript title="main.ts"
-import { client } from "./client";
-import { processOrder } from "./workflows/process-order";
-
-async function main() {
-  console.log("Starting order processing workflow...\n");
-
-  const result = await client.startWorkflow(processOrder, {
-    orderId: "ORDER-123",
-    items: ["laptop", "mouse", "keyboard"],
-    email: "customer@example.com",
-    amount: 1299.99,
-  });
-
-  console.log("\n✅ Workflow completed!");
-  console.log("Result:", result);
-}
-
-void main();
-```
-
-Run it with:
-
-```bash
-npx tsx main.ts
-# or if using Node.js directly
-node --loader ts-node/esm main.ts
-```
-
-You'll see each step execute in sequence, with a 30-second pause before the confirmation step.
-
----
-
-## Using in Your Application
-
-StepKit workflows can also be integrated into your application's back-end (ex: API):
-
-### API Endpoint (Express)
-
-```typescript title="routes/orders.ts"
 import express from "express";
+import { serve } from "inngest/express";
+import { inngestify } from "@stepkit/inngest";
 import { client } from "./client";
 import { processOrder } from "./workflows/process-order";
 
 const app = express();
+app.use(express.json());
 
-app.post("/api/orders", async (req, res) => {
-  // Start the workflow asynchronously
-  const result = await client.startWorkflow(processOrder, req.body);
-  
-  res.json({
-    message: "Order processing started",
-    orderId: result.orderId,
-  });
+// Mount Inngest endpoint
+app.use("/api/inngest", serve(inngestify(client, [processOrder])));
+
+const PORT = 3000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🔍 Inngest endpoint at http://localhost:${PORT}/api/inngest`);
 });
 ```
 
 ---
 
+## Run the Inngest Dev Server
+
+The Inngest Dev Server provides a local UI for testing, debugging, and observing your workflows.
+
+In one terminal, start your server:
+
+```bash
+npx tsx main.ts
+```
+
+In a second terminal, start the Inngest Dev Server by running:
+
+```bash
+npx inngest-cli@latest dev -u http://localhost:3000/api/inngest
+```
+
+Open [http://localhost:8288](http://localhost:8288) to see the Dev Server UI.
+
+---
+
+## Testing with the Inngest Dev Server
+
+<video controls autoPlay loop muted src="/content/docs/learn/StepKitDevServer.mp4" />
+
+In the Inngest Dev Server:
+
+1. Click on the "Functions" tab
+2. On the `process-order` function, click the "Invoke" button
+3. Enter the test data 
+
+```json
+{
+  "data": {
+    "orderId": "ORDER-123",
+    "items": ["laptop", "mouse", "keyboard"],
+    "email": "customer@example.com",
+    "amount": 1299.99
+  }
+}
+```
+
+4. Click "Invoke Function". You will be navigated to the "Runs" page and you will see your workflow running.
+
+You'll see:
+- Each step execution in real-time
+- Step results and outputs
+- Timing information
+- Retry history if steps fail
+
+---
+
 ## Next Steps
 
-Now that you've built your first workflow, explore more concepts:
+Now that you've built your first workflow, explore more:
 
 - **Learn**: Dive deeper into [Concepts](/docs/learn/concepts/steps) to understand workflows, steps, and orchestration
-- **Drivers**: Explore different [Driver Guides](/docs/learn/driver-guides/in-memory) for your deployment needs
-{/* - **Patterns**: Check out common patterns like parallel execution, long-running workflows, and event handling */}
+- **Deploy**: Check out the [Inngest Driver Guide](/docs/learn/driver-guides/inngest-driver) for deployment options
+- **Examples**: See [real-world examples](/docs/learn/examples/ai-rag-workflow) of AI workflows and more
 
-{/* **Key Takeaways**:
-- ✅ Workflows are durable and resume from checkpoints
-- ✅ Steps are atomic and automatically retry on failure  
-- ✅ State is persisted between steps
-- ✅ Sleep without consuming resources
-- ✅ Deploy anywhere your code runs */}
-
+<Callout type="info">
+**For testing and CLI tools**: If you're building CLI applications or need simple testing, check out the [local drivers](/docs/learn/driver-guides/in-memory-driver) (In-Memory and Filesystem).
+</Callout>
