@@ -65,6 +65,6 @@
   font-family: "WhyteVariable";
   font-style: normal;
   font-weight: 100 900;
-  src: url("/fonts/ABCWhyteVariable.woff2") format("woff2"),
-    url("/fonts/ABCWhyteVariable.woff") format("woff");
+  src: url("/fonts/ABCWhytePlusVariable.woff2") format("woff2"),
+    url("/fonts/ABCWhytePlusVariable.woff") format("woff");
 }

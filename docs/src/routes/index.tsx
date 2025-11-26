@@ -325,7 +325,7 @@ function Home() {
 
           <div className="relative z-10 max-w-[1400px] mx-auto px-6 sm:px-10">
             <div className="pt-20 pb-32 max-w-4xl">
-              <h1 className="text-4xl sm:text-5xl mb-8 leading-tight" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 200, fontVariationSettings: '"wght" 200, "MONO" 1, "INKT" 1' }}>
+              <h1 className="text-4xl sm:text-5xl mb-8 leading-tight" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 300, fontVariationSettings: '"wght" 300, "MONO" 1, "INKT" 1' }}>
                 THE [ OPEN ]
                 <br />
                 WORKFLOW SDK
@@ -530,7 +530,7 @@ function Home() {
                     className="text-xs underline transition-colors"
                     style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 400, fontVariationSettings: '"wght" 400, "MONO" 1, "INKT" 1' }}
                   >
-                    READ DOCS <img src="/img/arrow.svg" alt="" className="inline h-3 w-auto ml-0.5" />
+                    READ DOCS<img src="/img/arrow.svg" alt="" className="inline h-3 w-auto ml-0.5" />
                   </Link>
                 </div>
               ))}

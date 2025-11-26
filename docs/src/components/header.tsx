@@ -13,17 +13,17 @@ interface HeaderProps {
 export function Header({ activeItem }: HeaderProps) {
   return (
     <nav class="w-full pt-6 uppercase tracking-normal font-mono">
-      <div class="grid grid-cols-11 gap-4 items-stretch">
-        <Link to="/" className="h-full flex items-center justify-start space-x-2 border-t-4 border-white pt-2 col-span-3 hover:opacity-70">
+      <div class="grid grid-cols-22 gap-4 items-stretch">
+        <Link to="/" className="h-full flex items-center justify-start space-x-2 border-t-4 border-white pt-2 col-span-7 hover:opacity-70">
           <img src="/logos/stepkit-logo.svg" alt="StepKit" className="h-8 w-auto" />
         </Link>
 
-        <a href="/docs" class="h-full border-t-4 border-white pt-2 flex items-center justify-start text-left space-x-2 col-span-3 hover:opacity-70">
+        <a href="/docs" class="h-full border-t-4 border-white pt-2 flex items-center justify-start text-left space-x-2 col-span-7 hover:opacity-70">
           <svg class="w-2 h-2 fill-white" viewBox="0 0 10 10"><rect width="10" height="10" /></svg>
           <span>Docs</span>
         </a>
 
-        <a href="/docs/learn/examples/ai-rag-workflow" class="h-full border-t-4 border-white pt-2 flex items-center justify-start text-left space-x-2 col-span-3 hover:opacity-70">
+        <a href="/docs/learn/examples/ai-rag-workflow" class="h-full border-t-4 border-white pt-2 flex items-center justify-start text-left space-x-2 col-span-7 hover:opacity-70">
           <svg class="w-2 h-2 fill-white" viewBox="0 0 10 10"><rect width="10" height="10" /></svg>
           <span>Examples</span>
         </a>
