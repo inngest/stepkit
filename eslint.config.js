@@ -4,14 +4,19 @@ import vitest from "eslint-plugin-vitest";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  // Global ignores
+  // Global ignores - must be in its own config object
   {
     ignores: [
       "**/node_modules/**",
       "**/dist/**",
       "**/.tsup/**",
       "**/coverage/**",
+      "docs/**",
     ],
+  },
+
+  // Linter options
+  {
     linterOptions: {
       reportUnusedDisableDirectives: "error",
     },
@@ -28,10 +33,18 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: ["*.config.js"],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
     },
+  },
+
+  // Disable type-checked rules for JS config files (they can't be type-checked)
+  {
+    files: ["**/*.js"],
+    extends: [tseslint.configs.disableTypeChecked],
   },
 
   // Custom rules

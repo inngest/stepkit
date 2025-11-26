@@ -18,6 +18,6 @@
       "@stepkit/inngest": ["packages/inngest/src/main.ts"],
       "@stepkit/local": ["packages/local/src/main.ts"],
       "@stepkit/sdk-tools": ["packages/sdk-tools/src/main.ts"]
-    }
-  }
+    },
+  },
 }

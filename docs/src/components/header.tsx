@@ -34,8 +34,8 @@ export function Header({ activeItem }: HeaderProps) {
         <span>Blog</span>
       </a>
 
-      <a href="#" class="h-full border-t-4 border-white pt-2 flex items-center justify-end text-right space-x-2 hover:opacity-70">
-        <svg class="w-2 h-2 fill-white" viewBox="0 0 10 10"><rect width="10" height="10" /></svg>
+      <a href="#" className="h-full border-t-4 border-white pt-2 flex items-center justify-end text-right space-x-2 hover:opacity-70">
+        <svg className="w-2 h-2 fill-white" viewBox="0 0 10 10"><rect width="10" height="10" /></svg>
         <span>About</span>
       </a>
       */}

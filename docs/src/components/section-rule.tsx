@@ -3,11 +3,11 @@ import { HomeLayout } from 'fumadocs-ui/layouts/home';
 
 export function SectionRule({ name, className = "", border = true }) {
   return (
-    <div className={`max-w-[1400px] mx-auto my-0 ${className}`}>
+    <div className={`max-w-fd-container-[1400px] mx-auto my-0 ${className}`}>
       {border ? (
 
         <div className="relative border-t-[1.5px] border-t-[#242424] py-6">
-          <div aria-hidden="true" className="absolute top-[0px] left-0 h-[3px] w-[18%] bg-[#242424]" />
+          <div aria-hidden="true" className="absolute top-0 left-0 h-[3px] w-[18%] bg-[#242424]" />
           <Content name={name} />
         </div>
       ) : (

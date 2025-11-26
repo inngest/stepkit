@@ -315,15 +315,15 @@ function Home() {
     <div className="min-h-screen">
 
       <div className="bg-[#181818] text-white bg-[url('/img/bg.png')] bg-cover bg-center bg-no-repeat ">
-        <div className="max-w-[1400px] mx-auto px-6 sm:px-10 pt-8 pb-8">
+        <div className="max-w-fd-container-[1400px] mx-auto px-6 sm:px-10 pt-8 pb-8">
           <Header />
         </div>
 
         {/* Hero */}
         <section className="relative w-full overflow-hidden min-h-[500px]">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#181818]/70 via-transparent to-[#181818]/40" aria-hidden="true" />
+          <div className="absolute inset-0 bg-linear-to-br from-[#181818]/70 via-transparent to-[#181818]/40" aria-hidden="true" />
 
-          <div className="relative z-10 max-w-[1400px] mx-auto px-6 sm:px-10">
+          <div className="relative z-10 max-w-fd-container-[1400px] mx-auto px-6 sm:px-10">
             <div className="pt-20 pb-32 max-w-4xl">
               <h1 className="text-4xl sm:text-5xl mb-8 leading-tight" style={{ fontFamily: '"WhyteVariable", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif', fontWeight: 300, fontVariationSettings: '"wght" 300, "MONO" 1, "INKT" 1' }}>
                 THE [ OPEN ]
@@ -369,7 +369,7 @@ function Home() {
 
       <div className="bg-[#E2E2E2] text-[#242424]">
 
-        <div className="max-w-[1400px] mx-auto space-y-16 pb-16 px-6 sm:px-10">
+        <div className="max-w-fd-container-[1400px] mx-auto space-y-16 pb-16 px-6 sm:px-10">
 
           {/* Testimonial */}
 
@@ -561,7 +561,7 @@ function Home() {
       </div>
 
       <div className="bg-[#E2E2E2] text-[#242424]">
-        <div className="max-w-[1400px] mx-auto pt-8 pb-4 px-6 sm:px-10">
+        <div className="max-w-fd-container-[1400px] mx-auto pt-8 pb-4 px-6 sm:px-10">
           <SectionRule name="Build reliable workflows" border={false} className="pt-14 pb-10" />
 
           <p className="text-base leading-relaxed md:max-w-[33%] pb-2">
